@@ -1,10 +1,11 @@
 "use client";
 import useCliente from "../hooks/useCliente";
 import FormularioCliente from "../components/registro-clientes/FormularioCliente";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Header from "../components/common/Header2";
 import { useAuth } from "../hooks/useAuth";
-
+import { useRouter } from "next/navigation";
+import ProtectedRoute from "../components/auth/ProtectedRoute";
 /**
  * Página de registro de clientes.
  *
@@ -15,6 +16,7 @@ import { useAuth } from "../hooks/useAuth";
  *? @return {JSX.Element} La p gina de registro de clientes.
  */
 export default function RegistroClientePage() {
+  const router = useRouter();
   const [menuOpen, setMenuOpen] = useState(false);
 
   const { logout } = useAuth();
@@ -28,21 +30,23 @@ export default function RegistroClientePage() {
   } = useCliente();
 
   return (
-    <div className="min-h-screen flex flex-col bg-gray-100">
-      <Header
-        title="Registro de Clientes"
-        menuOpen={menuOpen}
-        setMenuOpen={setMenuOpen}
-        handleLogout={logout}
-      />
+    <ProtectedRoute>
+      <div className="min-h-screen flex flex-col bg-gray-100">
+        <Header
+          title="Registro de Clientes"
+          menuOpen={menuOpen}
+          setMenuOpen={setMenuOpen}
+          handleLogout={logout}
+        />
 
-      <FormularioCliente
-        clienteData={clienteData}
-        handleInputChange={handleInputChange}
-        handleSubmit={handleSubmit}
-        isSubmitting={isSubmitting}
-        clienteExistente={clienteExistente}
-      />
-    </div>
+        <FormularioCliente
+          clienteData={clienteData}
+          handleInputChange={handleInputChange}
+          handleSubmit={handleSubmit}
+          isSubmitting={isSubmitting}
+          clienteExistente={clienteExistente}
+        />
+      </div>
+    </ProtectedRoute>
   );
 }

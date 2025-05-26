@@ -59,7 +59,7 @@ export default function useCliente() {
     if (name === "ci_cliente" && value.length >= 10) {
       try {
         const res = await fetch(
-          `http://127.0.0.1:8000/api/cliente/buscar_por_ci/?ci_cliente=${value}`,
+          `http://127.0.0.1:8000/api/clientes/ci/?ci=${value}`,
           {
             method: "GET",
             headers: {
@@ -71,10 +71,13 @@ export default function useCliente() {
 
         if (res.ok) {
           const resultado = await res.json();
-          const cliente = resultado.find(
-            (c) => c.ci_cliente.toString() === value.toString()
-          );
-          if (cliente) {
+          const cliente = Array.isArray(resultado)
+            ? resultado.find(
+                (c) => c.ci_cliente.toString() === value.toString()
+              )
+            : resultado;
+
+          if (cliente && cliente.ci_cliente === value) {
             setClienteData({
               ...cliente,
               informacion_cliente: cliente.informacion_cliente || "",
@@ -143,8 +146,8 @@ export default function useCliente() {
 
     try {
       const url = clienteExistente
-        ? `http://127.0.0.1:8000/api/cliente/${clienteData.id}/`
-        : "http://127.0.0.1:8000/api/cliente/";
+        ? `http://127.0.0.1:8000/api/clientes/${clienteData.id}/`
+        : "http://127.0.0.1:8000/api/clientes/";
       const method = clienteExistente ? "PUT" : "POST";
 
       const res = await fetch(url, {

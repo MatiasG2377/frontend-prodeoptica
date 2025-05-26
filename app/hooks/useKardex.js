@@ -41,11 +41,12 @@ export default function useKardex() {
      */
     const fetchProductos = async () => {
       try {
-        const response = await fetch("http://127.0.0.1:8000/api/producto/");
+        const response = await fetch("http://127.0.0.1:8000/api/productos/");
         if (!response.ok) throw new Error("Error al cargar los productos");
         const data = await response.json();
-        setProductos(data);
-        setFilteredProductos(data);
+        const productosData = Array.isArray(data) ? data : data.results || [];
+        setProductos(productosData);
+        setFilteredProductos(productosData);
       } catch (error) {
         console.error(error);
         Swal.fire(
@@ -71,6 +72,14 @@ export default function useKardex() {
   const handleSearch = (term) => {
     const value = term.toLowerCase();
     setSearchTerm(value);
+
+    // Protección adicional: si productos no es un array, detenemos
+    if (!Array.isArray(productos)) {
+      console.error("productos no es un array:", productos);
+      setFilteredProductos([]); // o puedes mostrar un error
+      return;
+    }
+
     const filtered = productos.filter((p) =>
       p.nombre_producto.toLowerCase().includes(value)
     );
@@ -93,40 +102,44 @@ export default function useKardex() {
     setIsLoading(true);
     try {
       const res = await fetch(
-        `http://127.0.0.1:8000/api/kardex/${productoId}/`
+        `http://127.0.0.1:8000/api/kardex/historial/${productoId}/`
       );
       if (res.status === 404 || !res.ok) {
-        Swal.fire(
-          "Información",
-          "No hay movimientos registrados para este producto.",
-          "info"
-        );
+        Swal.fire({
+          icon: "info",
+          title: "Información",
+          text: "No hay movimientos registrados para este producto.",
+          confirmButtonColor: "#712b39",
+        });
         setKardexMovimientos([]);
         return;
       }
       const data = await res.json();
       if (!data.length) {
-        Swal.fire(
-          "Información",
-          "No hay movimientos registrados para este producto.",
-          "info"
-        );
+        Swal.fire({
+          icon: "info",
+          title: "Información",
+          text: "No hay movimientos registrados para este producto.",
+          confirmButtonColor: "#712b39",
+        });
         setKardexMovimientos([]);
         return;
       }
       setKardexMovimientos(data);
-      Swal.fire(
-        "Éxito",
-        "Movimientos del Kardex cargados correctamente.",
-        "success"
-      );
+      Swal.fire({
+        icon: "success",
+        title: "Éxito",
+        text: "Movimientos del Kardex cargados correctamente.",
+        confirmButtonColor: "#712b39",
+      });
     } catch (error) {
       console.error(error);
-      Swal.fire(
-        "Error",
-        "No se pudo cargar los movimientos del Kardex.",
-        "error"
-      );
+      Swal.fire({
+        icon: "error",
+        title: "Error",
+        text: "No se pudo cargar los movimientos del Kardex.",
+        confirmButtonColor: "#712b39",
+      });
       setKardexMovimientos([]);
     } finally {
       setIsLoading(false);

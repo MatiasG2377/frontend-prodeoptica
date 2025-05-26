@@ -1,5 +1,5 @@
-'use client';
-import { useRouter } from 'next/navigation';
+"use client";
+import { useRouter } from "next/navigation";
 
 export default function Header({ title, menuOpen, setMenuOpen, handleLogout }) {
   const router = useRouter();
@@ -20,28 +20,64 @@ export default function Header({ title, menuOpen, setMenuOpen, handleLogout }) {
       {menuOpen && (
         <div className="absolute top-16 left-0 bg-white shadow-lg rounded-lg w-64 z-50">
           <ul className="flex flex-col text-black">
-            <li className="p-4 hover:bg-gray-200 cursor-pointer" onClick={() => router.push('/inventario')}>
+            <li
+              className="p-4 hover:bg-gray-200 cursor-pointer"
+              onClick={() => router.push("/inventario")}
+            >
               Gestión de Productos
             </li>
-            <li className="p-4 hover:bg-gray-200 cursor-pointer" onClick={() => router.push('/ingresos')}>
+            <li
+              className="p-4 hover:bg-gray-200 cursor-pointer"
+              onClick={() => router.push("/ingresos")}
+            >
               Entradas al Inventario
             </li>
-            <li className="p-4 hover:bg-gray-200 cursor-pointer" onClick={() => router.push('/registro-clientes')}>
+            <li
+              className="p-4 hover:bg-gray-200 cursor-pointer"
+              onClick={() => router.push("/registro-clientes")}
+            >
               Registro de Clientes
             </li>
-            <li className="p-4 hover:bg-gray-200 cursor-pointer" onClick={() => router.push('/visualizacion-reportes')}>
+            <li
+              className="p-4 hover:bg-gray-200 cursor-pointer"
+              onClick={() => router.push("/visualizacion-reportes")}
+            >
               Visualización de Reportes
             </li>
-            <li className="p-4 hover:bg-gray-200 cursor-pointer" onClick={() => router.push('/dashboard')}>
+            <li
+              className="p-4 hover:bg-gray-200 cursor-pointer"
+              onClick={() => router.push("/dashboard")}
+            >
               Venta
             </li>
-            <li className="p-4 hover:bg-gray-200 cursor-pointer" onClick={() => router.push('/kardex')}>
+            <li
+              className="p-4 hover:bg-gray-200 cursor-pointer"
+              onClick={() => router.push("/kardex")}
+            >
               Kardex
             </li>
-            <li className="p-4 hover:bg-gray-200 cursor-pointer" onClick={() => router.push('/register')}>
+            <li
+              className="p-4 hover:bg-gray-200 cursor-pointer"
+              onClick={() => router.push("/ficha-medica")}
+            >
+              Fichas Médicas
+            </li>
+            <li
+              className="p-4 hover:bg-gray-200 cursor-pointer"
+              onClick={() => router.push("/abonos")}
+            >
+              Abonos
+            </li>
+            <li
+              className="p-4 hover:bg-gray-200 cursor-pointer"
+              onClick={() => router.push("/register")}
+            >
               Registrar usuario
             </li>
-            <li className="p-4 hover:bg-gray-200 cursor-pointer" onClick={handleLogout}>
+            <li
+              className="p-4 hover:bg-gray-200 cursor-pointer"
+              onClick={handleLogout}
+            >
               Cerrar Sesión
             </li>
           </ul>

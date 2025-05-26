@@ -1,15 +1,15 @@
-'use client';
+"use client";
 
-import { useEffect, useState } from 'react';
-import { useRouter } from 'next/navigation';
+import { useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
 
-import { useAuth } from '../hooks/useAuth';
-import useVenta from '../hooks/useVenta';
+import { useAuth } from "../hooks/useAuth";
+import useVenta from "../hooks/useVenta";
 
-import VentaMenu from '../components/venta/VentaMenu';
-import ClienteForm from '../components/venta/ClienteForm';
-import CartResumenVenta from '../components/venta/CartResumenVenta';
-import AbonoInicialForm from '../components/venta/AbonoForm';
+import VentaMenu from "../components/venta/VentaMenu";
+import ClienteForm from "../components/venta/ClienteForm";
+import CartResumenVenta from "../components/venta/CartResumenVenta";
+import AbonoInicialForm from "../components/venta/AbonoForm";
 
 export default function VentaPage() {
   const router = useRouter();
@@ -26,38 +26,40 @@ export default function VentaPage() {
     metodoVenta,
     setMetodoVenta,
     progreso,
+    laboratorioVenta, // ✅ AGREGA ESTO
+    setLaboratorioVenta,
   } = useVenta();
 
   const [abonoInicial, setAbonoInicial] = useState(false);
-  const [montoAbono, setMontoAbono] = useState('');
-  const [metodoAbono, setMetodoAbono] = useState('Efectivo');
+  const [montoAbono, setMontoAbono] = useState("");
+  const [metodoAbono, setMetodoAbono] = useState("Efectivo");
 
   useEffect(() => {
     const handleKeyDown = (event) => {
-      if (event.ctrlKey && event.altKey && event.key === '1') {
+      if (event.ctrlKey && event.altKey && event.key === "1") {
         event.preventDefault();
         document.querySelector('[name="ci_cliente"]')?.focus();
-      } else if (event.ctrlKey && event.altKey && event.key === 'Enter') {
+      } else if (event.ctrlKey && event.altKey && event.key === "Enter") {
         event.preventDefault();
-        document.querySelector('#submitButton')?.click();
-      } else if (event.ctrlKey && event.altKey && event.key === '2') {
+        document.querySelector("#submitButton")?.click();
+      } else if (event.ctrlKey && event.altKey && event.key === "2") {
         event.preventDefault();
         handleCancel();
       }
     };
 
-    window.addEventListener('keydown', handleKeyDown);
-    return () => window.removeEventListener('keydown', handleKeyDown);
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
   }, [handleCancel]);
 
   const enhancedHandleSubmit = async () => {
     if (cart.length === 0) {
-      alert('Debe agregar productos al carrito antes de registrar la venta.');
+      alert("Debe agregar productos al carrito antes de registrar la venta.");
       return;
     }
 
     if (!clienteData.ci_cliente || !clienteData.nombre_cliente) {
-      alert('Debe completar los datos del cliente.');
+      alert("Debe completar los datos del cliente.");
       return;
     }
 
@@ -78,6 +80,8 @@ export default function VentaPage() {
         handleInputChange={handleInputChange}
         metodoVenta={metodoVenta}
         setMetodoVenta={setMetodoVenta}
+        laboratorioVenta={laboratorioVenta}
+        setLaboratorioVenta={setLaboratorioVenta}
         progreso={progreso}
       />
 
@@ -92,18 +96,17 @@ export default function VentaPage() {
 
       <br />
       <CartResumenVenta
-  cart={cart}
-  isSubmitting={isSubmitting}
-  handleSubmit={() =>
-    enhancedHandleSubmit({
-      abonoInicial,
-      montoAbono,
-      metodoAbono,
-    })
-  }
-  handleCancel={handleCancel}
-/>
-
+        cart={cart}
+        isSubmitting={isSubmitting}
+        handleSubmit={() =>
+          enhancedHandleSubmit({
+            abonoInicial,
+            montoAbono,
+            metodoAbono,
+          })
+        }
+        handleCancel={handleCancel}
+      />
     </div>
   );
 }

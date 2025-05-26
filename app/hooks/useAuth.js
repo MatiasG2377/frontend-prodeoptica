@@ -13,19 +13,28 @@ export function useAuth({ redirectToLogin = true } = {}) {
       ? localStorage.getItem("refresh_token")
       : null;
 
-  // Obtener datos del usuario cuando hay token
   useEffect(() => {
-    if (accessToken) {
-      try {
-        const payload = JSON.parse(atob(accessToken.split(".")[1]));
-        setUser(payload); // el payload debe incluir id y sucursal
-      } catch (error) {
-        console.error("Error al decodificar token:", error);
-      }
-    } else if (redirectToLogin) {
-      router.push("/login");
+    if (!accessToken) {
+      if (redirectToLogin) router.push("/login");
+      return;
     }
-  }, [accessToken, redirectToLogin, router]);
+
+    try {
+      const usuario = JSON.parse(localStorage.getItem("usuario_info"));
+      if (usuario?.id && usuario?.username_usuario && usuario?.sucursal) {
+        setUser({
+          id: usuario.id,
+          username: usuario.username_usuario,
+          sucursal: usuario.sucursal,
+        });
+      } else {
+        throw new Error("Datos incompletos");
+      }
+    } catch (error) {
+      console.error("Error cargando usuario desde localStorage:", error);
+      if (redirectToLogin) router.push("/login");
+    }
+  }, [accessToken]);
 
   const logout = async () => {
     if (!refreshToken) {
@@ -35,7 +44,7 @@ export function useAuth({ redirectToLogin = true } = {}) {
     }
 
     try {
-      const res = await fetch("http://127.0.0.1:8000/api/logout/", {
+      const res = await fetch("http://localhost:8000/api/logout/", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -46,6 +55,7 @@ export function useAuth({ redirectToLogin = true } = {}) {
 
       localStorage.removeItem("access_token");
       localStorage.removeItem("refresh_token");
+      localStorage.removeItem("usuario_info");
 
       if (res.ok) {
         Swal.fire({

@@ -1,21 +1,27 @@
-import { useState, useEffect } from 'react';
-import Swal from 'sweetalert2';
-import { useRouter } from 'next/navigation';
-import { isValidCI, isValidEmail, isValidPhone, calculateCartTotal } from '../utils/ventaHelpers';
+import { useState, useEffect } from "react";
+import Swal from "sweetalert2";
+import { useRouter } from "next/navigation";
+import {
+  isValidCI,
+  isValidEmail,
+  isValidPhone,
+  calculateCartTotal,
+} from "../utils/ventaHelpers";
 
 export default function useVenta() {
   const router = useRouter();
   const [cart, setCart] = useState([]);
+  const [laboratorioVenta, setLaboratorioVenta] = useState("");
   const [clienteData, setClienteData] = useState({
-    ci_cliente: '',
-    nombre_cliente: '',
-    telefono_cliente: '',
-    correo_cliente: '',
-    direccion_cliente: '',
-    informacion_cliente: '',
+    ci_cliente: "",
+    nombre_cliente: "",
+    telefono_cliente: "",
+    correo_cliente: "",
+    direccion_cliente: "",
+    informacion_cliente: "",
   });
   const [clienteExistente, setClienteExistente] = useState(false);
-  const [metodoVenta, setMetodoVenta] = useState('Efectivo');
+  const [metodoVenta, setMetodoVenta] = useState("Efectivo");
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [progreso, setProgreso] = useState(1);
 
@@ -23,13 +29,13 @@ export default function useVenta() {
   const sucursalVenta = 1;
 
   useEffect(() => {
-    const token = localStorage.getItem('access_token');
+    const token = localStorage.getItem("access_token");
     if (!token) {
-      router.push('/login');
+      router.push("/login");
       return;
     }
 
-    const storedCart = localStorage.getItem('cart');
+    const storedCart = localStorage.getItem("cart");
     if (storedCart) {
       setCart(JSON.parse(storedCart));
     }
@@ -52,37 +58,63 @@ export default function useVenta() {
     const updated = { ...clienteData, [name]: value };
     setClienteData(updated);
 
-    if (name === 'ci_cliente' && value.length >= 10) {
+    if (name === "ci_cliente" && value.length >= 10) {
       try {
-        const res = await fetch(`http://127.0.0.1:8000/api/cliente/buscar_por_ci/?ci_cliente=${value}`, {
-          headers: {
-            Authorization: `Bearer ${localStorage.getItem('access_token')}`,
-            'Content-Type': 'application/json',
-          },
-        });
+        const res = await fetch(
+          `http://127.0.0.1:8000/api/clientes/ci/?ci=${value}`,
+          {
+            headers: {
+              Authorization: `Bearer ${localStorage.getItem("access_token")}`,
+              "Content-Type": "application/json",
+            },
+          }
+        );
 
         if (res.ok) {
           const resultado = await res.json();
-          const cliente = resultado.find(c => c.ci_cliente.toString() === value.toString());
+          const cliente = resultado;
+
+          if (cliente && cliente.ci_cliente === value) {
+            setClienteData({
+              ...cliente,
+              informacion_cliente: cliente.informacion_cliente || "",
+            });
+            setClienteExistente(true);
+            Swal.fire({
+              icon: "info",
+              title: "Cliente encontrado",
+              text: "Los datos han sido cargados para edición.",
+              confirmButtonColor: "#712b39",
+            });
+            return;
+          }
 
           if (cliente) {
             setClienteData({
               ...cliente,
-              informacion_cliente: cliente.informacion_cliente || '',
+              informacion_cliente: cliente.informacion_cliente || "",
             });
             setClienteExistente(true);
-            Swal.fire('Cliente encontrado', 'Se han cargado los datos.', 'info');
+            Swal.fire(
+              "Cliente encontrado",
+              "Se han cargado los datos.",
+              "info"
+            );
           } else {
             setClienteExistente(false);
           }
         }
       } catch (error) {
-        console.error('Error al buscar el cliente:', error);
+        console.error("Error al buscar el cliente:", error);
       }
     }
   };
 
-  const handleSubmit = async ({ abonoInicial = false, montoAbono = '', metodoAbono = 'Efectivo' } = {}) => {
+  const handleSubmit = async ({
+    abonoInicial = false,
+    montoAbono = "",
+    metodoAbono = "Efectivo",
+  } = {}) => {
     if (
       !isValidCI(clienteData.ci_cliente) ||
       !clienteData.nombre_cliente ||
@@ -90,29 +122,34 @@ export default function useVenta() {
       !isValidEmail(clienteData.correo_cliente) ||
       !clienteData.direccion_cliente
     ) {
-      Swal.fire('Error', 'Complete todos los campos correctamente.', 'error');
+      Swal.fire("Error", "Complete todos los campos correctamente.", "error");
       return;
     }
 
     setIsSubmitting(true);
     try {
-      let cliente = clienteExistente ? clienteData : await registrarCliente(clienteData);
+      let cliente = clienteExistente
+        ? clienteData
+        : await registrarCliente(clienteData);
       const total = calculateCartTotal(cart);
 
       const venta = await registrarVenta(cliente.id, total);
-      await Promise.all(cart.map((producto) => procesarProducto(venta.id, producto)));
+      await Promise.all(
+        cart.map((producto) => procesarProducto(venta.id, producto))
+      );
 
       // Registrar abono si corresponde
       if (abonoInicial && parseFloat(montoAbono) > 0) {
-        console.log('Registrando abono:', {
+        console.log("Registrando abono:", {
           ventaId: venta?.id,
           clienteId: cliente?.id,
         });
-        
-        await fetch('http://127.0.0.1:8000/api/abono/', {
-          method: 'POST',
+
+        const res = await fetch("http://127.0.0.1:8000/api/abonos/", {
+          method: "POST",
           headers: {
-            'Content-Type': 'application/json',
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${localStorage.getItem("access_token")}`,
           },
           body: JSON.stringify({
             venta: venta.id,
@@ -121,27 +158,49 @@ export default function useVenta() {
             metodo_pago: metodoAbono,
           }),
         });
+
+        if (!res.ok) {
+          const err = await res.text();
+          console.error("Error al guardar abono:", err);
+          await Swal.fire({
+            icon: "error",
+            title: "Error al registrar el abono",
+            text: err || "Ocurrió un error inesperado.",
+            confirmButtonColor: "#712b39",
+          });
+          throw new Error("Error al guardar abono");
+        }
       }
 
-      Swal.fire('Éxito', 'La venta se ha registrado correctamente.', 'success').then(() => {
-        router.push('/dashboard');
+      Swal.fire({
+        title: "Éxito",
+        text: "La venta se ha registrado correctamente.",
+        icon: "success",
+        confirmButtonText: "Aceptar",
+        customClass: {
+          confirmButton:
+            "bg-[#712b39] hover:bg-[#5e242e] text-white px-4 py-2 rounded-md",
+        },
+        buttonsStyling: false, // OBLIGATORIO para que customClass funcione
+      }).then(() => {
+        router.push("/dashboard");
       });
 
-      localStorage.removeItem('cart');
+      localStorage.removeItem("cart");
       setCart([]);
       setClienteData({
-        ci_cliente: '',
-        nombre_cliente: '',
-        telefono_cliente: '',
-        correo_cliente: '',
-        direccion_cliente: '',
-        informacion_cliente: '',
+        ci_cliente: "",
+        nombre_cliente: "",
+        telefono_cliente: "",
+        correo_cliente: "",
+        direccion_cliente: "",
+        informacion_cliente: "",
       });
       setClienteExistente(false);
       setProgreso(3);
     } catch (error) {
       console.error(error);
-      Swal.fire('Error', 'Ocurrió un error al registrar la venta.', 'error');
+      Swal.fire("Error", "Ocurrió un error al registrar la venta.", "error");
     } finally {
       setIsSubmitting(false);
     }
@@ -149,56 +208,59 @@ export default function useVenta() {
 
   const handleCancel = () => {
     Swal.fire({
-      title: '¿Cancelar?',
-      text: '¿Seguro que deseas cancelar la operación?',
-      icon: 'warning',
+      title: "¿Cancelar?",
+      text: "¿Seguro que deseas cancelar la operación?",
+      icon: "warning",
       showCancelButton: true,
-      confirmButtonColor: '#712b39',
-      cancelButtonColor: '#D1D5DB',
-      confirmButtonText: 'Sí, cancelar',
-      cancelButtonText: 'No, regresar',
+      confirmButtonColor: "#712b39",
+      cancelButtonColor: "#D1D5DB",
+      confirmButtonText: "Sí, cancelar",
+      cancelButtonText: "No, regresar",
     }).then((result) => {
-      if (result.isConfirmed) router.push('/dashboard');
+      if (result.isConfirmed) router.push("/dashboard");
     });
   };
 
   const registrarCliente = async (data) => {
-    const res = await fetch('http://127.0.0.1:8000/api/cliente/', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+    const res = await fetch("http://127.0.0.1:8000/api/clientes/", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
       body: JSON.stringify(data),
     });
-    if (!res.ok) throw new Error('Error al registrar el cliente');
+    if (!res.ok) throw new Error("Error al registrar el cliente");
     return await res.json();
   };
 
   const registrarVenta = async (clienteId, total) => {
-    const res = await fetch('http://127.0.0.1:8000/api/venta/', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+    const res = await fetch("http://127.0.0.1:8000/api/ventas/", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
         cliente_venta: clienteId,
         usuario_venta: usuarioVenta,
         sucursal_venta: sucursalVenta,
         total_venta: total,
-        estado_venta: 'F',
+        estado_venta: "F",
         metodo_venta: metodoVenta,
+        laboratorio_venta: laboratorioVenta, // <--- aquí
       }),
     });
-    if (!res.ok) throw new Error('Error al registrar la venta');
+    if (!res.ok) throw new Error("Error al registrar la venta");
     return await res.json();
   };
 
   const procesarProducto = async (ventaId, producto) => {
     const cantidad = producto.cantidad || 1;
 
-    const resProd = await fetch(`http://127.0.0.1:8000/api/producto/${producto.id}/`);
+    const resProd = await fetch(
+      `http://127.0.0.1:8000/api/productos/${producto.id}/`
+    );
     const productoActualizado = await resProd.json();
     const nuevoStock = productoActualizado.cantidad_producto - cantidad;
 
-    await fetch('http://127.0.0.1:8000/api/articuloventa/', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+    await fetch("http://127.0.0.1:8000/api/articulos-venta/", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
         venta_articuloVenta: ventaId,
         producto_articuloVenta: producto.id,
@@ -208,24 +270,24 @@ export default function useVenta() {
       }),
     });
 
-    await fetch('http://127.0.0.1:8000/api/movimiento/', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+    await fetch("http://127.0.0.1:8000/api/movimientos-inventario/", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
         producto_movimientoInventario: producto.id,
         usuario_movimientoInventario: usuarioVenta,
-        tipo_movimientoInventario: 'Salida',
+        tipo_movimientoInventario: "Salida",
         cantidad_movimientoInventario: cantidad,
-        motivo_movimientoInventario: 'Venta realizada',
+        motivo_movimientoInventario: "Venta realizada",
       }),
     });
 
-    await fetch('http://127.0.0.1:8000/api/kardex/', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+    await fetch("http://127.0.0.1:8000/api/kardex/", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
         producto_kardex: producto.id,
-        tipo_kardex: 'Salida',
+        tipo_kardex: "Salida",
         cantidad_kardex: cantidad,
         costo_unitario_kardex: producto.costo_producto,
         costo_total_kardex: producto.costo_producto * cantidad,
@@ -235,9 +297,9 @@ export default function useVenta() {
       }),
     });
 
-    await fetch(`http://127.0.0.1:8000/api/producto/${producto.id}/`, {
-      method: 'PATCH',
-      headers: { 'Content-Type': 'application/json' },
+    await fetch(`http://127.0.0.1:8000/api/productos/${producto.id}/`, {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
         cantidad_producto: nuevoStock,
       }),
@@ -254,5 +316,7 @@ export default function useVenta() {
     metodoVenta,
     setMetodoVenta,
     progreso,
+    laboratorioVenta,
+    setLaboratorioVenta,
   };
 }

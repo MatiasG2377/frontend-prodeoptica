@@ -8,7 +8,7 @@ export function useAbonos(API_URL) {
   const fetchAbonos = async () => {
     setLoading(true);
     try {
-      const res = await fetch(`${API_URL}/abono/`);
+      const res = await fetch(`${API_URL}/abonos/`);
       if (!res.ok) throw new Error("Error al obtener los abonos");
       const data = await res.json();
 

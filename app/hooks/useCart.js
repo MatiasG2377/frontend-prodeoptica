@@ -51,29 +51,41 @@ export function useCart() {
    *     vender.
    */
   const addToCart = (product) => {
-    if (product.cantidad_producto <= product.minimo_producto) {
+    const existingIndex = cart.findIndex((item) => item.id === product.id);
+
+    // Cuántos ya hay en el carrito de este producto
+    const cantidadEnCarrito =
+      existingIndex >= 0 ? cart[existingIndex].cantidad : 0;
+    const nuevaCantidadTotal = cantidadEnCarrito + 1;
+
+    // Validar si controla stock y estamos alcanzando el stock mínimo
+    if (
+      product.controla_stock &&
+      product.cantidad_producto - nuevaCantidadTotal <= product.minimo_producto
+    ) {
       Swal.fire({
-        title: "Stock bajo",
-        text: `El producto "${product.nombre_producto}" tiene un stock bajo (${product.cantidad_producto} disponibles).`,
+        title: "Alerta de stock",
+        text: `El producto "${
+          product.nombre_producto
+        }" está por debajo del stock mínimo (${
+          product.minimo_producto
+        }). Solo quedan ${
+          product.cantidad_producto - cantidadEnCarrito
+        } unidades disponibles.`,
         icon: "warning",
         confirmButtonColor: "#712b39",
       });
     }
 
-    const existingProductIndex = cart.findIndex(
-      (item) => item.id === product.id
-    );
-    let newCart;
-
-    if (existingProductIndex >= 0) {
-      newCart = cart.map((item, index) =>
-        index === existingProductIndex
-          ? { ...item, cantidad: item.cantidad + 1 }
-          : item
-      );
-    } else {
-      newCart = [...cart, { ...product, cantidad: 1 }];
-    }
+    // Agregar o actualizar en el carrito
+    const newCart =
+      existingIndex >= 0
+        ? cart.map((item, i) =>
+            i === existingIndex
+              ? { ...item, cantidad: item.cantidad + 1 }
+              : item
+          )
+        : [...cart, { ...product, cantidad: 1 }];
 
     setCart(newCart);
     localStorage.setItem("cart", JSON.stringify(newCart));

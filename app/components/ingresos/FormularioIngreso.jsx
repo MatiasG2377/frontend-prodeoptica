@@ -34,6 +34,7 @@ export default function FormularioIngreso({
   selectedProveedor,
   setSelectedProveedor,
   searchProducto,
+  setSearchProducto,
   selectedProducto,
   setSelectedProducto,
   cantidadIngreso,
@@ -42,16 +43,7 @@ export default function FormularioIngreso({
   setCostoUnitario,
   motivo,
   setMotivo,
-  fechaCaducidad,
-  setFechaCaducidad,
-  descripcion,
-  setDescripcion,
-  marca,
-  setMarca,
-  metodoValoracion,
-  setMetodoValoracion,
   isLoading,
-  handleSearchProducto,
   handleIngreso,
 }) {
   return (
@@ -67,7 +59,7 @@ export default function FormularioIngreso({
             className="w-full p-3 border rounded-lg mb-4"
             placeholder="Buscar producto..."
             value={searchProducto}
-            onChange={(e) => handleSearchProducto(e.target.value)}
+            onChange={(e) => setSearchProducto(e.target.value)}
           />
           {filteredProductos.length > 0 && (
             <ul className="max-h-40 overflow-y-auto border rounded-lg shadow-md">
@@ -150,56 +142,6 @@ export default function FormularioIngreso({
             value={motivo}
             onChange={(e) => setMotivo(e.target.value)}
           />
-        </div>
-
-        {/* Fecha de Caducidad y Descripción */}
-        <div className="col-span-1 sm:col-span-2 lg:col-span-2">
-          <label className="block text-gray-700 font-bold mb-2">
-            Fecha de Caducidad
-          </label>
-          <input
-            type="date"
-            className="w-full p-3 border rounded-lg"
-            value={fechaCaducidad}
-            onChange={(e) => setFechaCaducidad(e.target.value)}
-          />
-        </div>
-        <div className="col-span-1 sm:col-span-2 lg:col-span-2">
-          <label className="block text-gray-700 font-bold mb-2">
-            Descripción
-          </label>
-          <textarea
-            className="w-full p-3 border rounded-lg"
-            placeholder="Descripción del producto (opcional)"
-            value={descripcion}
-            onChange={(e) => setDescripcion(e.target.value)}
-          />
-        </div>
-
-        {/* Marca y Valoración */}
-        <div className="col-span-1 sm:col-span-2 lg:col-span-2">
-          <label className="block text-gray-700 font-bold mb-2">Marca</label>
-          <input
-            type="text"
-            className="w-full p-3 border rounded-lg"
-            placeholder="Marca (opcional)"
-            value={marca}
-            onChange={(e) => setMarca(e.target.value)}
-          />
-        </div>
-        <div className="col-span-1 sm:col-span-2 lg:col-span-2">
-          <label className="block text-gray-700 font-bold mb-2">
-            Método de Valoración
-          </label>
-          <select
-            className="w-full p-3 border rounded-lg"
-            value={metodoValoracion}
-            onChange={(e) => setMetodoValoracion(e.target.value)}
-          >
-            <option value="PEPS">PEPS</option>
-            <option value="UEPS">UEPS</option>
-            <option value="Promedio">Promedio</option>
-          </select>
         </div>
       </div>
 

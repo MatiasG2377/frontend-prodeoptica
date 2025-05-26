@@ -19,6 +19,7 @@ export default function HeaderInventario({
   menuOpen,
   setMenuOpen,
   router,
+  handleLogout,
 }) {
   return (
     <div className="relative">
@@ -65,8 +66,11 @@ export default function HeaderInventario({
                 key={path}
                 className="p-4 hover:bg-gray-200 cursor-pointer"
                 onClick={() => {
-                  if (logout) localStorage.clear();
-                  router.push(path);
+                  if (logout) {
+                    handleLogout();
+                  } else {
+                    router.push(path);
+                  }
                 }}
               >
                 {label}

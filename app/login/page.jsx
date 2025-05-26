@@ -1,30 +1,61 @@
 "use client";
-import { useLogin } from "../hooks/useLogin";
+import { useState } from "react";
+import { useRouter } from "next/navigation";
+import Swal from "sweetalert2";
 import LoginForm from "../components/login/LoginForm";
 
-/**
- * Página de inicio de sesión de los empleados.
- *
- * La página tiene un formulario para que los empleados inicien sesión.
- * Los campos del formulario son el nombre de usuario y la contraseña.
- * Al lado derecho de la pantalla hay un botón para acceder al administrador
- * de Django.
- *
- * Si el usuario no existe o la contraseña es incorrecta, se mostrará un
- * mensaje de error.
- *
- *? @return {JSX.Element} La página de inicio de sesión.
- */
 export default function LoginPage() {
-  const { username, password, setUsername, setPassword, handleSubmit } =
-    useLogin();
-  /**
-   * Redirige al usuario a la página de inicio de sesión de Django.
-   *
-   *? @function
-   */
+  const router = useRouter();
+
+  const [username, setUsername] = useState("");
+  const [password, setPassword] = useState("");
+
   const redirectToAdminLogin = () => {
     window.location.href = "http://localhost:8000/admin/login/?next=/admin/";
+  };
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+
+    try {
+      const res = await fetch("http://localhost:8000/api/login/", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ username, password }),
+      });
+
+      const data = await res.json();
+
+      if (!res.ok) {
+        throw new Error(data.detail || "Credenciales incorrectas");
+      }
+
+      // ✅ Guardar tokens y datos del usuario
+      localStorage.setItem("access_token", data.access);
+      localStorage.setItem("refresh_token", data.refresh);
+      localStorage.setItem("usuario_info", JSON.stringify(data.usuario));
+
+      Swal.fire({
+        icon: "success",
+        title: "Sesión iniciada",
+        text: `Bienvenido, ${data.usuario.username_usuario}`,
+        confirmButtonColor: "#712b39",
+        allowOutsideClick: false, // 👈 previene cerrar fuera del modal
+      }).then((result) => {
+        if (result.isConfirmed) {
+          router.push("/dashboard"); // Cambia esta ruta si es otra
+        }
+      });
+    } catch (error) {
+      Swal.fire({
+        icon: "error",
+        title: "Error",
+        text: error.message || "No se pudo iniciar sesión.",
+        confirmButtonColor: "#712b39",
+      });
+    }
   };
 
   return (

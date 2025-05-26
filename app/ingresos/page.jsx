@@ -5,7 +5,8 @@ import Header from "../components/common/Header2";
 import FormularioIngreso from "../components/ingresos/FormularioIngreso";
 import { useAuth } from "../hooks/useAuth";
 import useIngresoProducto from "../hooks/useIngresoProducto";
-
+import { useEffect } from "react";
+import ProtectedRoute from "../components/auth/ProtectedRoute";
 /**
  * Página de ingreso de productos al inventario.
  *
@@ -39,8 +40,6 @@ export default function IngresoProductosPage() {
     setCostoUnitario,
     motivo,
     setMotivo,
-    fechaCaducidad,
-    setFechaCaducidad,
     descripcion,
     setDescripcion,
     marca,
@@ -53,42 +52,42 @@ export default function IngresoProductosPage() {
   } = useIngresoProducto(router);
 
   return (
-    <div className="min-h-screen flex flex-col bg-gray-100">
-      <Header
-        title="Entradas al Inventario"
-        menuOpen={menuOpen}
-        setMenuOpen={setMenuOpen}
-        handleLogout={logout}
-      />
+    <ProtectedRoute>
+      <div className="min-h-screen flex flex-col bg-gray-100">
+        <Header
+          title="Entradas al Inventario"
+          menuOpen={menuOpen}
+          setMenuOpen={setMenuOpen}
+          handleLogout={logout}
+        />
 
-      <FormularioIngreso
-        productos={productos}
-        filteredProductos={filteredProductos}
-        proveedores={proveedores}
-        selectedProveedor={selectedProveedor}
-        setSelectedProveedor={setSelectedProveedor}
-        searchProducto={searchProducto}
-        setSearchProducto={setSearchProducto}
-        selectedProducto={selectedProducto}
-        setSelectedProducto={setSelectedProducto}
-        cantidadIngreso={cantidadIngreso}
-        setCantidadIngreso={setCantidadIngreso}
-        costoUnitario={costoUnitario}
-        setCostoUnitario={setCostoUnitario}
-        motivo={motivo}
-        setMotivo={setMotivo}
-        fechaCaducidad={fechaCaducidad}
-        setFechaCaducidad={setFechaCaducidad}
-        descripcion={descripcion}
-        setDescripcion={setDescripcion}
-        marca={marca}
-        setMarca={setMarca}
-        metodoValoracion={metodoValoracion}
-        setMetodoValoracion={setMetodoValoracion}
-        isLoading={isLoading}
-        handleSearchProducto={handleSearchProducto}
-        handleIngreso={handleIngreso}
-      />
-    </div>
+        <FormularioIngreso
+          productos={productos}
+          filteredProductos={filteredProductos}
+          proveedores={proveedores}
+          selectedProveedor={selectedProveedor}
+          setSelectedProveedor={setSelectedProveedor}
+          searchProducto={searchProducto}
+          setSearchProducto={setSearchProducto}
+          selectedProducto={selectedProducto}
+          setSelectedProducto={setSelectedProducto}
+          cantidadIngreso={cantidadIngreso}
+          setCantidadIngreso={setCantidadIngreso}
+          costoUnitario={costoUnitario}
+          setCostoUnitario={setCostoUnitario}
+          motivo={motivo}
+          setMotivo={setMotivo}
+          descripcion={descripcion}
+          setDescripcion={setDescripcion}
+          marca={marca}
+          setMarca={setMarca}
+          metodoValoracion={metodoValoracion}
+          setMetodoValoracion={setMetodoValoracion}
+          isLoading={isLoading}
+          handleSearchProducto={handleSearchProducto}
+          handleIngreso={handleIngreso}
+        />
+      </div>
+    </ProtectedRoute>
   );
 }

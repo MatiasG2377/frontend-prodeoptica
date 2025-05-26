@@ -40,9 +40,19 @@ export function useRegisterForm(router) {
   const [sucursales, setSucursales] = useState([]);
 
   useEffect(() => {
-    fetch("http://127.0.0.1:8000/api/sucursal/")
+    fetch("http://127.0.0.1:8000/api/sucursales/")
       .then((res) => res.json())
-      .then(setSucursales)
+      .then((data) => {
+        // Asegúrate de que data es un array o extrae lo que necesitas
+        if (Array.isArray(data)) {
+          setSucursales(data);
+        } else if (Array.isArray(data.results)) {
+          setSucursales(data.results);
+        } else {
+          console.error("Formato inesperado de sucursales:", data);
+          setSucursales([]);
+        }
+      })
       .catch(() =>
         Swal.fire({
           icon: "error",
@@ -74,7 +84,7 @@ export function useRegisterForm(router) {
 
       if (!registerRes.ok) throw await registerRes.json();
 
-      await fetch("http://127.0.0.1:8000/api/usuario/", {
+      const usuarioRes = await fetch("http://127.0.0.1:8000/api/usuarios/", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -88,6 +98,13 @@ export function useRegisterForm(router) {
           activo_usuario: true,
         }),
       });
+
+      const usuarioData = await usuarioRes.json();
+
+      if (!usuarioRes.ok) {
+        console.error("Error al registrar usuario:", usuarioData);
+        throw usuarioData;
+      }
 
       Swal.fire({
         icon: "success",

@@ -7,6 +7,7 @@ import { useRegisterForm } from "../hooks/useRegisterForm";
 
 import Header from "../components/common/Header2";
 import RegisterForm from "../components/register/RegisterForm";
+import ProtectedRoute from "../components/auth/ProtectedRoute";
 
 /**
  * Página de registro de usuarios.
@@ -44,46 +45,48 @@ export default function RegisterPage() {
   } = useRegisterForm(router);
 
   return (
-    <div className="min-h-screen bg-gray-100">
-      {/* Header reutilizable */}
-      <Header
-        title="Registro de usuarios"
-        menuOpen={menuOpen}
-        setMenuOpen={setMenuOpen}
-        handleLogout={logout}
-      />
+    <ProtectedRoute>
+      <div className="min-h-screen bg-gray-100">
+        {/* Header reutilizable */}
+        <Header
+          title="Registro de usuarios"
+          menuOpen={menuOpen}
+          setMenuOpen={setMenuOpen}
+          handleLogout={logout}
+        />
 
-      <div className="flex items-center justify-center p-4">
-        <div className="bg-white shadow-md rounded-lg p-8 w-full max-w-4xl">
-          <h1
-            className="text-2xl font-bold mb-6 text-center"
-            style={{ color: "#712b39" }}
-          >
-            Crear Usuario
-          </h1>
+        <div className="flex items-center justify-center p-4">
+          <div className="bg-white shadow-md rounded-lg p-8 w-full max-w-4xl">
+            <h1
+              className="text-2xl font-bold mb-6 text-center"
+              style={{ color: "#712b39" }}
+            >
+              Crear Usuario
+            </h1>
 
-          <RegisterForm
-            username={username}
-            setUsername={setUsername}
-            email={email}
-            setEmail={setEmail}
-            password={password}
-            setPassword={setPassword}
-            nombreUsuario={nombreUsuario}
-            setNombreUsuario={setNombreUsuario}
-            apellidoUsuario={apellidoUsuario}
-            setApellidoUsuario={setApellidoUsuario}
-            telefonoUsuario={telefonoUsuario}
-            setTelefonoUsuario={setTelefonoUsuario}
-            rolUsuario={rolUsuario}
-            setRolUsuario={setRolUsuario}
-            sucursalUsuario={sucursalUsuario}
-            setSucursalUsuario={setSucursalUsuario}
-            sucursales={sucursales}
-            handleSubmit={handleSubmit}
-          />
+            <RegisterForm
+              username={username}
+              setUsername={setUsername}
+              email={email}
+              setEmail={setEmail}
+              password={password}
+              setPassword={setPassword}
+              nombreUsuario={nombreUsuario}
+              setNombreUsuario={setNombreUsuario}
+              apellidoUsuario={apellidoUsuario}
+              setApellidoUsuario={setApellidoUsuario}
+              telefonoUsuario={telefonoUsuario}
+              setTelefonoUsuario={setTelefonoUsuario}
+              rolUsuario={rolUsuario}
+              setRolUsuario={setRolUsuario}
+              sucursalUsuario={sucursalUsuario}
+              setSucursalUsuario={setSucursalUsuario}
+              sucursales={sucursales}
+              handleSubmit={handleSubmit}
+            />
+          </div>
         </div>
       </div>
-    </div>
+    </ProtectedRoute>
   );
 }

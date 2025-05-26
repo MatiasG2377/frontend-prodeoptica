@@ -28,7 +28,7 @@ export function useLogin() {
   const fetchUserId = async (username) => {
     try {
       const res = await fetch(
-        `http://127.0.0.1:8000/api/usuario/obtener-id/?username=${username}`,
+        `http://127.0.0.1:8000/api/usuarios/obtener-id/?username=${username}`,
         {
           headers: {
             "Content-Type": "application/json",

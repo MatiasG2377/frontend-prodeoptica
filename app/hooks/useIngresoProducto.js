@@ -46,7 +46,6 @@ export default function useIngresoProducto(router) {
   const [cantidadIngreso, setCantidadIngreso] = useState(0);
   const [costoUnitario, setCostoUnitario] = useState("");
   const [motivo, setMotivo] = useState("");
-  const [fechaCaducidad, setFechaCaducidad] = useState("");
   const [descripcion, setDescripcion] = useState("");
   const [marca, setMarca] = useState("");
   const [metodoValoracion, setMetodoValoracion] = useState("Promedio");
@@ -58,7 +57,6 @@ export default function useIngresoProducto(router) {
       router.push("/login");
       return;
     }
-    fetchProductos();
     fetchProveedores();
   }, []);
 
@@ -69,10 +67,11 @@ export default function useIngresoProducto(router) {
    * el estado `productos` y `filteredProductos` con los datos de la respuesta.
    */
   const fetchProductos = async () => {
-    const res = await fetch("http://127.0.0.1:8000/api/producto/");
+    const res = await fetch("http://127.0.0.1:8000/api/productos/");
     const data = await res.json();
-    setProductos(data);
-    setFilteredProductos(data);
+    const productosData = Array.isArray(data) ? data : data.results;
+    setProductos(productosData);
+    setFilteredProductos(productosData);
   };
 
   /**
@@ -83,7 +82,7 @@ export default function useIngresoProducto(router) {
    */
 
   const fetchProveedores = async () => {
-    const res = await fetch("http://127.0.0.1:8000/api/proveedor/");
+    const res = await fetch("http://127.0.0.1:8000/api/proveedores/");
     const data = await res.json();
     setProveedores(data);
   };
@@ -94,13 +93,23 @@ export default function useIngresoProducto(router) {
    *
    *? @param {string} term - El término de búsqueda.
    */
-  const handleSearchProducto = (term) => {
+  const handleSearchProducto = async (term) => {
     setSearchProducto(term);
-    setFilteredProductos(
-      productos.filter((producto) =>
-        producto.nombre_producto.toLowerCase().includes(term.toLowerCase())
-      )
-    );
+    if (!term.trim()) {
+      setFilteredProductos([]);
+      return;
+    }
+
+    try {
+      const res = await fetch(
+        `http://127.0.0.1:8000/api/productos/buscar/?q=${term}`
+      );
+      const data = await res.json();
+      setFilteredProductos(Array.isArray(data) ? data : []);
+    } catch (error) {
+      console.error("Error al buscar productos:", error);
+      setFilteredProductos([]);
+    }
   };
 
   /**
@@ -115,7 +124,6 @@ export default function useIngresoProducto(router) {
     setCantidadIngreso(0);
     setCostoUnitario("");
     setMotivo("");
-    setFechaCaducidad("");
     setDescripcion("");
     setMarca("");
     setSelectedProveedor(null);
@@ -187,7 +195,7 @@ export default function useIngresoProducto(router) {
       };
 
       await fetch(
-        `http://127.0.0.1:8000/api/producto/${selectedProducto.id}/`,
+        `http://127.0.0.1:8000/api/productos/${selectedProducto.id}/`,
         {
           method: "PUT",
           headers: { "Content-Type": "application/json" },
@@ -220,35 +228,10 @@ export default function useIngresoProducto(router) {
         referencia_kardex: motivo,
       };
 
-      if (fechaCaducidad) {
-        const resLote = await fetch("http://127.0.0.1:8000/api/lote/", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            producto_lote: selectedProducto.id,
-            cantidad_lote: cantidad,
-            fecha_caducidad_lote: fechaCaducidad,
-          }),
-        });
-
-        const loteData = await resLote.json();
-        kardexPayload.lote_kardex = loteData.id;
-      }
-
       await fetch("http://127.0.0.1:8000/api/kardex/", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(kardexPayload),
-      });
-
-      await fetch("http://127.0.0.1:8000/api/productoproveedor/", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          producto_productoProveedor: selectedProducto.id,
-          proveedor_productoProveedor: selectedProveedor,
-          costo_productoProveedor: costo.toFixed(2),
-        }),
       });
 
       Swal.fire({
@@ -271,6 +254,17 @@ export default function useIngresoProducto(router) {
       setIsLoading(false);
     }
   };
+  useEffect(() => {
+    const timeoutId = setTimeout(() => {
+      if (searchProducto.trim()) {
+        handleSearchProducto(searchProducto);
+      } else {
+        setFilteredProductos([]);
+      }
+    }, 400); // debounce de 400ms
+
+    return () => clearTimeout(timeoutId); // limpia el timeout si cambia el input antes de que termine
+  }, [searchProducto]);
 
   return {
     productos,
@@ -288,8 +282,6 @@ export default function useIngresoProducto(router) {
     setCostoUnitario,
     motivo,
     setMotivo,
-    fechaCaducidad,
-    setFechaCaducidad,
     descripcion,
     setDescripcion,
     marca,
