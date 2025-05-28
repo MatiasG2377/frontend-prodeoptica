@@ -1,3 +1,4 @@
+
 "use client";
 
 import Header from "../components/common/Header2";
@@ -12,60 +13,103 @@ import Swal from "sweetalert2";
 export default function AbonosPage() {
   const { logout } = useAuth();
   const API_URL = "http://127.0.0.1:8000/api";
-const [busqueda, setBusqueda] = useState("");
-const [debouncedBusqueda, setDebouncedBusqueda] = useState("");
-
-  const { abonos, setAbonos, loading, setLoading, fetchAbonos } =
-    useAbonos(API_URL);
-
+  const [busqueda, setBusqueda] = useState("");
+  const [debouncedBusqueda, setDebouncedBusqueda] = useState("");
+  const [fechaInicio, setFechaInicio] = useState("");
+  const [fechaFin, setFechaFin] = useState("");
+  const { abonos, setAbonos, loading, setLoading, fetchAbonos } = useAbonos(API_URL);
   const [abonoSeleccionado, setAbonoSeleccionado] = useState(null);
   const [mostrarModal, setMostrarModal] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
-useEffect(() => {
-  const timer = setTimeout(() => {
-    setDebouncedBusqueda(busqueda);
-  }, 400);
 
-  return () => clearTimeout(timer);
-}, [busqueda]);
-useEffect(() => {
-  const buscarAbonosPorUsuario = async () => {
-    if (!debouncedBusqueda.trim()) {
-      fetchAbonos(); // Si se limpia la búsqueda, mostrar todos
+  // Debounce para búsqueda por nombre
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setDebouncedBusqueda(busqueda);
+    }, 400);
+
+    return () => clearTimeout(timer);
+  }, [busqueda]);
+
+  // Buscar abonos por usuario (nombre) cuando cambia debouncedBusqueda
+  useEffect(() => {
+    const buscarAbonosPorUsuario = async () => {
+      if (!debouncedBusqueda.trim()) {
+        fetchAbonos(); // Si se limpia la búsqueda, mostrar todos
+        return;
+      }
+
+      try {
+        setLoading(true);
+        const res = await fetch(`${API_URL}/abonos/buscar/?q=${debouncedBusqueda}`, {
+          headers: {
+            Authorization: `Bearer ${localStorage.getItem("access_token")}`,
+          },
+        });
+
+        if (!res.ok) throw new Error("Error al buscar usuarios");
+
+        const usuarios = await res.json();
+        const usuariosIds = usuarios.map((u) => u.id);
+
+        // Filtrar los abonos actuales para los clientes encontrados
+        const abonosFiltrados = abonos.filter((abono) =>
+          usuariosIds.includes(abono.cliente?.id || abono.cliente)
+        );
+        setAbonos(abonosFiltrados);
+      } catch (error) {
+        console.error("Error en búsqueda de abonos:", error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    buscarAbonosPorUsuario();
+  }, [debouncedBusqueda]);
+
+  // Carga inicial de abonos
+  useEffect(() => {
+    fetchAbonos();
+  }, []);
+
+  // Función para filtrar abonos por fechas cuando se presiona el botón
+  const filtrarPorFechas = async () => {
+    if (!fechaInicio && !fechaFin) {
+      fetchAbonos(); // Si no hay fechas, carga todo
       return;
     }
 
     try {
       setLoading(true);
-const res = await fetch(`${API_URL}/abonos/buscar/?q=${debouncedBusqueda}`, {
-  headers: {
-    Authorization: `Bearer ${localStorage.getItem("access_token")}`,
-  },
-});
+      const params = new URLSearchParams();
+      if (fechaInicio) params.append("fecha_inicio", fechaInicio);
+      if (fechaFin) params.append("fecha_fin", fechaFin);
 
+      const res = await fetch(`${API_URL}/abonos/fecha/?${params.toString()}`, {
+        headers: {
+          Authorization: `Bearer ${localStorage.getItem("access_token")}`,
+        },
+      });
 
-      if (!res.ok) throw new Error("Error al buscar usuarios");
+      if (!res.ok) throw new Error("Error al filtrar abonos por fechas");
 
-      const usuarios = await res.json();
-      const usuariosIds = usuarios.map((u) => u.id);
-
-      const abonosFiltrados = abonos.filter((abono) =>
-        usuariosIds.includes(abono.cliente?.id || abono.cliente)
-      );
-      setAbonos(abonosFiltrados);
+      const data = await res.json();
+      setAbonos(data.results || data); // si usas paginación, usa data.results
     } catch (error) {
-      console.error("Error en búsqueda de abonos:", error);
+      console.error("Error filtrando abonos por fechas:", error);
     } finally {
       setLoading(false);
     }
   };
 
-  buscarAbonosPorUsuario();
-}, [debouncedBusqueda]);
-
-  useEffect(() => {
+  // Función para limpiar filtros de fecha y recargar abonos
+  const limpiarFiltrosFecha = () => {
+    setFechaInicio("");
+    setFechaFin("");
     fetchAbonos();
-  }, []);
+  };
+
+  // El resto de funciones para editar y abonar
 
   const handleReducirPendiente = async (abono) => {
     const total = parseFloat(abono.venta?.total_venta || 0);
@@ -216,50 +260,76 @@ const res = await fetch(`${API_URL}/abonos/buscar/?q=${debouncedBusqueda}`, {
 
   return (
     <ProtectedRoute>
-    <div className="min-h-screen w-full bg-gray-100">
-      <Header
-        title="Abonos"
-        menuOpen={menuOpen}
-        setMenuOpen={setMenuOpen}
-        handleLogout={logout}
-      />
+      <div className="min-h-screen w-full bg-gray-100">
+        <Header
+          title="Abonos"
+          menuOpen={menuOpen}
+          setMenuOpen={setMenuOpen}
+          handleLogout={logout}
+        />
 
-      <div className="w-full px-6 py-10">
-        <div className="w-full bg-white rounded-xl shadow-lg p-6">
-          <h1 className="text-3xl font-bold text-[#712b39] mb-6">
-            Historial de Abonos
-          </h1>
-<input
-  type="text"
-  placeholder="Buscar por nombre de usuario..."
-  className="w-full mb-4 border rounded px-4 py-2"
-  value={busqueda}
-  onChange={(e) => setBusqueda(e.target.value)}
-/>
+        <div className="w-full px-6 py-10">
+          <div className="w-full bg-white rounded-xl shadow-lg p-6">
+            <h1 className="text-3xl font-bold text-[#712b39] mb-6">Historial de Abonos</h1>
 
-          {loading ? (
-            <p className="text-gray-500">Cargando datos...</p>
-          ) : (
-            <AbonoTabla
-              abonos={abonos}
-              onAbonar={handleReducirPendiente}
-              onEditar={abrirModalEdicion}
-              loading={loading}
+            <input
+              type="text"
+              placeholder="Buscar por nombre de usuario..."
+              className="w-full mb-4 border rounded px-4 py-2"
+              value={busqueda}
+              onChange={(e) => setBusqueda(e.target.value)}
             />
-          )}
 
-          {mostrarModal && abonoSeleccionado && (
-            <AbonoModal
-              abono={abonoSeleccionado}
-              loading={loading}
-              onClose={() => setMostrarModal(false)}
-              onSave={guardarEdicion}
-              onChange={handleChange}
-            />
-          )}
+            <div className="flex flex-wrap gap-4 mb-4">
+              <input
+                type="date"
+                className="border rounded px-4 py-2"
+                value={fechaInicio}
+                onChange={(e) => setFechaInicio(e.target.value)}
+              />
+              <input
+                type="date"
+                className="border rounded px-4 py-2"
+                value={fechaFin}
+                onChange={(e) => setFechaFin(e.target.value)}
+              />
+              <button
+                onClick={filtrarPorFechas}
+                className="bg-[#712b39] text-white px-4 py-2 rounded hover:bg-[#5a222f] transition"
+              >
+                Filtrar por fechas
+              </button>
+              <button
+                onClick={limpiarFiltrosFecha}
+                className="bg-gray-300 text-gray-800 px-4 py-2 rounded hover:bg-gray-400 transition"
+              >
+                Limpiar filtros de fecha
+              </button>
+            </div>
+
+            {loading ? (
+              <p className="text-gray-500">Cargando datos...</p>
+            ) : (
+              <AbonoTabla
+                abonos={abonos}
+                onAbonar={handleReducirPendiente}
+                onEditar={abrirModalEdicion}
+                loading={loading}
+              />
+            )}
+
+            {mostrarModal && abonoSeleccionado && (
+              <AbonoModal
+                abono={abonoSeleccionado}
+                loading={loading}
+                onClose={() => setMostrarModal(false)}
+                onSave={guardarEdicion}
+                onChange={handleChange}
+              />
+            )}
+          </div>
         </div>
       </div>
-    </div>
     </ProtectedRoute>
   );
 }
