@@ -1,7 +1,7 @@
 // components/abonos/AbonoTabla.jsx
 import AbonoFila from "./AbonoFila";
 
-export default function AbonoTabla({ abonos, onAbonar, onEditar, loading }) {
+export default function AbonoTabla({ abonos, onAbonar, onEditar, onVerVenta, loading }) {
   if (abonos.length === 0) {
     return <p className="text-gray-500">No hay abonos pendientes</p>;
   }
@@ -24,12 +24,14 @@ export default function AbonoTabla({ abonos, onAbonar, onEditar, loading }) {
         <tbody>
           {abonos.map((abono) => (
             <AbonoFila
-              key={abono.id}
-              abono={abono}
-              onAbonar={onAbonar}
-              onEditar={onEditar}
-              loading={loading}
-            />
+  key={abono.id}
+  abono={abono}
+  onAbonar={onAbonar}
+  onEditar={onEditar}
+  onVerVenta={onVerVenta}
+  loading={loading}
+/>
+
           ))}
         </tbody>
       </table>

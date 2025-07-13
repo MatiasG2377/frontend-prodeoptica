@@ -35,6 +35,24 @@ export default function Header({
           <ul className="flex flex-col text-black">
             <li
               className="p-4 hover:bg-gray-200 cursor-pointer"
+              onClick={() => router.push("/ficha-medica")}
+            >
+              Fichas Médicas
+            </li>
+            <li
+              className="p-4 hover:bg-gray-200 cursor-pointer"
+              onClick={() => router.push("/dashboard")}
+            >
+              Venta
+            </li>
+            <li
+              className="p-4 hover:bg-gray-200 cursor-pointer"
+              onClick={() => router.push("/abonos")}
+            >
+              Abonos
+            </li>
+            <li
+              className="p-4 hover:bg-gray-200 cursor-pointer"
               onClick={() => router.push("/inventario")}
             >
               Gestión de Productos
@@ -59,27 +77,9 @@ export default function Header({
             </li>
             <li
               className="p-4 hover:bg-gray-200 cursor-pointer"
-              onClick={() => router.push("/dashboard")}
-            >
-              Venta
-            </li>
-            <li
-              className="p-4 hover:bg-gray-200 cursor-pointer"
               onClick={() => router.push("/kardex")}
             >
               Kardex
-            </li>
-            <li
-              className="p-4 hover:bg-gray-200 cursor-pointer"
-              onClick={() => router.push("/ficha-medica")}
-            >
-              Fichas Médicas
-            </li>
-            <li
-              className="p-4 hover:bg-gray-200 cursor-pointer"
-              onClick={() => router.push("/abonos")}
-            >
-              Abonos
             </li>
             <li
               className="p-4 hover:bg-gray-200 cursor-pointer"

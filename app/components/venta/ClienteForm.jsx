@@ -1,3 +1,5 @@
+import { useEffect, useState } from 'react';
+
 export default function ClienteForm({
   clienteData,
   handleInputChange,
@@ -7,6 +9,17 @@ export default function ClienteForm({
   setLaboratorioVenta,
   progreso,
 }) {
+  const [laboratorios, setLaboratorios] = useState([]);
+  useEffect(() => {
+  fetch("http://localhost:8000/api/laboratorios/")
+    .then((res) => res.json())
+    .then((data) => {
+      console.log("Laboratorios cargados:", data);  // para verificar en consola
+      setLaboratorios(data);
+    })
+    .catch((err) => console.error("Error al cargar laboratorios:", err));
+}, []);
+
   return (
     <div className="bg-white p-6 rounded-lg shadow-md mb-6">
       <div className="mb-4">
@@ -48,19 +61,22 @@ export default function ClienteForm({
             <option value="Transferencia">Transferencia</option>
           </select>
         </div>
-        <div>
-          <label className="block font-bold">Laboratorio:</label>
-          <select
-            value={laboratorioVenta}
-            onChange={(e) => setLaboratorioVenta(e.target.value)}
-            className="w-full border p-2 rounded"
-          >
-            <option value="">Seleccionar laboratorio</option>
-            <option value="OptiLab">OptiLab</option>
-            <option value="VisionPlus">VisionPlus</option>
-            <option value="LaboVista">LaboVista</option>
-          </select>
-        </div>
+<div>
+  <label className="block font-bold">Laboratorio:</label>
+  <select
+    value={laboratorioVenta}
+    onChange={(e) => setLaboratorioVenta(e.target.value)}
+    className="w-full border p-2 rounded"
+  >
+    <option value="">Seleccionar laboratorio</option>
+    {laboratorios.map((lab) => (
+      <option key={lab.id} value={lab.id}>
+        {lab.nombre_laboratorio}
+      </option>
+    ))}
+  </select>
+</div>
+
 
         <div>
           <label className="block font-bold">Nombre:</label>

@@ -128,9 +128,31 @@ export default function useVenta() {
 
     setIsSubmitting(true);
     try {
-      let cliente = clienteExistente
-        ? clienteData
-        : await registrarCliente(clienteData);
+let cliente;
+
+if (clienteExistente) {
+  // buscar desde la API para asegurar que tienes el ID
+  const res = await fetch(
+    `http://127.0.0.1:8000/api/clientes/ci/?ci=${clienteData.ci_cliente}`,
+    {
+      headers: {
+        Authorization: `Bearer ${localStorage.getItem("access_token")}`,
+        "Content-Type": "application/json",
+      },
+    }
+  );
+
+  if (!res.ok) {
+    const errorText = await res.text();
+    console.error("Error buscando cliente existente:", errorText);
+    throw new Error("Error buscando cliente existente");
+  }
+
+  cliente = await res.json(); // este sí tendrá cliente.id
+} else {
+  cliente = await registrarCliente(clienteData);
+}
+
       const total = calculateCartTotal(cart);
 
       const venta = await registrarVenta(cliente.id, total);
@@ -221,15 +243,25 @@ export default function useVenta() {
     });
   };
 
-  const registrarCliente = async (data) => {
-    const res = await fetch("http://127.0.0.1:8000/api/clientes/", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(data),
-    });
-    if (!res.ok) throw new Error("Error al registrar el cliente");
-    return await res.json();
-  };
+const registrarCliente = async (data) => {
+  const res = await fetch("http://127.0.0.1:8000/api/clientes/", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${localStorage.getItem("access_token")}` // 👈 si tu endpoint lo requiere
+    },
+    body: JSON.stringify(data),
+  });
+
+  if (!res.ok) {
+    const errorText = await res.text(); // 🔍 capturar el detalle del error
+    console.error("Error exacto del backend al registrar cliente:", errorText);
+    throw new Error("Error al registrar el cliente");
+  }
+
+  return await res.json();
+};
+
 
   const registrarVenta = async (clienteId, total) => {
     const res = await fetch("http://127.0.0.1:8000/api/ventas/", {
@@ -242,10 +274,14 @@ export default function useVenta() {
         total_venta: total,
         estado_venta: "F",
         metodo_venta: metodoVenta,
-        laboratorio_venta: laboratorioVenta, // <--- aquí
+        laboratorio_venta: laboratorioVenta ? parseInt(laboratorioVenta) : null,
       }),
     });
-    if (!res.ok) throw new Error("Error al registrar la venta");
+if (!res.ok) {
+  const errorText = await res.text();
+  console.error("Error real al registrar el cliente:", errorText);
+  throw new Error("Error al registrar el cliente");
+}
     return await res.json();
   };
 
