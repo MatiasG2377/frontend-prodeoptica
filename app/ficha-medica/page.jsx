@@ -68,16 +68,19 @@ const decimalFields = [
 ];
 
 export default function FichaMedicaCompleta() {
-  const [paciente, setPaciente] = useState({
-    ci_paciente: "",
-    apellidos: "",
-    nombres: "",
-    fecha_nacimiento: "",
-    ocupacion: "",
-    direccion: "",
-    telefono_celular: "",
-    antecedentes: "",
-  });
+const [paciente, setPaciente] = useState({
+  ci_paciente: "",
+  apellidos: "",
+  nombres: "",
+  fecha_nacimiento: "",
+  ocupacion: "",
+  direccion: "",
+  telefono_celular: "",
+  antecedentes: "",
+  correo_cliente: "",           // <-- NUEVO
+  informacion_cliente: "",      // <-- NUEVO
+});
+
   const printRef = useRef();
 
   const handlePrint = () => {
@@ -160,59 +163,76 @@ export default function FichaMedicaCompleta() {
     setOpticalData((prev) => ({ ...prev, [field]: value }));
   };
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    console.log("Usuario logueado:", user);
-    const pacientePayload = {
-      ci_paciente: paciente.ci_paciente,
-      apellidos_paciente: paciente.apellidos,
-      nombres_paciente: paciente.nombres,
-      fecha_nacimiento: paciente.fecha_nacimiento,
-      ocupacion_paciente: paciente.ocupacion,
-      direccion_paciente: paciente.direccion,
-      telefono_paciente: paciente.telefono_celular,
-      antecedentes_paciente: paciente.antecedentes,
-    };
-    try {
-      const res = await fetch("http://localhost:8000/api/pacientes/", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(pacientePayload),
-      });
+const handleSubmit = async (e) => {
+  e.preventDefault();
+  console.log("Usuario logueado:", user);
 
-      if (!res.ok) throw new Error("Error al guardar paciente");
+  const token = localStorage.getItem("access_token");
 
-      const pacienteGuardado = await res.json();
-      Swal.fire({
-        icon: "success",
-        title: "Paciente guardado",
-        text: "El paciente se guardó correctamente.",
-        confirmButtonColor: "#7d2a3f",
-      });
-
-      // 🔄 Limpiar el formulario
-      setPaciente({
-        ci_paciente: data.paciente.ci_paciente || "",
-        apellidos: data.paciente.apellidos_paciente || "",
-        nombres: data.paciente.nombres_paciente || "",
-        fecha_nacimiento: data.paciente.fecha_nacimiento || "",
-        ocupacion: data.paciente.ocupacion_paciente || "",
-        direccion: data.paciente.direccion_paciente || "",
-        telefono_celular: data.paciente.telefono_paciente || "",
-        antecedentes: data.paciente.antecedentes_paciente || "",
-      });
-    } catch (error) {
-      console.error("Error al guardar paciente:", error);
-      Swal.fire({
-        icon: "error",
-        title: "Error",
-        text: "Hubo un problema al guardar el paciente.",
-        confirmButtonColor: "#7d2a3f",
-      });
-    }
+  const payload = {
+    ci: paciente.ci_paciente,
+    nombre_cliente: paciente.nombres,
+    correo_cliente: paciente.correo_cliente,
+    telefono_cliente: paciente.telefono_celular,
+    direccion_cliente: paciente.direccion,
+    informacion_cliente: paciente.informacion_cliente,
+    nombres_paciente: paciente.nombres,
+    apellidos_paciente: paciente.apellidos,
+    fecha_nacimiento: paciente.fecha_nacimiento,
+    ocupacion_paciente: paciente.ocupacion,
+    direccion_paciente: paciente.direccion,
+    telefono_paciente: paciente.telefono_celular,
+    antecedentes_paciente: paciente.antecedentes,
   };
+
+  try {
+    const res = await fetch("http://localhost:8000/api/cliente-paciente/", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${token}`,
+      },
+      body: JSON.stringify(payload),
+    });
+
+    if (!res.ok && res.status !== 400) {
+      const errorText = await res.text();
+      throw new Error("Error al guardar paciente: " + errorText);
+    }
+
+    await res.json(); // puedes usarlo si necesitas los datos
+
+    Swal.fire({
+      icon: "success",
+      title: "Paciente y Cliente guardados",
+      text: "Los datos se guardaron correctamente.",
+      confirmButtonColor: "#7d2a3f",
+    });
+
+    setPaciente({
+      ci_paciente: "",
+      apellidos: "",
+      nombres: "",
+      fecha_nacimiento: "",
+      ocupacion: "",
+      direccion: "",
+      telefono_celular: "",
+      antecedentes: "",
+      correo_cliente: "",
+      informacion_cliente: "",
+    });
+
+  } catch (error) {
+    console.error("Error al guardar paciente:", error);
+    Swal.fire({
+      icon: "error",
+      title: "Error",
+      text: "Hubo un problema al guardar el paciente y cliente.",
+      confirmButtonColor: "#7d2a3f",
+    });
+  }
+};
+
 
   const buscarPacientePorCI = async () => {
     if (!paciente.ci_paciente) return;
@@ -220,16 +240,17 @@ export default function FichaMedicaCompleta() {
     const token = localStorage.getItem("access_token");
 
     try {
-      const res = await fetch(
-        `http://localhost:8000/api/pacientes/ci/${paciente.ci_paciente}/`,
-        {
-          method: "GET",
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${token}`, // ✅ Aquí se envía el token
-          },
-        }
-      );
+const res = await fetch(
+  `http://localhost:8000/api/cliente-paciente/buscar/?ci=${paciente.ci_paciente}`,
+  {
+    method: "GET",
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${token}`,
+    },
+  }
+);
+
 
       if (!res.ok) {
         setFichasPasadas([]);
@@ -242,17 +263,32 @@ export default function FichaMedicaCompleta() {
         return;
       }
 
-      const data = await res.json();
-      setPaciente({
-        ci_paciente: data.paciente.ci_paciente || "",
-        apellidos: data.paciente.apellidos_paciente || "",
-        nombres: data.paciente.nombres_paciente || "",
-        fecha_nacimiento: data.paciente.fecha_nacimiento || "",
-        ocupacion: data.paciente.ocupacion_paciente || "",
-        direccion: data.paciente.direccion_paciente || "",
-        telefono_celular: data.paciente.telefono_paciente || "",
-        antecedentes: data.paciente.antecedentes_paciente || "",
-      });
+const data = await res.json();
+
+if (!data.paciente) {
+  Swal.fire({
+    icon: "warning",
+    title: "Paciente no encontrado",
+    text: "Puedes continuar registrando un nuevo paciente.",
+    confirmButtonColor: "#7d2a3f",
+  });
+  return;
+}
+
+setPaciente({
+  ci_paciente: data.paciente.ci_paciente || "",
+  apellidos: data.paciente.apellidos_paciente || "",
+  nombres: data.paciente.nombres_paciente || "",
+  fecha_nacimiento: data.paciente.fecha_nacimiento || "",
+  ocupacion: data.paciente.ocupacion_paciente || "",
+  direccion: data.paciente.direccion_paciente || "",
+  telefono_celular: data.paciente.telefono_paciente || "",
+  antecedentes: data.paciente.antecedentes_paciente || "",
+  correo_cliente: data.cliente?.correo_cliente || "",
+  informacion_cliente: data.cliente?.informacion_cliente || "",
+});
+
+
 
       setFichasPasadas(data.historial_fichas);
 
@@ -352,39 +388,57 @@ export default function FichaMedicaCompleta() {
   };
   const guardarFichaCompleta = async () => {
     try {
-      let pacienteGuardado = null;
+let pacienteGuardado = null;
 
-      // Verificar si el paciente ya existe
-      const buscarRes = await fetch(
-        `http://localhost:8000/api/pacientes/ci/${paciente.ci_paciente}/`,
-        {
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${localStorage.getItem("access_token")}`,
-          },
-        }
-      );
+// Verificar si el paciente ya existe
+const buscarRes = await fetch(
+  `http://localhost:8000/api/cliente-paciente/buscar/?ci=${paciente.ci_paciente}`,
+  {
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${localStorage.getItem("access_token")}`,
+    },
+  }
+);
 
-      if (buscarRes.ok) {
-        const data = await buscarRes.json();
-        pacienteGuardado = data.paciente;
-      } else {
-        // Registrar nuevo paciente si no existe
-        const pacienteRes = await fetch(
-          "http://localhost:8000/api/pacientes/",
-          {
-            method: "POST",
-            headers: {
-              "Content-Type": "application/json",
-            },
-            body: JSON.stringify(paciente),
-          }
-        );
 
-        if (!pacienteRes.ok) throw new Error("No se pudo guardar el paciente");
+if (buscarRes.ok) {
+  const data = await buscarRes.json();
+  pacienteGuardado = data.paciente;
+} else {
+  // Registrar cliente y paciente juntos
+  const res = await fetch("http://localhost:8000/api/cliente-paciente/", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${localStorage.getItem("access_token")}`,
+    },
+  body: JSON.stringify({
+    ci: paciente.ci_paciente,
+    nombre_cliente: paciente.nombres,
+    correo_cliente: paciente.correo_cliente,
+    telefono_cliente: paciente.telefono_celular,
+    direccion_cliente: paciente.direccion,
+    informacion_cliente: paciente.informacion_cliente,
 
-        pacienteGuardado = await pacienteRes.json();
-      }
+    nombres_paciente: paciente.nombres,
+    apellidos_paciente: paciente.apellidos,
+    fecha_nacimiento: paciente.fecha_nacimiento,
+    ocupacion_paciente: paciente.ocupacion,
+    direccion_paciente: paciente.direccion,
+    telefono_paciente: paciente.telefono_celular,
+    antecedentes_paciente: paciente.antecedentes,
+  }), 
+  });
+
+  if (!res.ok && res.status !== 400) {
+    const err = await res.text();
+    throw new Error("Error al registrar cliente y paciente: " + err);
+  }
+
+  const data = await res.json();
+  pacienteGuardado = data.paciente;
+}
 
       // Preparar datos para ficha médica
       const fichaPayload = {
@@ -421,16 +475,19 @@ export default function FichaMedicaCompleta() {
       setFichasPasadas((prev) => [nuevaFicha, ...prev]);
 
       // Resetear formularios
-      setPaciente({
-        ci_paciente: "",
-        apellidos: "",
-        nombres: "",
-        fecha_nacimiento: "",
-        ocupacion: "",
-        direccion: "",
-        telefono_celular: "",
-        antecedentes: "",
-      });
+setPaciente({
+  ci_paciente: "",
+  apellidos: "",
+  nombres: "",
+  fecha_nacimiento: "",
+  ocupacion: "",
+  direccion: "",
+  telefono_celular: "",
+  antecedentes: "",
+  correo_cliente: "",
+  informacion_cliente: "",
+});
+
 
       setOpticalData({
         // RX Distancia
@@ -750,6 +807,45 @@ export default function FichaMedicaCompleta() {
                     placeholder="Ej: 099-123-4567"
                   />
                 </div>
+{/* Correo Electrónico */}
+<div className="form-group">
+  <label
+    htmlFor="correo_cliente"
+    className="block text-sm font-medium text-gray-700 mb-1"
+  >
+    Correo Electrónico
+  </label>
+  <input
+    type="email"
+    id="correo_cliente"
+    className="border border-gray-300 rounded-md px-3 py-2 w-full focus:outline-none focus:ring-1 focus:ring-[#7d2a3f]"
+    value={paciente.correo_cliente || ""}
+    onChange={(e) =>
+      handlePacienteChange("correo_cliente", e.target.value)
+    }
+    placeholder="Ej: ejemplo@email.com"
+  />
+</div>
+
+{/* Información Adicional */}
+<div className="form-group md:col-span-2">
+  <label
+    htmlFor="informacion_cliente"
+    className="block text-sm font-medium text-gray-700 mb-1"
+  >
+    Información Adicional
+  </label>
+  <textarea
+    id="informacion_cliente"
+    rows={3}
+    className="border border-gray-300 rounded-md px-3 py-2 w-full focus:outline-none focus:ring-1 focus:ring-[#7d2a3f]"
+    value={paciente.informacion_cliente || ""}
+    onChange={(e) =>
+      handlePacienteChange("informacion_cliente", e.target.value)
+    }
+    placeholder="Ej: Cliente frecuente, refiere molestias, etc."
+  />
+</div>
 
                 {/* Dirección */}
                 <div className="form-group md:col-span-2">

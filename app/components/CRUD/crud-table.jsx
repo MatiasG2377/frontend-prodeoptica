@@ -1,5 +1,4 @@
 "use client"
-import { useRouter } from "next/navigation";
 import { useState } from "react"
 import { Plus, Edit, Trash2, Search, X } from "lucide-react"
 
@@ -8,7 +7,6 @@ export function CrudTable({ tableName, data, columns, onAdd, onEdit, onDelete, o
   const [isDialogOpen, setIsDialogOpen] = useState(false)
   const [editingItem, setEditingItem] = useState(null)
   const [formData, setFormData] = useState({})
-  const router = useRouter();
 
   const filteredData = data.filter((item) =>
     Object.values(item).some((value) => String(value).toLowerCase().includes(searchTerm.toLowerCase())),

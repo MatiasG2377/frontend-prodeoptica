@@ -1,3 +1,4 @@
+// useVenta.js (versión final con fix de ID y autenticación)
 import { useState, useEffect } from "react";
 import Swal from "sweetalert2";
 import { useRouter } from "next/navigation";
@@ -11,18 +12,23 @@ import {
 export default function useVenta() {
   const router = useRouter();
   const [cart, setCart] = useState([]);
+  const [ciCargado, setCiCargado] = useState(null);
   const [laboratorioVenta, setLaboratorioVenta] = useState("");
   const [clienteData, setClienteData] = useState({
     ci_cliente: "",
     nombre_cliente: "",
-    telefono_cliente: "",
-    correo_cliente: "",
-    direccion_cliente: "",
     informacion_cliente: "",
+    correo_cliente: "",
+    telefono_cliente: "",
+    direccion_cliente: "",
+    apellidos_paciente: "",
+    fecha_nacimiento: "",
+    ocupacion_paciente: "",
+    antecedentes_paciente: "",
   });
-  const [clienteExistente, setClienteExistente] = useState(false);
-  const [metodoVenta, setMetodoVenta] = useState("Efectivo");
+
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [metodoVenta, setMetodoVenta] = useState("Efectivo");
   const [progreso, setProgreso] = useState(1);
 
   const usuarioVenta = 1;
@@ -30,15 +36,9 @@ export default function useVenta() {
 
   useEffect(() => {
     const token = localStorage.getItem("access_token");
-    if (!token) {
-      router.push("/login");
-      return;
-    }
-
+    if (!token) router.push("/login");
     const storedCart = localStorage.getItem("cart");
-    if (storedCart) {
-      setCart(JSON.parse(storedCart));
-    }
+    if (storedCart) setCart(JSON.parse(storedCart));
   }, [router]);
 
   useEffect(() => {
@@ -55,13 +55,12 @@ export default function useVenta() {
 
   const handleInputChange = async (e) => {
     const { name, value } = e.target;
-    const updated = { ...clienteData, [name]: value };
-    setClienteData(updated);
+    setClienteData((prev) => ({ ...prev, [name]: value }));
 
-    if (name === "ci_cliente" && value.length >= 10) {
+    if (name === "ci_cliente" && value.length >= 10 && value !== ciCargado) {
       try {
         const res = await fetch(
-          `http://127.0.0.1:8000/api/clientes/ci/?ci=${value}`,
+          `http://127.0.0.1:8000/api/cliente-paciente/buscar/?ci=${value}`,
           {
             headers: {
               Authorization: `Bearer ${localStorage.getItem("access_token")}`,
@@ -72,49 +71,153 @@ export default function useVenta() {
 
         if (res.ok) {
           const resultado = await res.json();
-          const cliente = resultado;
+          const cliente = resultado.cliente;
+          const paciente = resultado.paciente;
 
-          if (cliente && cliente.ci_cliente === value) {
-            setClienteData({
-              ...cliente,
-              informacion_cliente: cliente.informacion_cliente || "",
-            });
-            setClienteExistente(true);
-            Swal.fire({
-              icon: "info",
-              title: "Cliente encontrado",
-              text: "Los datos han sido cargados para edición.",
-              confirmButtonColor: "#712b39",
-            });
+          if (!cliente || !cliente.id) {
+            console.error("Cliente no tiene ID:", cliente);
+            Swal.fire("Error", "No se pudo obtener el cliente actualizado.", "error");
             return;
           }
 
-          if (cliente) {
-            setClienteData({
-              ...cliente,
-              informacion_cliente: cliente.informacion_cliente || "",
+          if (cliente || paciente) {
+            const clienteSafe = {
+              nombre_cliente: cliente?.nombre_cliente ?? "",
+              ci_cliente: cliente?.ci_cliente ?? "",
+              correo_cliente: cliente?.correo_cliente ?? "",
+              telefono_cliente: cliente?.telefono_cliente ?? "",
+              direccion_cliente: cliente?.direccion_cliente ?? "",
+              informacion_cliente: cliente?.informacion_cliente ?? "",
+            };
+
+            const pacienteSafe = {
+              apellidos_paciente: paciente?.apellidos_paciente ?? "",
+              fecha_nacimiento: paciente?.fecha_nacimiento ?? "",
+              ocupacion_paciente: paciente?.ocupacion_paciente ?? "",
+              antecedentes_paciente: paciente?.antecedentes_paciente ?? "",
+            };
+
+            setClienteData((prev) => ({ ...prev, ...clienteSafe, ...pacienteSafe }));
+            setCiCargado(value);
+            Swal.fire({
+              icon: "info",
+              title: "Datos encontrados",
+              text: "Se cargaron los datos del cliente y/o paciente.",
+              confirmButtonColor: "#712b39",
             });
-            setClienteExistente(true);
-            Swal.fire(
-              "Cliente encontrado",
-              "Se han cargado los datos.",
-              "info"
-            );
-          } else {
-            setClienteExistente(false);
           }
         }
-      } catch (error) {
-        console.error("Error al buscar el cliente:", error);
+      } catch (err) {
+        console.error("Error al buscar cliente/paciente", err);
       }
     }
   };
 
-  const handleSubmit = async ({
-    abonoInicial = false,
-    montoAbono = "",
-    metodoAbono = "Efectivo",
-  } = {}) => {
+  const registrarClienteYPaciente = async (data) => {
+    const token = localStorage.getItem("access_token");
+    const payload = {
+      ci: data.ci_cliente,
+      nombre_cliente: data.nombre_cliente,
+      correo_cliente: data.correo_cliente,
+      telefono_cliente: data.telefono_cliente,
+      direccion_cliente: data.direccion_cliente,
+      informacion_cliente: data.informacion_cliente || "",
+      nombres_paciente: data.nombre_cliente,
+      apellidos_paciente: data.apellidos_paciente,
+      fecha_nacimiento: data.fecha_nacimiento,
+      ocupacion_paciente: data.ocupacion_paciente,
+      direccion_paciente: data.direccion_cliente,
+      telefono_paciente: data.telefono_cliente,
+      antecedentes_paciente: data.antecedentes_paciente,
+    };
+
+    const buscarRes = await fetch(
+      `http://127.0.0.1:8000/api/cliente-paciente/buscar/?ci=${data.ci_cliente}`,
+      {
+        headers: {
+          Authorization: `Bearer ${token}`,
+          "Content-Type": "application/json",
+        },
+      }
+    );
+
+    const resultado = await buscarRes.json();
+    const cliente = resultado.cliente;
+    const paciente = resultado.paciente;
+
+    if (cliente && paciente) {
+      await fetch(`http://127.0.0.1:8000/api/clientes/${cliente.id}/`, {
+        method: "PATCH",
+        headers: {
+          Authorization: `Bearer ${token}`,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(payload),
+      });
+
+      await fetch(`http://127.0.0.1:8000/api/pacientes/${paciente.id}/`, {
+        method: "PATCH",
+        headers: {
+          Authorization: `Bearer ${token}`,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(payload),
+      });
+    } else {
+      await fetch("http://127.0.0.1:8000/api/cliente-paciente/", {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${token}`,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(payload),
+      });
+    }
+  };
+
+  const registrarVenta = async (clienteId, total) => {
+    const res = await fetch("http://127.0.0.1:8000/api/ventas/", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        cliente_venta: clienteId,
+        usuario_venta: usuarioVenta,
+        sucursal_venta: sucursalVenta,
+        total_venta: total,
+        estado_venta: "F",
+        metodo_venta: metodoVenta,
+        laboratorio_venta: laboratorioVenta ? parseInt(laboratorioVenta) : null,
+      }),
+    });
+    return await res.json();
+  };
+
+  const procesarProducto = async (ventaId, producto) => {
+    const cantidad = producto.cantidad || 1;
+    const resProd = await fetch(`http://127.0.0.1:8000/api/productos/${producto.id}/`);
+    const productoActualizado = await resProd.json();
+    const nuevoStock = productoActualizado.cantidad_producto - cantidad;
+
+    await fetch("http://127.0.0.1:8000/api/articulos-venta/", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        venta_articuloVenta: ventaId,
+        producto_articuloVenta: producto.id,
+        cantidad_articuloVenta: cantidad,
+        pvp_articuloVenta: producto.pvp_producto,
+        descuento_articuloVenta: 0,
+      }),
+    });
+
+    await fetch(`http://127.0.0.1:8000/api/productos/${producto.id}/`, {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ cantidad_producto: nuevoStock }),
+    });
+  };
+
+  const handleSubmit = async ({ abonoInicial = false, montoAbono = "", metodoAbono = "Efectivo" } = {}) => {
     if (
       !isValidCI(clienteData.ci_cliente) ||
       !clienteData.nombre_cliente ||
@@ -128,46 +231,20 @@ export default function useVenta() {
 
     setIsSubmitting(true);
     try {
-let cliente;
+      await registrarClienteYPaciente(clienteData);
 
-if (clienteExistente) {
-  // buscar desde la API para asegurar que tienes el ID
-  const res = await fetch(
-    `http://127.0.0.1:8000/api/clientes/ci/?ci=${clienteData.ci_cliente}`,
-    {
-      headers: {
-        Authorization: `Bearer ${localStorage.getItem("access_token")}`,
-        "Content-Type": "application/json",
-      },
-    }
-  );
-
-  if (!res.ok) {
-    const errorText = await res.text();
-    console.error("Error buscando cliente existente:", errorText);
-    throw new Error("Error buscando cliente existente");
-  }
-
-  cliente = await res.json(); // este sí tendrá cliente.id
-} else {
-  cliente = await registrarCliente(clienteData);
-}
+      const res = await fetch(`http://127.0.0.1:8000/api/cliente-paciente/buscar/?ci=${clienteData.ci_cliente}`);
+      const resultado = await res.json();
+      const cliente = resultado.cliente;
+      if (!cliente || !cliente.id) throw new Error("Cliente inválido o sin ID");
 
       const total = calculateCartTotal(cart);
-
       const venta = await registrarVenta(cliente.id, total);
-      await Promise.all(
-        cart.map((producto) => procesarProducto(venta.id, producto))
-      );
 
-      // Registrar abono si corresponde
+      await Promise.all(cart.map((producto) => procesarProducto(venta.id, producto)));
+
       if (abonoInicial && parseFloat(montoAbono) > 0) {
-        console.log("Registrando abono:", {
-          ventaId: venta?.id,
-          clienteId: cliente?.id,
-        });
-
-        const res = await fetch("http://127.0.0.1:8000/api/abonos/", {
+        await fetch("http://127.0.0.1:8000/api/abonos/", {
           method: "POST",
           headers: {
             "Content-Type": "application/json",
@@ -180,18 +257,6 @@ if (clienteExistente) {
             metodo_pago: metodoAbono,
           }),
         });
-
-        if (!res.ok) {
-          const err = await res.text();
-          console.error("Error al guardar abono:", err);
-          await Swal.fire({
-            icon: "error",
-            title: "Error al registrar el abono",
-            text: err || "Ocurrió un error inesperado.",
-            confirmButtonColor: "#712b39",
-          });
-          throw new Error("Error al guardar abono");
-        }
       }
 
       Swal.fire({
@@ -199,16 +264,9 @@ if (clienteExistente) {
         text: "La venta se ha registrado correctamente.",
         icon: "success",
         confirmButtonText: "Aceptar",
-        customClass: {
-          confirmButton:
-            "bg-[#712b39] hover:bg-[#5e242e] text-white px-4 py-2 rounded-md",
-        },
-        buttonsStyling: false, // OBLIGATORIO para que customClass funcione
-      }).then(() => {
-        router.push("/dashboard");
-      });
+        confirmButtonColor: "#712b39",
+      }).then(() => router.push("/dashboard"));
 
-      localStorage.removeItem("cart");
       setCart([]);
       setClienteData({
         ci_cliente: "",
@@ -217,12 +275,15 @@ if (clienteExistente) {
         correo_cliente: "",
         direccion_cliente: "",
         informacion_cliente: "",
+        apellidos_paciente: "",
+        fecha_nacimiento: "",
+        ocupacion_paciente: "",
+        antecedentes_paciente: "",
       });
-      setClienteExistente(false);
       setProgreso(3);
     } catch (error) {
       console.error(error);
-      Swal.fire("Error", "Ocurrió un error al registrar la venta.", "error");
+      Swal.fire({ icon: "error", title: "Error", text: "Ocurrió un error al registrar la venta." });
     } finally {
       setIsSubmitting(false);
     }
@@ -240,105 +301,6 @@ if (clienteExistente) {
       cancelButtonText: "No, regresar",
     }).then((result) => {
       if (result.isConfirmed) router.push("/dashboard");
-    });
-  };
-
-const registrarCliente = async (data) => {
-  const res = await fetch("http://127.0.0.1:8000/api/clientes/", {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-      Authorization: `Bearer ${localStorage.getItem("access_token")}` // 👈 si tu endpoint lo requiere
-    },
-    body: JSON.stringify(data),
-  });
-
-  if (!res.ok) {
-    const errorText = await res.text(); // 🔍 capturar el detalle del error
-    console.error("Error exacto del backend al registrar cliente:", errorText);
-    throw new Error("Error al registrar el cliente");
-  }
-
-  return await res.json();
-};
-
-
-  const registrarVenta = async (clienteId, total) => {
-    const res = await fetch("http://127.0.0.1:8000/api/ventas/", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        cliente_venta: clienteId,
-        usuario_venta: usuarioVenta,
-        sucursal_venta: sucursalVenta,
-        total_venta: total,
-        estado_venta: "F",
-        metodo_venta: metodoVenta,
-        laboratorio_venta: laboratorioVenta ? parseInt(laboratorioVenta) : null,
-      }),
-    });
-if (!res.ok) {
-  const errorText = await res.text();
-  console.error("Error real al registrar el cliente:", errorText);
-  throw new Error("Error al registrar el cliente");
-}
-    return await res.json();
-  };
-
-  const procesarProducto = async (ventaId, producto) => {
-    const cantidad = producto.cantidad || 1;
-
-    const resProd = await fetch(
-      `http://127.0.0.1:8000/api/productos/${producto.id}/`
-    );
-    const productoActualizado = await resProd.json();
-    const nuevoStock = productoActualizado.cantidad_producto - cantidad;
-
-    await fetch("http://127.0.0.1:8000/api/articulos-venta/", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        venta_articuloVenta: ventaId,
-        producto_articuloVenta: producto.id,
-        cantidad_articuloVenta: cantidad,
-        pvp_articuloVenta: producto.pvp_producto,
-        descuento_articuloVenta: 0,
-      }),
-    });
-
-    await fetch("http://127.0.0.1:8000/api/movimientos-inventario/", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        producto_movimientoInventario: producto.id,
-        usuario_movimientoInventario: usuarioVenta,
-        tipo_movimientoInventario: "Salida",
-        cantidad_movimientoInventario: cantidad,
-        motivo_movimientoInventario: "Venta realizada",
-      }),
-    });
-
-    await fetch("http://127.0.0.1:8000/api/kardex/", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        producto_kardex: producto.id,
-        tipo_kardex: "Salida",
-        cantidad_kardex: cantidad,
-        costo_unitario_kardex: producto.costo_producto,
-        costo_total_kardex: producto.costo_producto * cantidad,
-        saldo_cantidad_kardex: nuevoStock,
-        saldo_costo_kardex: nuevoStock * producto.costo_producto,
-        referencia_kardex: `Venta #${ventaId}`,
-      }),
-    });
-
-    await fetch(`http://127.0.0.1:8000/api/productos/${producto.id}/`, {
-      method: "PATCH",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        cantidad_producto: nuevoStock,
-      }),
     });
   };
 

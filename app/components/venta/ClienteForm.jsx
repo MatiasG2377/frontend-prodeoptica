@@ -57,8 +57,9 @@ export default function ClienteForm({
             className="w-full border p-2 rounded"
           >
             <option value="Efectivo">Efectivo</option>
-            <option value="Tarjeta de Crédito">Tarjeta de Crédito</option>
+            <option value="Tarjeta">Tarjeta</option>
             <option value="Transferencia">Transferencia</option>
+            <option value="Crédito-empresarial">Crédito empresarial</option>
           </select>
         </div>
 <div>
@@ -89,6 +90,17 @@ export default function ClienteForm({
             placeholder="Ingrese el nombre del cliente"
           />
         </div>
+        <div>
+  <label className="block font-bold">Apellidos:</label>
+  <input
+    type="text"
+    name="apellidos_paciente"
+    value={clienteData.apellidos_paciente}
+    onChange={handleInputChange}
+    className="w-full border p-2 rounded"
+    placeholder="Ingrese los apellidos"
+  />
+</div>
         <div>
           <label className="block font-bold">Teléfono:</label>
           <input
@@ -126,12 +138,48 @@ export default function ClienteForm({
           <label className="block font-bold">Información Adicional:</label>
           <textarea
             name="informacion_cliente"
-            value={clienteData.informacion_cliente}
+            value={clienteData.informacion_cliente || ""}
             onChange={handleInputChange}
             className="w-full border p-2 rounded"
             placeholder="Ingrese información adicional"
           />
         </div>
+
+
+<div>
+  <label className="block font-bold">Fecha de Nacimiento:</label>
+  <input
+    type="date"
+    name="fecha_nacimiento"
+    value={clienteData.fecha_nacimiento}
+    onChange={handleInputChange}
+    className="w-full border p-2 rounded"
+  />
+</div>
+
+<div>
+  <label className="block font-bold">Ocupación:</label>
+  <input
+    type="text"
+    name="ocupacion_paciente"
+    value={clienteData.ocupacion_paciente}
+    onChange={handleInputChange}
+    className="w-full border p-2 rounded"
+    placeholder="Ingrese la ocupación"
+  />
+</div>
+
+<div className="md:col-span-2">
+  <label className="block font-bold">Antecedentes Médicos:</label>
+  <textarea
+    name="antecedentes_paciente"
+    value={clienteData.antecedentes_paciente}
+    onChange={handleInputChange}
+    className="w-full border p-2 rounded"
+    placeholder="Ingrese los antecedentes del paciente"
+  />
+</div>
+
       </div>
     </div>
   );

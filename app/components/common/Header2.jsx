@@ -52,9 +52,9 @@ export default function Header({ title, menuOpen, setMenuOpen, handleLogout }) {
             </li>
             <li
               className="p-4 hover:bg-gray-200 cursor-pointer"
-              onClick={() => router.push("/registro-clientes")}
+              onClick={() => router.push("/CRUD")}
             >
-              Registro de Clientes
+              Gestión de registros
             </li>
             <li
               className="p-4 hover:bg-gray-200 cursor-pointer"

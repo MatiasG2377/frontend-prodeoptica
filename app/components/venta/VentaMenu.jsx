@@ -18,7 +18,7 @@ export default function VentaMenu({ menuOpen, setMenuOpen, handleLogout, router 
             <li className="p-4 hover:bg-gray-200 cursor-pointer" onClick={() => router.push('/abonos')}>Abonos</li>
             <li className="p-4 hover:bg-gray-200 cursor-pointer" onClick={() => router.push('/inventario')}>Gestión de Productos</li>
             <li className="p-4 hover:bg-gray-200 cursor-pointer" onClick={() => router.push('/ingresos')}>Entradas al Inventario</li>
-            <li className="p-4 hover:bg-gray-200 cursor-pointer" onClick={() => router.push('/registro-clientes')}>Registro de Clientes</li>
+            <li className="p-4 hover:bg-gray-200 cursor-pointer" onClick={() => router.push('/CRUD')}>Gestión de registros</li>
             <li className="p-4 hover:bg-gray-200 cursor-pointer" onClick={() => router.push('/visualizacion-reportes')}>Visualización de Reportes</li>
             <li className="p-4 hover:bg-gray-200 cursor-pointer" onClick={() => router.push('/kardex')}>Kardex</li>
             <li className="p-4 hover:bg-gray-200 cursor-pointer" onClick={() => router.push('/register')}>Registrar usuario</li>
