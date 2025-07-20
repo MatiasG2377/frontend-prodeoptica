@@ -1,7 +1,58 @@
 import React, { useState } from "react";
+import Swal from "sweetalert2";
 
 export default function FichaVisual({ data }) {
   const [abierto, setAbierto] = useState(false);
+  const [editando, setEditando] = useState(false);
+  const [fichaEditada, setFichaEditada] = useState(data);
+  const datosParaEnviar = {
+    ...fichaEditada,
+    paciente: fichaEditada.paciente?.id, // o null
+    usuario: fichaEditada.usuario?.id, // si aplica
+  };
+  const handleGuardarEdicion = async () => {
+    try {
+      const res = await fetch(
+        `http://localhost:8000/api/fichas-medicas/${data.id}/`,
+        {
+          method: "PATCH",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify(datosParaEnviar),
+        }
+      );
+
+      if (!res.ok) {
+        const err = await res.text();
+        throw new Error("Error al guardar cambios: " + err);
+      }
+
+      const actualizada = await res.json();
+      setEditando(false);
+      setFichaEditada(actualizada);
+      Swal.fire({
+        icon: "success",
+        title: "Ficha actualizada",
+        text: "Los cambios fueron guardados exitosamente.",
+        confirmButtonColor: "#7d2a3f",
+      });
+    } catch (error) {
+      console.error(error);
+      Swal.fire({
+        icon: "error",
+        title: "Error",
+        text: "No se pudieron guardar los cambios.",
+        confirmButtonColor: "#7d2a3f",
+      });
+    }
+  };
+  const handleChange = (campo, valor) => {
+    setFichaEditada((prev) => ({
+      ...prev,
+      [campo]: valor,
+    }));
+  };
 
   return (
     <div className="border border-gray-300 rounded-lg bg-white shadow-md mb-4">
@@ -9,19 +60,32 @@ export default function FichaVisual({ data }) {
         onClick={() => setAbierto(!abierto)}
         className="w-full text-left p-4 bg-[#7d2a3f] text-white font-semibold rounded-t-lg hover:bg-[#661f33] transition"
       >
-        Ficha #{data.id} – {new Date(data.fecha).toLocaleDateString()}
+        Ficha {new Date(data.fecha).toLocaleDateString()}
       </button>
 
       {abierto && (
         <div className="p-4 border-t border-gray-300">
           <div className="space-y-6">
             <div className="border border-gray-300 rounded-lg p-4 bg-white shadow-md mb-6">
-              <h3 className="text-lg font-bold text-[#7d2a3f] mb-4">
-                Ficha #{data.id} - {new Date(data.fecha).toLocaleDateString()}
-              </h3>
+              <div className="flex justify-end mb-2">
+                {!editando ? (
+                  <button
+                    className="text-base bg-[#7d2a3f] text-white px-4 py-2 rounded hover:bg-[#661f33]"
+                    onClick={() => setEditando(true)}
+                  >
+                    Editar
+                  </button>
+                ) : (
+                  <button
+                    className="text-base bg-[#7d2a3f] text-white px-4 py-2 rounded hover:bg-[#661f33]"
+                    onClick={handleGuardarEdicion}
+                  >
+                    Guardar cambios
+                  </button>
+                )}
+              </div>
 
               <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                {/* RX REFRACCIÓN */}
                 <table className="w-full border-collapse">
                   <thead>
                     <tr>
@@ -34,58 +98,114 @@ export default function FichaVisual({ data }) {
                     </tr>
                     <tr className="bg-gray-100">
                       <th className="p-2 border border-gray-300"></th>
-                      <th className="p-2 border border-gray-300">Ojo</th>
-                      <th className="p-2 border border-gray-300">A.V.</th>
-                      <th className="p-2 border border-gray-300">Esfera</th>
-                      <th className="p-2 border border-gray-300">Cilindro</th>
-                      <th className="p-2 border border-gray-300">Eje</th>
-                      <th className="p-2 border border-gray-300">DNP</th>
+                      <th className="p-2 border border-gray-300 font-bold">
+                        Ojo
+                      </th>
+                      <th className="p-2 border border-gray-300 font-bold">
+                        A.V.
+                      </th>
+                      <th className="p-2 border border-gray-300 font-bold">
+                        Esfera
+                      </th>
+                      <th className="p-2 border border-gray-300 font-bold">
+                        Cilindro
+                      </th>
+                      <th className="p-2 border border-gray-300 font-bold">
+                        Eje(Grados)
+                      </th>
+                      <th className="p-2 border border-gray-300 font-bold">
+                        DNP(mm)
+                      </th>
                     </tr>
                   </thead>
                   <tbody>
-                    {["Distancia", "A.D.D.", "Lectura"].map((tipo, idx) => (
+                    {[
+                      {
+                        label: "Distancia",
+                        tipo: "distancia",
+                        campos: ["av", "esfera", "cilindro", "eje", "dnp"],
+                      },
+                      {
+                        label: "A.D.D.",
+                        tipo: "add",
+                        campos: ["av", "esfera"],
+                      },
+                      {
+                        label: "Lectura",
+                        tipo: "lectura",
+                        campos: ["av", "esfera", "cilindro", "eje"],
+                      },
+                    ].map(({ label, tipo, campos }) => (
                       <React.Fragment key={tipo}>
                         <tr>
                           <td
                             rowSpan={2}
-                            className="p-2 border border-gray-300 bg-gray-100 font-medium"
+                            className="p-2 border border-gray-300 bg-gray-100 font-medium align-middle"
                           >
-                            {tipo}
+                            {label}
                           </td>
                           <td className="p-2 border border-gray-300">OD</td>
-                          <td className="p-2 border border-gray-300">
-                            {data[`rx_${tipo.toLowerCase()}_od_av`]}
-                          </td>
-                          <td className="p-2 border border-gray-300">
-                            {data[`rx_${tipo.toLowerCase()}_od_esfera`]}
-                          </td>
-                          <td className="p-2 border border-gray-300">
-                            {data[`rx_${tipo.toLowerCase()}_od_cilindro`]}
-                          </td>
-                          <td className="p-2 border border-gray-300">
-                            {data[`rx_${tipo.toLowerCase()}_od_eje`]}
-                          </td>
-                          <td className="p-2 border border-gray-300">
-                            {data[`rx_${tipo.toLowerCase()}_od_dnp`]}
-                          </td>
+                          {["av", "esfera", "cilindro", "eje", "dnp"].map(
+                            (campo) =>
+                              campos.includes(campo) ? (
+                                <td
+                                  key={`od_${tipo}_${campo}`}
+                                  className="p-2 border border-gray-300"
+                                >
+                                  {editando ? (
+                                    <input
+                                      type="text"
+                                      value={
+                                        fichaEditada[
+                                          `rx_${tipo}_od_${campo}`
+                                        ] || ""
+                                      }
+                                      onChange={(e) =>
+                                        handleChange(
+                                          `rx_${tipo}_od_${campo}`,
+                                          e.target.value
+                                        )
+                                      }
+                                      className="w-full border rounded px-2 py-1"
+                                    />
+                                  ) : (
+                                    fichaEditada[`rx_${tipo}_od_${campo}`] || ""
+                                  )}
+                                </td>
+                              ) : null
+                          )}
                         </tr>
                         <tr>
                           <td className="p-2 border border-gray-300">OI</td>
-                          <td className="p-2 border border-gray-300">
-                            {data[`rx_${tipo.toLowerCase()}_oi_av`]}
-                          </td>
-                          <td className="p-2 border border-gray-300">
-                            {data[`rx_${tipo.toLowerCase()}_oi_esfera`]}
-                          </td>
-                          <td className="p-2 border border-gray-300">
-                            {data[`rx_${tipo.toLowerCase()}_oi_cilindro`]}
-                          </td>
-                          <td className="p-2 border border-gray-300">
-                            {data[`rx_${tipo.toLowerCase()}_oi_eje`]}
-                          </td>
-                          <td className="p-2 border border-gray-300">
-                            {data[`rx_${tipo.toLowerCase()}_oi_dnp`]}
-                          </td>
+                          {["av", "esfera", "cilindro", "eje", "dnp"].map(
+                            (campo) =>
+                              campos.includes(campo) ? (
+                                <td
+                                  key={`oi_${tipo}_${campo}`}
+                                  className="p-2 border border-gray-300"
+                                >
+                                  {editando ? (
+                                    <input
+                                      type="text"
+                                      value={
+                                        fichaEditada[
+                                          `rx_${tipo}_oi_${campo}`
+                                        ] || ""
+                                      }
+                                      onChange={(e) =>
+                                        handleChange(
+                                          `rx_${tipo}_oi_${campo}`,
+                                          e.target.value
+                                        )
+                                      }
+                                      className="w-full border rounded px-2 py-1"
+                                    />
+                                  ) : (
+                                    fichaEditada[`rx_${tipo}_oi_${campo}`] || ""
+                                  )}
+                                </td>
+                              ) : null
+                          )}
                         </tr>
                       </React.Fragment>
                     ))}
@@ -93,14 +213,14 @@ export default function FichaVisual({ data }) {
                 </table>
 
                 {/* ESQUIASCOPIA */}
-                <table className="w-full border-collapse">
+                <table className="w-full border-collapse mt-6">
                   <thead>
                     <tr>
                       <th
-                        colSpan={7}
+                        colSpan={6}
                         className="bg-[#7d2a3f] text-white text-left p-2 font-bold border border-gray-300"
                       >
-                        ESQUIASCOPIA
+                        ESQUIASCOPÍA
                       </th>
                     </tr>
                     <tr className="bg-gray-100">
@@ -117,30 +237,94 @@ export default function FichaVisual({ data }) {
                   <tbody>
                     {["od", "oi"].map((ojo) => (
                       <tr key={ojo}>
-                        <td className="p-2 border border-gray-300 font-medium">
+                        <td className="p-2 border border-gray-300 font-medium uppercase">
                           {ojo.toUpperCase()}
                         </td>
-                        <td className="p-2 border border-gray-300">
-                          {data[`esq_${ojo}_sc`]}
-                        </td>
-                        <td className="p-2 border border-gray-300">
-                          {data[`esq_${ojo}_cc`]}
-                        </td>
-                        <td className="p-2 border border-gray-300">
-                          {data[`esq_${ojo}_esfera`]}
-                        </td>
-                        <td className="p-2 border border-gray-300">
-                          {data[`esq_${ojo}_cilindro`]}
-                        </td>
-                        <td className="p-2 border border-gray-300">
-                          {data[`esq_${ojo}_eje`]}
-                        </td>
+                        {["sc", "cc", "esfera", "cilindro", "eje"].map(
+                          (campo) => (
+                            <td
+                              key={`${ojo}_${campo}`}
+                              className="p-2 border border-gray-300"
+                            >
+                              {editando ? (
+                                <input
+                                  type="text"
+                                  value={
+                                    fichaEditada[`esq_${ojo}_${campo}`] || ""
+                                  }
+                                  onChange={(e) =>
+                                    handleChange(
+                                      `esq_${ojo}_${campo}`,
+                                      e.target.value
+                                    )
+                                  }
+                                  className="w-full border rounded px-2 py-1"
+                                />
+                              ) : (
+                                fichaEditada[`esq_${ojo}_${campo}`] || ""
+                              )}
+                            </td>
+                          )
+                        )}
                       </tr>
                     ))}
                   </tbody>
                 </table>
 
-                {/* Refracción rs */}
+                {/* ESQUIASCOPIA COMPUTARIZADA */}
+                <table className="w-full border-collapse mt-4">
+                  <thead>
+                    <tr>
+                      <th
+                        colSpan={4}
+                        className="bg-[#7d2a3f] text-white text-left p-2 font-bold border border-gray-300"
+                      >
+                        ESQUIASCOPÍA COMPUTARIZADA
+                      </th>
+                    </tr>
+                    <tr className="bg-gray-100">
+                      <th className="p-2 border border-gray-300">Ojo</th>
+                      <th className="p-2 border border-gray-300">Esfera</th>
+                      <th className="p-2 border border-gray-300">Cilindro</th>
+                      <th className="p-2 border border-gray-300">Eje</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {["od", "oi"].map((ojo) => (
+                      <tr key={ojo}>
+                        <td className="p-2 border border-gray-300 font-medium uppercase">
+                          {ojo.toUpperCase()}
+                        </td>
+                        {["esfera", "cilindro", "eje"].map((campo) => (
+                          <td
+                            key={`${ojo}_${campo}_comp`}
+                            className="p-2 border border-gray-300"
+                          >
+                            {editando ? (
+                              <input
+                                type="text"
+                                value={
+                                  fichaEditada[`esq_${ojo}_${campo}_comp`] || ""
+                                }
+                                onChange={(e) =>
+                                  handleChange(
+                                    `esq_${ojo}_${campo}_comp`,
+                                    e.target.value
+                                  )
+                                }
+                                className="w-full border rounded px-2 py-1"
+                              />
+                            ) : (
+                              fichaEditada[`esq_${ojo}_${campo}_comp`] || ""
+                            )}
+                          </td>
+                        ))}
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+
+                {/* RX FINAL */}
                 <table className="w-full border-collapse lg:col-span-2 mt-4">
                   <thead>
                     <tr>
@@ -148,7 +332,7 @@ export default function FichaVisual({ data }) {
                         colSpan={5}
                         className="bg-[#7d2a3f] text-white text-left p-2 font-bold border border-gray-300"
                       >
-                        Refracción rs
+                        RX FINAL
                       </th>
                     </tr>
                     <tr className="bg-gray-100">
@@ -164,39 +348,65 @@ export default function FichaVisual({ data }) {
                   <tbody>
                     {["od", "oi"].map((ojo) => (
                       <tr key={ojo}>
-                        <td className="p-2 border border-gray-300 font-medium">
+                        <td className="p-2 border border-gray-300 font-medium uppercase">
                           {ojo.toUpperCase()}
                         </td>
-                        <td className="p-2 border border-gray-300">
-                          {data[`rs_${ojo}_esfera`]}
-                        </td>
-                        <td className="p-2 border border-gray-300">
-                          {data[`rs_${ojo}_cilindro`]}
-                        </td>
-                        <td className="p-2 border border-gray-300">
-                          {data[`rs_${ojo}_eje`]}
-                        </td>
-                        <td className="p-2 border border-gray-300">
-                          {data[`rs_${ojo}_correccion`]}
-                        </td>
+                        {["esfera", "cilindro", "eje", "correccion"].map(
+                          (campo) => (
+                            <td
+                              key={`rs_${ojo}_${campo}`}
+                              className="p-2 border border-gray-300"
+                            >
+                              {editando ? (
+                                <input
+                                  type="text"
+                                  value={
+                                    fichaEditada[`rs_${ojo}_${campo}`] || ""
+                                  }
+                                  onChange={(e) =>
+                                    handleChange(
+                                      `rs_${ojo}_${campo}`,
+                                      e.target.value
+                                    )
+                                  }
+                                  className="w-full border rounded px-2 py-1"
+                                />
+                              ) : (
+                                fichaEditada[`rs_${ojo}_${campo}`] || ""
+                              )}
+                            </td>
+                          )
+                        )}
                       </tr>
                     ))}
                     <tr>
                       <td className="p-2 border border-gray-300 font-medium">
                         A.D.D
                       </td>
-                      <td className="p-2 border border-gray-300">
-                        {data.rs_add_esfera}
-                      </td>
-                      <td className="p-2 border border-gray-300">
-                        {data.rs_add_cilindro}
-                      </td>
-                      <td className="p-2 border border-gray-300">
-                        {data.rs_add_eje}
-                      </td>
-                      <td className="p-2 border border-gray-300">
-                        {data.rs_add_correccion}
-                      </td>
+                      {["esfera", "cilindro", "eje", "correccion"].map(
+                        (campo) => (
+                          <td
+                            key={`rs_add_${campo}`}
+                            className="p-2 border border-gray-300"
+                          >
+                            {editando ? (
+                              <input
+                                type="text"
+                                value={fichaEditada[`rs_add_${campo}`] || ""}
+                                onChange={(e) =>
+                                  handleChange(
+                                    `rs_add_${campo}`,
+                                    e.target.value
+                                  )
+                                }
+                                className="w-full border rounded px-2 py-1"
+                              />
+                            ) : (
+                              fichaEditada[`rs_add_${campo}`] || ""
+                            )}
+                          </td>
+                        )
+                      )}
                     </tr>
                   </tbody>
                 </table>
@@ -209,13 +419,35 @@ export default function FichaVisual({ data }) {
                         Altura
                       </td>
                       <td className="p-2 border border-gray-300">
-                        {data.altura}
+                        {editando ? (
+                          <input
+                            type="text"
+                            value={fichaEditada.altura || ""}
+                            onChange={(e) =>
+                              handleChange("altura", e.target.value)
+                            }
+                            className="w-full border rounded px-2 py-1"
+                          />
+                        ) : (
+                          fichaEditada.altura || ""
+                        )}
                       </td>
                       <td className="p-2 border border-gray-300 font-medium">
                         Material
                       </td>
                       <td className="p-2 border border-gray-300">
-                        {data.material}
+                        {editando ? (
+                          <input
+                            type="text"
+                            value={fichaEditada.material || ""}
+                            onChange={(e) =>
+                              handleChange("material", e.target.value)
+                            }
+                            className="w-full border rounded px-2 py-1"
+                          />
+                        ) : (
+                          fichaEditada.material || ""
+                        )}
                       </td>
                     </tr>
                     <tr>
@@ -223,7 +455,18 @@ export default function FichaVisual({ data }) {
                         Observaciones
                       </td>
                       <td colSpan={3} className="p-2 border border-gray-300">
-                        {data.observaciones}
+                        {editando ? (
+                          <textarea
+                            value={fichaEditada.observaciones || ""}
+                            onChange={(e) =>
+                              handleChange("observaciones", e.target.value)
+                            }
+                            className="w-full border rounded px-2 py-1"
+                            rows={2}
+                          />
+                        ) : (
+                          fichaEditada.observaciones || ""
+                        )}
                       </td>
                     </tr>
                     <tr>
@@ -231,7 +474,37 @@ export default function FichaVisual({ data }) {
                         Causa
                       </td>
                       <td colSpan={3} className="p-2 border border-gray-300">
-                        {data.causa}
+                        {editando ? (
+                          <input
+                            type="text"
+                            value={fichaEditada.causa || ""}
+                            onChange={(e) =>
+                              handleChange("causa", e.target.value)
+                            }
+                            className="w-full border rounded px-2 py-1"
+                          />
+                        ) : (
+                          fichaEditada.causa || ""
+                        )}
+                      </td>
+                    </tr>
+                    <tr>
+                      <td className="p-2 border border-gray-300 font-medium">
+                        Armazón
+                      </td>
+                      <td colSpan={3} className="p-2 border border-gray-300">
+                        {editando ? (
+                          <input
+                            type="text"
+                            value={fichaEditada.armazon || ""}
+                            onChange={(e) =>
+                              handleChange("armazon", e.target.value)
+                            }
+                            className="w-full border rounded px-2 py-1"
+                          />
+                        ) : (
+                          fichaEditada.armazon || ""
+                        )}
                       </td>
                     </tr>
                   </tbody>

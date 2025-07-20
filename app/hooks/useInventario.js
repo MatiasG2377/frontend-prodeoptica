@@ -1,6 +1,15 @@
 "use client";
 import { useEffect, useState } from "react";
 import Swal from "sweetalert2";
+import {
+  fetchProductos,
+  fetchProductosBuscados,
+  fetchCategorias,
+  fetchProveedores,
+  crearProducto,
+  actualizarProducto,
+  eliminarProducto,
+} from "../services/productoService";
 
 export default function useInventario() {
   const [productos, setProductos] = useState([]);
@@ -24,38 +33,36 @@ export default function useInventario() {
   });
   const [file, setFile] = useState(null);
   const [searchTerm, setSearchTerm] = useState("");
-  const [debouncedSearch, setDebouncedSearch] = useState(""); // nuevo para debounce
+  const [debouncedSearch, setDebouncedSearch] = useState("");
   const [modalVisible, setModalVisible] = useState(false);
   const [loading, setLoading] = useState(false);
 
-  // Debounce de búsqueda
+  // Debounce
   useEffect(() => {
     const timeout = setTimeout(() => {
       setDebouncedSearch(searchTerm.trim());
-    }, 400); // espera 400 ms
-
+    }, 400);
     return () => clearTimeout(timeout);
   }, [searchTerm]);
 
-  // Cargar productos según búsqueda
   useEffect(() => {
     if (debouncedSearch === "") {
-      fetchProductos();
+      cargarProductos();
     } else {
-      fetchProductosBuscados(debouncedSearch);
+      buscarProductos(debouncedSearch);
     }
   }, [debouncedSearch]);
 
   useEffect(() => {
-    fetchCategorias();
-    fetchProveedores();
+    cargarCategorias();
+    cargarProveedores();
   }, []);
 
-  const fetchProductos = async () => {
+  const cargarProductos = async () => {
     try {
-      const res = await fetch("http://127.0.0.1:8000/api/productos/");
-      const data = await res.json();
-      setProductos(data.results || []);
+      setLoading(true);
+      const data = await fetchProductos();
+      setProductos(data);
     } catch (error) {
       console.error("Error cargando productos:", error);
     } finally {
@@ -63,24 +70,11 @@ export default function useInventario() {
     }
   };
 
-  const fetchProductosBuscados = async (search) => {
+  const buscarProductos = async (search) => {
     try {
       setLoading(true);
-      const res = await fetch(
-        `http://127.0.0.1:8000/api/productos/buscar/?q=${encodeURIComponent(
-          search
-        )}`
-      );
-      const data = await res.json();
-      console.log("Resultado búsqueda backend:", data); // 🔥 Log directo
-
-      if (Array.isArray(data)) {
-        setProductos(data);
-      } else if (Array.isArray(data.results)) {
-        setProductos(data.results);
-      } else {
-        setProductos([]);
-      }
+      const data = await fetchProductosBuscados(search);
+      setProductos(data);
     } catch (error) {
       console.error("Error buscando productos:", error);
       setProductos([]);
@@ -89,21 +83,19 @@ export default function useInventario() {
     }
   };
 
-  const fetchCategorias = async () => {
+  const cargarCategorias = async () => {
     try {
-      const res = await fetch("http://127.0.0.1:8000/api/categorias/");
-      const data = await res.json();
-      setCategorias(data.results || data);
+      const data = await fetchCategorias();
+      setCategorias(data);
     } catch (error) {
       console.error("Error cargando categorías:", error);
     }
   };
 
-  const fetchProveedores = async () => {
+  const cargarProveedores = async () => {
     try {
-      const res = await fetch("http://127.0.0.1:8000/api/proveedores/");
-      const data = await res.json();
-      setProveedores(data.results || data);
+      const data = await fetchProveedores();
+      setProveedores(data);
     } catch (error) {
       console.error("Error cargando proveedores:", error);
     }
@@ -146,6 +138,23 @@ export default function useInventario() {
   };
 
   const handleAddOrUpdateProducto = async () => {
+    const nombreValido =
+      formData.nombre_producto && formData.nombre_producto.trim() !== "";
+    const pvpValido =
+      formData.pvp_producto !== null &&
+      formData.pvp_producto !== "" &&
+      !isNaN(parseFloat(formData.pvp_producto));
+
+    if (!nombreValido || !pvpValido) {
+      Swal.fire({
+        icon: "warning",
+        title: "Campos obligatorios incompletos",
+        text: "Por favor, completa el nombre del producto y el PVP.",
+        confirmButtonColor: "#712b39",
+      });
+      return;
+    }
+
     try {
       const imageUrl = await uploadImageToCloudinary();
       const payload = {
@@ -164,40 +173,36 @@ export default function useInventario() {
         imagen_producto: imageUrl,
       };
 
-      const method = selectedProducto ? "PUT" : "POST";
-      const url = selectedProducto
-        ? `http://127.0.0.1:8000/api/productos/${selectedProducto.id}/`
-        : "http://127.0.0.1:8000/api/productos/";
-
-      const res = await fetch(url, {
-        method,
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(payload),
-      });
-
-      if (res.ok) {
+      if (selectedProducto) {
+        await actualizarProducto(selectedProducto.id, payload);
         Swal.fire({
           icon: "success",
-          title: selectedProducto ? "Producto actualizado" : "Producto creado",
+          title: "Producto actualizado",
           showConfirmButton: false,
           timer: 1500,
         });
-        fetchProductos();
-        setModalVisible(false);
-        setSelectedProducto(null);
-        resetForm();
       } else {
-        const errorData = await res.json().catch(() => ({}));
-        console.error(errorData);
+        await crearProducto(payload);
         Swal.fire({
-          icon: "error",
-          title: "Error al guardar",
-          text: errorData.detail || "Verifica los datos enviados.",
+          icon: "success",
+          title: "Producto creado",
+          showConfirmButton: false,
+          timer: 1500,
         });
       }
+
+      cargarProductos();
+      setModalVisible(false);
+      setSelectedProducto(null);
+      resetForm();
     } catch (error) {
       console.error(error);
-      Swal.fire("Error", "No se pudo guardar el producto.", "error");
+      Swal.fire({
+        icon: "error",
+        title: "Error al guardar",
+        text: error?.detail || "Ocurrió un error. Verifica los datos enviados.",
+        confirmButtonColor: "#712b39",
+      });
     }
   };
 
@@ -224,22 +229,18 @@ export default function useInventario() {
       cancelButtonColor: "#aaa",
       confirmButtonText: "Sí, eliminar",
       cancelButtonText: "Cancelar",
-      customClass: { popup: "rounded-lg" },
     });
 
     if (confirmResult.isConfirmed) {
-      const res = await fetch(`http://127.0.0.1:8000/api/productos/${id}/`, {
-        method: "DELETE",
-      });
-
-      if (res.ok) {
+      try {
+        await eliminarProducto(id);
         Swal.fire({
           icon: "success",
           title: "Producto eliminado",
           confirmButtonColor: "#712b39",
         });
-        fetchProductos();
-      } else {
+        cargarProductos();
+      } catch (error) {
         Swal.fire({
           icon: "error",
           title: "Error",

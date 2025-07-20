@@ -1,41 +1,14 @@
 import { useState, useEffect } from "react";
 import Swal from "sweetalert2";
+import {
+  fetchProductos,
+  fetchProveedores,
+  updateProducto,
+  registrarMovimiento,
+  registrarKardex,
+  buscarProductos,
+} from "../services/ingresoService";
 
-/**
- * Hook para manejar el estado de la página de ingreso de productos.
- *
- * Este hook proporciona los estados y funciones necesarias para manejar
- * el formulario de ingreso de productos y sus dependencias.
- *
- *? @param {Router} router - El router de Next.js para manejar la navegación.
- *? @return {Object} Un objeto con los siguientes campos:
- *   - productos: Un array de productos.
- *   - filteredProductos: Un array de productos filtrados por el usuario.
- *   - proveedores: Un array de proveedores.
- *   - selectedProveedor: El ID del proveedor seleccionado.
- *   - setSelectedProveedor: Función para actualizar el proveedor seleccionado.
- *   - searchProducto: El texto de búsqueda del producto.
- *   - setSearchProducto: Función para actualizar el texto de búsqueda.
- *   - selectedProducto: El producto seleccionado.
- *   - setSelectedProducto: Función para actualizar el producto seleccionado.
- *   - cantidadIngreso: La cantidad a ingresar.
- *   - setCantidadIngreso: Función para actualizar la cantidad a ingresar.
- *   - costoUnitario: El costo unitario.
- *   - setCostoUnitario: Función para actualizar el costo unitario.
- *   - motivo: El motivo del ingreso.
- *   - setMotivo: Función para actualizar el motivo del ingreso.
- *   - fechaCaducidad: La fecha de caducidad.
- *   - setFechaCaducidad: Función para actualizar la fecha de caducidad.
- *   - descripcion: La descripción del producto.
- *   - setDescripcion: Función para actualizar la descripción del producto.
- *   - marca: La marca del producto.
- *   - setMarca: Función para actualizar la marca del producto.
- *   - metodoValoracion: El método de valoración.
- *   - setMetodoValoracion: Función para actualizar el método de valoración.
- *   - isLoading: Un booleano que indica si el formulario está cargando.
- *   - handleSearchProducto: Función para buscar productos.
- *   - handleIngreso: Función para registrar un ingreso.
- */
 export default function useIngresoProducto(router) {
   const [productos, setProductos] = useState([]);
   const [filteredProductos, setFilteredProductos] = useState([]);
@@ -57,42 +30,28 @@ export default function useIngresoProducto(router) {
       router.push("/login");
       return;
     }
-    fetchProveedores();
+    cargarProveedores();
   }, []);
 
-  /**
-   * Fetches the list of products from the API and updates the state.
-   *
-   * Hace una petición GET a la ruta `/api/producto/` de la API y establece
-   * el estado `productos` y `filteredProductos` con los datos de la respuesta.
-   */
-  const fetchProductos = async () => {
-    const res = await fetch("http://127.0.0.1:8000/api/productos/");
-    const data = await res.json();
-    const productosData = Array.isArray(data) ? data : data.results;
-    setProductos(productosData);
-    setFilteredProductos(productosData);
+  const cargarProveedores = async () => {
+    try {
+      const data = await fetchProveedores();
+      setProveedores(data);
+    } catch (error) {
+      console.error("Error al cargar proveedores:", error);
+    }
   };
 
-  /**
-   * Fetches the list of providers from the API and updates the state.
-   *
-   * Hace una petición GET a la ruta `/api/proveedor/` de la API y establece
-   * el estado `proveedores` con los datos de la respuesta.
-   */
-
-  const fetchProveedores = async () => {
-    const res = await fetch("http://127.0.0.1:8000/api/proveedores/");
-    const data = await res.json();
-    setProveedores(data);
+  const cargarProductos = async () => {
+    try {
+      const data = await fetchProductos();
+      setProductos(data);
+      setFilteredProductos(data);
+    } catch (error) {
+      console.error("Error al cargar productos:", error);
+    }
   };
 
-  /**
-   * Busca productos en la lista de productos y actualiza el estado
-   * `filteredProductos` con los resultados de la búsqueda.
-   *
-   *? @param {string} term - El término de búsqueda.
-   */
   const handleSearchProducto = async (term) => {
     setSearchProducto(term);
     if (!term.trim()) {
@@ -101,24 +60,13 @@ export default function useIngresoProducto(router) {
     }
 
     try {
-      const res = await fetch(
-        `http://127.0.0.1:8000/api/productos/buscar/?q=${term}`
-      );
-      const data = await res.json();
+      const data = await buscarProductos(term);
       setFilteredProductos(Array.isArray(data) ? data : []);
     } catch (error) {
       console.error("Error al buscar productos:", error);
       setFilteredProductos([]);
     }
   };
-
-  /**
-   * Restaura los valores del formulario de ingreso de productos a sus valores iniciales.
-   *
-   * Establece la cantidad de ingreso, costo unitario, motivo, fecha de caducidad,
-   * descripción, marca, proveedor seleccionado, término de búsqueda y producto seleccionado
-   * a sus valores por defecto.
-   */
 
   const resetFormulario = () => {
     setCantidadIngreso(0);
@@ -131,26 +79,6 @@ export default function useIngresoProducto(router) {
     setSelectedProducto(null);
   };
 
-  /**
-   * Registra un ingreso de productos en el inventario.
-   *
-   * Primero verifica si el usuario está autenticado. Si no lo está, muestra un
-   * mensaje de error y no hace nada más.
-   *
-   * Luego verifica si se han completado todos los campos obligatorios del
-   * formulario. Si no es así, muestra un mensaje de error y no hace nada más.
-   *
-   * Si todo está bien, actualiza el producto seleccionado en la base de datos
-   * con la nueva cantidad y registra un movimiento de inventario con el tipo
-   * "Entrada". También registra un kardex con el tipo "Entrada" y el costo
-   * unitario y total del producto. Si se proporciona una fecha de caducidad,
-   * registra un lote con esa fecha y lo asocia al kardex.
-   *
-   * Si ocurre un error al registrar el ingreso, muestra un mensaje de error
-   * con la descripción del error.
-   *
-   *? @return {Promise<void>} Nada.
-   */
   const handleIngreso = async () => {
     const usuarioId = localStorage.getItem("userId");
     if (!usuarioId) {
@@ -160,23 +88,46 @@ export default function useIngresoProducto(router) {
         text: "Usuario no autenticado. Inicie sesión nuevamente.",
         confirmButtonColor: "#712b39",
       });
-
       return;
     }
 
-    if (
-      !selectedProducto ||
-      !cantidadIngreso ||
-      !costoUnitario ||
-      !selectedProveedor
-    ) {
+    if (!selectedProducto) {
       Swal.fire({
-        icon: "error",
-        title: "Error",
-        text: "Por favor, complete todos los campos obligatorios.",
+        icon: "warning",
+        title: "Producto no seleccionado",
+        text: "Por favor, selecciona un producto para el ingreso.",
         confirmButtonColor: "#712b39",
       });
+      return;
+    }
 
+    if (!selectedProveedor) {
+      Swal.fire({
+        icon: "warning",
+        title: "Proveedor no seleccionado",
+        text: "Debes seleccionar un proveedor.",
+        confirmButtonColor: "#712b39",
+      });
+      return;
+    }
+
+    if (!cantidadIngreso || parseInt(cantidadIngreso) <= 0) {
+      Swal.fire({
+        icon: "warning",
+        title: "Cantidad inválida",
+        text: "La cantidad debe ser un número mayor a 0.",
+        confirmButtonColor: "#712b39",
+      });
+      return;
+    }
+
+    if (!costoUnitario || parseFloat(costoUnitario) <= 0) {
+      Swal.fire({
+        icon: "warning",
+        title: "Costo inválido",
+        text: "El costo unitario debe ser un número mayor a 0.",
+        confirmButtonColor: "#712b39",
+      });
       return;
     }
 
@@ -185,6 +136,7 @@ export default function useIngresoProducto(router) {
     try {
       const cantidad = parseInt(cantidadIngreso, 10);
       const costo = parseFloat(costoUnitario);
+
       const productoActualizado = {
         ...selectedProducto,
         cantidad_producto: selectedProducto.cantidad_producto + cantidad,
@@ -194,28 +146,20 @@ export default function useIngresoProducto(router) {
         metodo_valoracion: metodoValoracion,
       };
 
-      await fetch(
-        `http://127.0.0.1:8000/api/productos/${selectedProducto.id}/`,
-        {
-          method: "PUT",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify(productoActualizado),
-        }
-      );
+      // Actualizar producto
+      await updateProducto(selectedProducto.id, productoActualizado);
 
-      await fetch("http://127.0.0.1:8000/api/movimiento/", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          producto_movimientoInventario: selectedProducto.id,
-          usuario_movimientoInventario: usuarioId,
-          tipo_movimientoInventario: "Entrada",
-          cantidad_movimientoInventario: cantidad,
-          motivo_movimientoInventario: motivo,
-        }),
+      // Registrar movimiento de inventario
+      await registrarMovimiento({
+        producto_movimientoInventario: selectedProducto.id,
+        usuario_movimientoInventario: usuarioId,
+        tipo_movimientoInventario: "Entrada",
+        cantidad_movimientoInventario: cantidad,
+        motivo_movimientoInventario: motivo,
       });
 
-      const kardexPayload = {
+      // Registrar en kardex
+      await registrarKardex({
         producto_kardex: selectedProducto.id,
         tipo_kardex: "Entrada",
         cantidad_kardex: cantidad,
@@ -226,12 +170,6 @@ export default function useIngresoProducto(router) {
           productoActualizado.cantidad_producto * costo
         ).toFixed(2),
         referencia_kardex: motivo,
-      };
-
-      await fetch("http://127.0.0.1:8000/api/kardex/", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(kardexPayload),
       });
 
       Swal.fire({
@@ -240,8 +178,9 @@ export default function useIngresoProducto(router) {
         text: "Ingreso registrado correctamente.",
         confirmButtonColor: "#712b39",
       });
+
       resetFormulario();
-      fetchProductos();
+      cargarProductos();
     } catch (error) {
       console.error(error);
       Swal.fire({
@@ -254,6 +193,7 @@ export default function useIngresoProducto(router) {
       setIsLoading(false);
     }
   };
+
   useEffect(() => {
     const timeoutId = setTimeout(() => {
       if (searchProducto.trim()) {
@@ -261,9 +201,9 @@ export default function useIngresoProducto(router) {
       } else {
         setFilteredProductos([]);
       }
-    }, 400); // debounce de 400ms
+    }, 400);
 
-    return () => clearTimeout(timeoutId); // limpia el timeout si cambia el input antes de que termine
+    return () => clearTimeout(timeoutId);
   }, [searchProducto]);
 
   return {

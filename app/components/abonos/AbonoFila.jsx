@@ -1,15 +1,36 @@
-import { CalendarDays, DollarSign, User, MinusCircle, Info } from "lucide-react";
+import {
+  CalendarDays,
+  DollarSign,
+  User,
+  MinusCircle,
+  Info,
+} from "lucide-react";
 
-export default function AbonoFila({ abono, onAbonar, onEditar, onVerVenta, loading }) {
+export default function AbonoFila({
+  abono,
+  onAbonar,
+  onEditar,
+  onVerVenta,
+  loading,
+}) {
   const total = parseFloat(abono.venta?.total_venta || 0);
   const pagado = parseFloat(abono.monto);
   const restante = abono.tieneAbono ? total - pagado : 0;
+  const formatearFechaLocal = (fechaISO) => {
+    return new Date(fechaISO).toLocaleDateString("es-EC", {
+      year: "numeric",
+      month: "2-digit",
+      day: "2-digit",
+    });
+  };
 
   return (
     <tr className="border-b hover:bg-gray-50 transition">
       <td className="p-3 flex items-center gap-2">
         <User className="w-4 h-4 text-gray-500" />
-        {abono.cliente?.nombre_cliente || abono.venta?.cliente_venta?.nombre_cliente || "—"}
+        {abono.cliente?.nombre_cliente ||
+          abono.venta?.cliente_venta?.nombre_cliente ||
+          "—"}
       </td>
 
       <td className="p-3">
@@ -33,35 +54,34 @@ export default function AbonoFila({ abono, onAbonar, onEditar, onVerVenta, loadi
       <td className="p-3 whitespace-nowrap">
         <div className="flex items-center gap-2 text-gray-500">
           <CalendarDays className="w-4 h-4" />
-          {new Date(abono.fecha).toLocaleDateString()}
+          {formatearFechaLocal(abono.fecha)}
         </div>
       </td>
 
       <td className="p-3">{abono.metodo_pago}</td>
 
       <td className="p-3 text-center space-x-2">
-      {abono.tieneAbono && !abono.completado && (
-  <>
-    <button
-      onClick={() => onAbonar(abono)}
-      className="text-yellow-600 hover:text-yellow-800 transition"
-      disabled={loading}
-    >
-      <MinusCircle className="w-5 h-5 mx-auto" />
-    </button>
-    <button
-      onClick={() => onEditar(abono)}
-      className="text-blue-600 hover:text-blue-800 transition"
-      disabled={loading}
-    >
-      <Info className="w-5 h-5 mx-auto" />
-    </button>
-  </>
-)}
-{abono.completado && (
-  <span className="text-green-600 font-semibold">Completado</span>
-)}
-
+        {abono.tieneAbono && !abono.completado && (
+          <>
+            <button
+              onClick={() => onAbonar(abono)}
+              className="text-yellow-600 hover:text-yellow-800 transition"
+              disabled={loading}
+            >
+              <MinusCircle className="w-5 h-5 mx-auto" />
+            </button>
+            <button
+              onClick={() => onEditar(abono)}
+              className="text-blue-600 hover:text-blue-800 transition"
+              disabled={loading}
+            >
+              <Info className="w-5 h-5 mx-auto" />
+            </button>
+          </>
+        )}
+        {abono.completado && (
+          <span className="text-green-600 font-semibold">Completado</span>
+        )}
       </td>
     </tr>
   );

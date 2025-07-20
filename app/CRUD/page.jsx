@@ -6,6 +6,7 @@ import { DashboardGrid } from "../components/CRUD/dashboard-grid";
 import Header from "../components/common/Header2";
 import { useAuth } from "../hooks/useAuth";
 import { useCrud } from "../hooks/useCrud";
+import ProtectedRoute from "../components/auth/ProtectedRoute"; 
 
 const tableConfigs = {
   proveedor: {
@@ -34,7 +35,7 @@ const tableConfigs = {
 export default function CrudSystem() {
   const [currentView, setCurrentView] = useState(null);
   const [menuOpen, setMenuOpen] = useState(false);
-  const { logout } = useAuth();
+  const { logout, user } = useAuth();
 
   const currentConfig = currentView ? tableConfigs[currentView] : null;
   const endpoint = currentConfig?.endpoint ?? ""; // evita errores en primer render
@@ -57,6 +58,7 @@ export default function CrudSystem() {
   }
 
   return (
+    <ProtectedRoute>
     <div className="min-h-screen bg-gray-100">
       <Header
         title={`Gestión de ${currentConfig.name}`}
@@ -74,5 +76,6 @@ export default function CrudSystem() {
         onBack={handleBackToDashboard}
       />
     </div>
+    </ProtectedRoute>
   );
 }

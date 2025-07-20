@@ -1,4 +1,4 @@
-// useVenta.js (versión final con fix de ID y autenticación)
+// hooks/useVenta.js
 import { useState, useEffect } from "react";
 import Swal from "sweetalert2";
 import { useRouter } from "next/navigation";
@@ -8,6 +8,17 @@ import {
   isValidPhone,
   calculateCartTotal,
 } from "../utils/ventaHelpers";
+import {
+  buscarClienteYPaciente,
+  crearClientePaciente,
+  actualizarCliente,
+  actualizarPaciente,
+  crearVenta,
+  crearArticuloVenta,
+  actualizarStockProducto,
+  registrarMovimientoKardex,
+  registrarAbono,
+} from "../services/ventaService";
 
 export default function useVenta() {
   const router = useRouter();
@@ -26,11 +37,9 @@ export default function useVenta() {
     ocupacion_paciente: "",
     antecedentes_paciente: "",
   });
-
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [metodoVenta, setMetodoVenta] = useState("Efectivo");
   const [progreso, setProgreso] = useState(1);
-
   const usuarioVenta = 1;
   const sucursalVenta = 1;
 
@@ -59,53 +68,23 @@ export default function useVenta() {
 
     if (name === "ci_cliente" && value.length >= 10 && value !== ciCargado) {
       try {
-        const res = await fetch(
-          `http://127.0.0.1:8000/api/cliente-paciente/buscar/?ci=${value}`,
-          {
-            headers: {
-              Authorization: `Bearer ${localStorage.getItem("access_token")}`,
-              "Content-Type": "application/json",
-            },
-          }
-        );
+        const resultado = await buscarClienteYPaciente(value);
+        const cliente = resultado.cliente;
+        const paciente = resultado.paciente;
 
-        if (res.ok) {
-          const resultado = await res.json();
-          const cliente = resultado.cliente;
-          const paciente = resultado.paciente;
-
-          if (!cliente || !cliente.id) {
-            console.error("Cliente no tiene ID:", cliente);
-            Swal.fire("Error", "No se pudo obtener el cliente actualizado.", "error");
-            return;
-          }
-
-          if (cliente || paciente) {
-            const clienteSafe = {
-              nombre_cliente: cliente?.nombre_cliente ?? "",
-              ci_cliente: cliente?.ci_cliente ?? "",
-              correo_cliente: cliente?.correo_cliente ?? "",
-              telefono_cliente: cliente?.telefono_cliente ?? "",
-              direccion_cliente: cliente?.direccion_cliente ?? "",
-              informacion_cliente: cliente?.informacion_cliente ?? "",
-            };
-
-            const pacienteSafe = {
-              apellidos_paciente: paciente?.apellidos_paciente ?? "",
-              fecha_nacimiento: paciente?.fecha_nacimiento ?? "",
-              ocupacion_paciente: paciente?.ocupacion_paciente ?? "",
-              antecedentes_paciente: paciente?.antecedentes_paciente ?? "",
-            };
-
-            setClienteData((prev) => ({ ...prev, ...clienteSafe, ...pacienteSafe }));
-            setCiCargado(value);
-            Swal.fire({
-              icon: "info",
-              title: "Datos encontrados",
-              text: "Se cargaron los datos del cliente y/o paciente.",
-              confirmButtonColor: "#712b39",
-            });
-          }
+        if (cliente || paciente) {
+          setClienteData((prev) => ({
+            ...prev,
+            ...cliente,
+            ...paciente,
+          }));
+          setCiCargado(value);
+          Swal.fire({
+            icon: "info",
+            title: "Datos encontrados",
+            text: "Se cargaron los datos del cliente y/o paciente.",
+            confirmButtonColor: "#712b39",
+          });
         }
       } catch (err) {
         console.error("Error al buscar cliente/paciente", err);
@@ -114,7 +93,10 @@ export default function useVenta() {
   };
 
   const registrarClienteYPaciente = async (data) => {
-    const token = localStorage.getItem("access_token");
+    const resultado = await buscarClienteYPaciente(data.ci_cliente);
+    const cliente = resultado.cliente;
+    const paciente = resultado.paciente;
+
     const payload = {
       ci: data.ci_cliente,
       nombre_cliente: data.nombre_cliente,
@@ -131,93 +113,19 @@ export default function useVenta() {
       antecedentes_paciente: data.antecedentes_paciente,
     };
 
-    const buscarRes = await fetch(
-      `http://127.0.0.1:8000/api/cliente-paciente/buscar/?ci=${data.ci_cliente}`,
-      {
-        headers: {
-          Authorization: `Bearer ${token}`,
-          "Content-Type": "application/json",
-        },
-      }
-    );
-
-    const resultado = await buscarRes.json();
-    const cliente = resultado.cliente;
-    const paciente = resultado.paciente;
-
     if (cliente && paciente) {
-      await fetch(`http://127.0.0.1:8000/api/clientes/${cliente.id}/`, {
-        method: "PATCH",
-        headers: {
-          Authorization: `Bearer ${token}`,
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(payload),
-      });
-
-      await fetch(`http://127.0.0.1:8000/api/pacientes/${paciente.id}/`, {
-        method: "PATCH",
-        headers: {
-          Authorization: `Bearer ${token}`,
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(payload),
-      });
+      await actualizarCliente(cliente.id, payload);
+      await actualizarPaciente(paciente.id, payload);
     } else {
-      await fetch("http://127.0.0.1:8000/api/cliente-paciente/", {
-        method: "POST",
-        headers: {
-          Authorization: `Bearer ${token}`,
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(payload),
-      });
+      await crearClientePaciente(payload);
     }
   };
 
-  const registrarVenta = async (clienteId, total) => {
-    const res = await fetch("http://127.0.0.1:8000/api/ventas/", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        cliente_venta: clienteId,
-        usuario_venta: usuarioVenta,
-        sucursal_venta: sucursalVenta,
-        total_venta: total,
-        estado_venta: "F",
-        metodo_venta: metodoVenta,
-        laboratorio_venta: laboratorioVenta ? parseInt(laboratorioVenta) : null,
-      }),
-    });
-    return await res.json();
-  };
-
-  const procesarProducto = async (ventaId, producto) => {
-    const cantidad = producto.cantidad || 1;
-    const resProd = await fetch(`http://127.0.0.1:8000/api/productos/${producto.id}/`);
-    const productoActualizado = await resProd.json();
-    const nuevoStock = productoActualizado.cantidad_producto - cantidad;
-
-    await fetch("http://127.0.0.1:8000/api/articulos-venta/", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        venta_articuloVenta: ventaId,
-        producto_articuloVenta: producto.id,
-        cantidad_articuloVenta: cantidad,
-        pvp_articuloVenta: producto.pvp_producto,
-        descuento_articuloVenta: 0,
-      }),
-    });
-
-    await fetch(`http://127.0.0.1:8000/api/productos/${producto.id}/`, {
-      method: "PATCH",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ cantidad_producto: nuevoStock }),
-    });
-  };
-
-  const handleSubmit = async ({ abonoInicial = false, montoAbono = "", metodoAbono = "Efectivo" } = {}) => {
+  const handleSubmit = async ({
+    abonoInicial = false,
+    montoAbono = "",
+    metodoAbono = "Efectivo",
+  } = {}) => {
     if (
       !isValidCI(clienteData.ci_cliente) ||
       !clienteData.nombre_cliente ||
@@ -233,29 +141,60 @@ export default function useVenta() {
     try {
       await registrarClienteYPaciente(clienteData);
 
-      const res = await fetch(`http://127.0.0.1:8000/api/cliente-paciente/buscar/?ci=${clienteData.ci_cliente}`);
-      const resultado = await res.json();
+      const resultado = await buscarClienteYPaciente(clienteData.ci_cliente);
       const cliente = resultado.cliente;
       if (!cliente || !cliente.id) throw new Error("Cliente inválido o sin ID");
 
       const total = calculateCartTotal(cart);
-      const venta = await registrarVenta(cliente.id, total);
+      const venta = await crearVenta({
+        cliente_venta: cliente.id,
+        usuario_venta: usuarioVenta,
+        sucursal_venta: sucursalVenta,
+        total_venta: total,
+        estado_venta: "F",
+        metodo_venta: metodoVenta,
+        laboratorio_venta: laboratorioVenta ? parseInt(laboratorioVenta) : null,
+      });
 
-      await Promise.all(cart.map((producto) => procesarProducto(venta.id, producto)));
+      await Promise.all(
+        cart.map(async (producto) => {
+          const cantidad = producto.cantidad || 1;
+
+          await crearArticuloVenta({
+            venta_articuloVenta: venta.id,
+            producto_articuloVenta: producto.id,
+            cantidad_articuloVenta: cantidad,
+            pvp_articuloVenta: producto.pvp_producto,
+            descuento_articuloVenta: 0,
+          });
+
+          const nuevoStock = producto.cantidad_producto - cantidad;
+
+          await actualizarStockProducto(producto.id, {
+            cantidad_producto: nuevoStock,
+          });
+
+          await registrarMovimientoKardex({
+            producto_kardex: producto.id,
+            tipo_kardex: "Salida",
+            cantidad_kardex: cantidad,
+            costo_unitario_kardex: parseFloat(producto.costo_producto || 0),
+            costo_total_kardex:
+              parseFloat(producto.costo_producto || 0) * cantidad,
+            saldo_cantidad_kardex: nuevoStock,
+            saldo_costo_kardex:
+              parseFloat(producto.costo_producto || 0) * nuevoStock,
+            referencia_kardex: `Venta #${venta.id}`,
+          });
+        })
+      );
 
       if (abonoInicial && parseFloat(montoAbono) > 0) {
-        await fetch("http://127.0.0.1:8000/api/abonos/", {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${localStorage.getItem("access_token")}`,
-          },
-          body: JSON.stringify({
-            venta: venta.id,
-            cliente: cliente.id,
-            monto: parseFloat(montoAbono),
-            metodo_pago: metodoAbono,
-          }),
+        await registrarAbono({
+          venta: venta.id,
+          cliente: cliente.id,
+          monto: parseFloat(montoAbono),
+          metodo_pago: metodoAbono,
         });
       }
 
@@ -268,7 +207,9 @@ export default function useVenta() {
       }).then(() => router.push("/dashboard"));
 
       setCart([]);
+      localStorage.removeItem("cart");
       setClienteData({
+        id: null,
         ci_cliente: "",
         nombre_cliente: "",
         telefono_cliente: "",
@@ -283,7 +224,11 @@ export default function useVenta() {
       setProgreso(3);
     } catch (error) {
       console.error(error);
-      Swal.fire({ icon: "error", title: "Error", text: "Ocurrió un error al registrar la venta." });
+      Swal.fire({
+        icon: "error",
+        title: "Error",
+        text: "Ocurrió un error al registrar la venta.",
+      });
     } finally {
       setIsSubmitting(false);
     }

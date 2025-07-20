@@ -5,6 +5,7 @@ import {
   SelectField,
   FileField,
 } from "../common/FormFields";
+import Swal from "sweetalert2";
 
 export default function FormularioProducto({
   isOpen,
@@ -25,6 +26,30 @@ export default function FormularioProducto({
     }));
   };
 
+  const handleSubmit = () => {
+    if (!formData.nombre_producto || formData.nombre_producto.trim() === "") {
+      Swal.fire({
+        icon: "warning",
+        title: "Campo requerido",
+        text: "El nombre del producto es obligatorio.",
+        confirmButtonColor: "#712b39",
+      });
+      return;
+    }
+
+    if (!formData.codigo_producto || formData.codigo_producto.trim() === "") {
+      Swal.fire({
+        icon: "warning",
+        title: "Campo requerido",
+        text: "El código del producto es obligatorio.",
+        confirmButtonColor: "#712b39",
+      });
+      return;
+    }
+
+    // ✅ Todo validado
+    onSubmit();
+  };
   const handleFile = (e) => {
     const selectedFile = e.target.files[0];
     if (
@@ -49,13 +74,21 @@ export default function FormularioProducto({
         {/* Sección de campos obligatorios */}
         <div className="grid grid-cols-2 gap-6 mb-8">
           <InputField
-            label={<span>Nombre del Producto <span className="text-red-500">*</span></span>}
+            label={
+              <span>
+                Nombre del Producto <span className="text-red-500">*</span>
+              </span>
+            }
             name="nombre_producto"
             value={formData.nombre_producto || ""}
             onChange={handleChange}
           />
           <InputField
-            label={<span>Precio de Venta (PVP) <span className="text-red-500">*</span></span>}
+            label={
+              <span>
+                Precio de Venta (PVP) <span className="text-red-500">*</span>
+              </span>
+            }
             name="pvp_producto"
             type="number"
             value={formData.pvp_producto ?? ""}
@@ -68,11 +101,16 @@ export default function FormularioProducto({
           {/* Columna izquierda */}
           <div className="flex flex-col space-y-4">
             <InputField
-              label="Código del Producto"
+              label={
+                <span>
+                  Código del Producto <span className="text-red-500">*</span>
+                </span>
+              }
               name="codigo_producto"
               value={formData.codigo_producto || ""}
               onChange={handleChange}
             />
+
             <TextareaField
               label="Descripción del Producto"
               name="descripcion_producto"
@@ -164,7 +202,7 @@ export default function FormularioProducto({
             Cancelar
           </button>
           <button
-            onClick={onSubmit}
+            onClick={handleSubmit}
             className="bg-[#712b39] text-white px-6 py-2 rounded-lg hover:bg-[#5e242e]"
           >
             Guardar

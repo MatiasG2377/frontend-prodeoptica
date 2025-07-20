@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-
+import Swal from "sweetalert2";
 import { useAuth } from "../hooks/useAuth";
 import useVenta from "../hooks/useVenta";
 
@@ -54,12 +54,22 @@ export default function VentaPage() {
 
   const enhancedHandleSubmit = async () => {
     if (cart.length === 0) {
-      alert("Debe agregar productos al carrito antes de registrar la venta.");
+      await Swal.fire({
+        icon: "warning",
+        title: "Carrito vacío",
+        text: "Debe agregar productos al carrito antes de registrar la venta.",
+        confirmButtonColor: "#712b39",
+      });
       return;
     }
 
     if (!clienteData.ci_cliente || !clienteData.nombre_cliente) {
-      alert("Debe completar los datos del cliente.");
+      await Swal.fire({
+        icon: "warning",
+        title: "Datos incompletos",
+        text: "Debe completar los datos del cliente antes de continuar.",
+        confirmButtonColor: "#712b39",
+      });
       return;
     }
 

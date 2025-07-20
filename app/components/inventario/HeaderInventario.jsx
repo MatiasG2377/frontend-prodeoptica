@@ -24,11 +24,10 @@ export default function HeaderInventario({
   const links = [
     { path: "/ficha-medica", label: "Fichas Médicas" },
     { path: "/dashboard", label: "Venta" },
-    { path: "/abonos", label: "Abonos" },
+    { path: "/abonos", label: "Ventas y Abonos" },
     { path: "/inventario", label: "Gestión de Productos" },
     { path: "/ingresos", label: "Entradas al Inventario" },
-    { path: "/registro-clientes", label: "Registro de Clientes" },
-    { path: "/visualizacion-reportes", label: "Visualización de Reportes" },
+    { path: "/CRUD", label: "Gestión de registros" },
     { path: "/kardex", label: "Kardex" },
     { path: "/register", label: "Registrar usuario" },
   ];

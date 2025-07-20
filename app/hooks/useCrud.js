@@ -1,29 +1,24 @@
-import { useEffect, useState } from "react";
+import Swal from "sweetalert2";
+import { useState, useEffect } from "react";
+import {
+  getAllItems,
+  createItem,
+  updateItem,
+  deleteItemById,
+} from "../services/crudService";
 
 export function useCrud(apiUrl) {
   const [data, setData] = useState([]);
   const [loading, setLoading] = useState(false);
 
   const fetchData = async () => {
-    if (!apiUrl) return; // 🔐 evita llamadas vacías
+    if (!apiUrl) return;
     try {
       setLoading(true);
-      const res = await fetch(apiUrl);
-      const contentType = res.headers.get("content-type");
-
-      if (!res.ok) {
-        console.error("Error de red o backend", res.status);
-        return;
-      }
-
-      if (contentType && contentType.includes("application/json")) {
-        const json = await res.json();
-        setData(json);
-      } else {
-        console.error("Respuesta no es JSON. ¿Tal vez HTML?");
-      }
-    } catch (error) {
-      console.error("Error al cargar datos", error);
+      const json = await getAllItems(apiUrl);
+      setData(json);
+    } catch (err) {
+      console.error("Error al cargar datos", err);
     } finally {
       setLoading(false);
     }
@@ -33,30 +28,100 @@ export function useCrud(apiUrl) {
     fetchData();
   }, [apiUrl]);
 
+  const validate = (item) => {
+    if (apiUrl.includes("proveedores")) {
+      if (!item.nombre_proveedor || item.nombre_proveedor.trim() === "") {
+        return "El nombre del proveedor es obligatorio.";
+      }
+    }
+    if (apiUrl.includes("laboratorios")) {
+      if (!item.nombre_laboratorio || item.nombre_laboratorio.trim() === "") {
+        return "El nombre del laboratorio es obligatorio.";
+      }
+    }
+    return null;
+  };
+
   const addItem = async (item) => {
-    if (!apiUrl) return;
-    const res = await fetch(apiUrl, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(item),
-    });
-    if (res.ok) fetchData();
+    const error = validate(item);
+    if (error) {
+      Swal.fire({
+        icon: "warning",
+        title: "Validación",
+        text: error,
+        confirmButtonColor: "#712b39",
+      });
+      return;
+    }
+
+    try {
+      await createItem(apiUrl, item);
+      await fetchData();
+      Swal.fire({
+        icon: "success",
+        title: "Agregado",
+        text: "Registro agregado correctamente.",
+        confirmButtonColor: "#712b39",
+      });
+    } catch (err) {
+      Swal.fire({
+        icon: "error",
+        title: "Error",
+        text: err?.detail || "No se pudo agregar.",
+        confirmButtonColor: "#712b39",
+      });
+    }
   };
 
   const editItem = async (id, item) => {
-    if (!apiUrl || !id) return;
-    const res = await fetch(`${apiUrl}${id}/`, {
-      method: "PUT",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(item),
-    });
-    if (res.ok) fetchData();
+    const error = validate(item);
+    if (error) {
+      Swal.fire({
+        icon: "warning",
+        title: "Validación",
+        text: error,
+        confirmButtonColor: "#712b39",
+      });
+      return;
+    }
+
+    try {
+      await updateItem(apiUrl, id, item);
+      await fetchData();
+      Swal.fire({
+        icon: "success",
+        title: "Actualizado",
+        text: "Registro actualizado.",
+        confirmButtonColor: "#712b39",
+      });
+    } catch (err) {
+      Swal.fire({
+        icon: "error",
+        title: "Error",
+        text: err?.detail || "No se pudo actualizar.",
+        confirmButtonColor: "#712b39",
+      });
+    }
   };
 
   const deleteItem = async (id) => {
-    if (!apiUrl || !id) return;
-    const res = await fetch(`${apiUrl}${id}/`, { method: "DELETE" });
-    if (res.ok) fetchData();
+    try {
+      await deleteItemById(apiUrl, id);
+      await fetchData();
+      Swal.fire({
+        icon: "success",
+        title: "Eliminado",
+        text: "Registro eliminado.",
+        confirmButtonColor: "#712b39",
+      });
+    } catch {
+      Swal.fire({
+        icon: "error",
+        title: "Error",
+        text: "No se pudo eliminar.",
+        confirmButtonColor: "#712b39",
+      });
+    }
   };
 
   return { data, loading, addItem, editItem, deleteItem };

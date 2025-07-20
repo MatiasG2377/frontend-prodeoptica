@@ -36,7 +36,7 @@ export default function Header({ title, menuOpen, setMenuOpen, handleLogout }) {
               className="p-4 hover:bg-gray-200 cursor-pointer"
               onClick={() => router.push("/abonos")}
             >
-              Abonos
+              Ventas y Abonos
             </li>
             <li
               className="p-4 hover:bg-gray-200 cursor-pointer"
@@ -55,12 +55,6 @@ export default function Header({ title, menuOpen, setMenuOpen, handleLogout }) {
               onClick={() => router.push("/CRUD")}
             >
               Gestión de registros
-            </li>
-            <li
-              className="p-4 hover:bg-gray-200 cursor-pointer"
-              onClick={() => router.push("/visualizacion-reportes")}
-            >
-              Visualización de Reportes
             </li>
             <li
               className="p-4 hover:bg-gray-200 cursor-pointer"

@@ -11,7 +11,6 @@ import ProtectedRoute from "../components/auth/ProtectedRoute";
 
 /**
  * Página de registro de usuarios.
- *
  * Esta página permite crear un nuevo usuario en el sistema,
  * mostrando un formulario con los campos necesarios para
  * registrar un usuario.

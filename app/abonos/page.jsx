@@ -1,4 +1,3 @@
-
 "use client";
 
 import Header from "../components/common/Header2";
@@ -18,14 +17,30 @@ export default function AbonosPage() {
   const [debouncedBusqueda, setDebouncedBusqueda] = useState("");
   const [fechaInicio, setFechaInicio] = useState("");
   const [fechaFin, setFechaFin] = useState("");
-  const { abonos, setAbonos, loading, setLoading, fetchAbonos } = useAbonos(API_URL);
+  const [ventas, setVentas] = useState([]);
+
+  const {
+    abonos,
+    setAbonos,
+    loading,
+    setLoading,
+    cargarAbonos,
+    buscarPorNombre,
+  } = useAbonos();
   const [abonoSeleccionado, setAbonoSeleccionado] = useState(null);
   const [mostrarModal, setMostrarModal] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
   const [ventaSeleccionada, setVentaSeleccionada] = useState(null);
   const [mostrarModalVenta, setMostrarModalVenta] = useState(false);
   const [articulosVenta, setArticulosVenta] = useState([]);
-  
+  const formatearFechaLocal = (fechaISO) => {
+    return new Date(fechaISO).toLocaleDateString("es-EC", {
+      year: "numeric",
+      month: "2-digit",
+      day: "2-digit",
+    });
+  };
+
   // Debounce para búsqueda por nombre
   useEffect(() => {
     const timer = setTimeout(() => {
@@ -37,40 +52,14 @@ export default function AbonosPage() {
 
   // Buscar abonos por usuario (nombre) cuando cambia debouncedBusqueda
   useEffect(() => {
-    const buscarAbonosPorUsuario = async () => {
-      if (!debouncedBusqueda.trim()) {
-        fetchAbonos(); // Si se limpia la búsqueda, mostrar todos
-        return;
-      }
+    if (!debouncedBusqueda.trim()) {
+      cargarAbonos();
+      fetchVentas();
+      return;
+    }
 
-      try {
-        setLoading(true);
-        const res = await fetch(`${API_URL}/abonos/buscar/?q=${debouncedBusqueda}`, {
-          headers: {
-            Authorization: `Bearer ${localStorage.getItem("access_token")}`,
-          },
-        });
-
-        if (!res.ok) throw new Error("Error al buscar usuarios");
-
-        const usuarios = await res.json();
-        const usuariosIds = usuarios.map((u) => u.id);
-
-        // Filtrar los abonos actuales para los clientes encontrados
-        const abonosFiltrados = abonos.filter((abono) =>
-          usuariosIds.includes(abono.cliente?.id || abono.cliente)
-        );
-        setAbonos(abonosFiltrados);
-      } catch (error) {
-        console.error("Error en búsqueda de abonos:", error);
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    buscarAbonosPorUsuario();
+    buscarPorNombre(debouncedBusqueda, setVentas); // <-- aquí lo pasas
   }, [debouncedBusqueda]);
-  const [ventas, setVentas] = useState([]);
 
   const fetchVentas = async () => {
     try {
@@ -79,54 +68,60 @@ export default function AbonosPage() {
           Authorization: `Bearer ${localStorage.getItem("access_token")}`,
         },
       });
-  
+
       if (!res.ok) throw new Error("Error al cargar ventas");
-  
+
       const data = await res.json();
       setVentas(data.results || data); // si usas paginación
     } catch (error) {
       console.error("Error cargando ventas:", error);
     }
   };
-  
+
   // Carga inicial de abonos
   useEffect(() => {
-    fetchAbonos();
+    cargarAbonos();
     fetchVentas(); // esto debe estar aquí
-
   }, []);
 
   // Función para filtrar abonos por fechas cuando se presiona el botón
   const filtrarPorFechas = async () => {
     if (!fechaInicio && !fechaFin) {
-      fetchAbonos();
+      cargarAbonos();
       fetchVentas();
       return;
     }
-  
+
     try {
       setLoading(true);
       const params = new URLSearchParams();
       if (fechaInicio) params.append("fecha_inicio", fechaInicio);
       if (fechaFin) params.append("fecha_fin", fechaFin);
-  
-      const abonosRes = await fetch(`${API_URL}/abonos/fecha/?${params.toString()}`, {
-        headers: {
-          Authorization: `Bearer ${localStorage.getItem("access_token")}`,
-        },
-      });
-  
-      const ventasRes = await fetch(`${API_URL}/ventas/fecha/?${params.toString()}`, {
-        headers: {
-          Authorization: `Bearer ${localStorage.getItem("access_token")}`,
-        },
-      });
-  
-      if (!abonosRes.ok || !ventasRes.ok) throw new Error("Error al filtrar datos por fechas");
-  
+
+      const abonosRes = await fetch(
+        `${API_URL}/abonos/fecha/?${params.toString()}`,
+        {
+          headers: {
+            Authorization: `Bearer ${localStorage.getItem("access_token")}`,
+          },
+        }
+      );
+
+      const ventasRes = await fetch(
+        `${API_URL}/ventas/fecha/?${params.toString()}`,
+        {
+          headers: {
+            Authorization: `Bearer ${localStorage.getItem("access_token")}`,
+          },
+        }
+      );
+
+      if (!abonosRes.ok || !ventasRes.ok)
+        throw new Error("Error al filtrar datos por fechas");
+
       const abonosData = await abonosRes.json();
       const ventasData = await ventasRes.json();
-  
+
       setAbonos(abonosData.results || abonosData);
       setVentas(ventasData.results || ventasData);
     } catch (error) {
@@ -135,13 +130,12 @@ export default function AbonosPage() {
       setLoading(false);
     }
   };
-  
 
   // Función para limpiar filtros de fecha y recargar abonos
   const limpiarFiltrosFecha = () => {
     setFechaInicio("");
     setFechaFin("");
-    fetchAbonos();
+    cargarAbonos();
     fetchVentas();
   };
 
@@ -151,7 +145,7 @@ export default function AbonosPage() {
     const total = parseFloat(abono.venta?.total_venta || 0);
     const pagado = parseFloat(abono.monto);
     const restante = total - pagado;
-  
+
     const { value: cantidad } = await Swal.fire({
       title: "¿Cuánto desea abonar?",
       html: `Restante: <strong>$${restante.toFixed(2)}</strong>`,
@@ -167,12 +161,12 @@ export default function AbonosPage() {
       confirmButtonText: "Registrar abono",
       cancelButtonText: "Cancelar",
     });
-  
+
     if (!cantidad) return;
-  
+
     const montoNuevo = parseFloat(cantidad);
     const precision = 0.0001;
-  
+
     if (isNaN(montoNuevo) || montoNuevo <= 0) {
       await Swal.fire({
         icon: "warning",
@@ -182,7 +176,7 @@ export default function AbonosPage() {
       });
       return;
     }
-  
+
     if (montoNuevo - restante > precision) {
       await Swal.fire({
         icon: "warning",
@@ -194,10 +188,10 @@ export default function AbonosPage() {
       });
       return;
     }
-  
+
     try {
       setLoading(true);
-  
+
       // 🔍 Buscar el abono real asociado a esta venta
       const buscarAbono = await fetch(
         `${API_URL}/abonos/por-venta/${abono.venta?.id || abono.venta}/`,
@@ -207,13 +201,13 @@ export default function AbonosPage() {
           },
         }
       );
-  
+
       if (!buscarAbono.ok) throw new Error("No se pudo obtener el abono");
-  
+
       const abonoData = await buscarAbono.json(); // contiene el abono con ID real
-  
+
       const nuevoMonto = parseFloat(abonoData.monto || 0) + montoNuevo;
-  
+
       // 🛠 Actualizar el abono real
       const res = await fetch(`${API_URL}/abonos/${abonoData.id}/`, {
         method: "PUT",
@@ -229,11 +223,11 @@ export default function AbonosPage() {
           metodo_pago: abonoData.metodo_pago || "Efectivo",
         }),
       });
-  
+
       if (!res.ok) throw new Error("Error al actualizar el abono");
-  
-      await fetchAbonos();
-  
+
+      await cargarAbonos();
+
       await Swal.fire({
         icon: "success",
         title: "Abono actualizado",
@@ -252,7 +246,6 @@ export default function AbonosPage() {
       setLoading(false);
     }
   };
-  
 
   const abrirModalEdicion = (abono) => {
     setAbonoSeleccionado({ ...abono });
@@ -291,7 +284,7 @@ export default function AbonosPage() {
 
       if (!res.ok) throw new Error("Error al actualizar el abono");
 
-      await fetchAbonos();
+      await cargarAbonos();
       setMostrarModal(false);
 
       await Swal.fire({
@@ -314,50 +307,52 @@ export default function AbonosPage() {
   };
   const verDetalleVenta = async (venta) => {
     try {
-      const res = await fetch(`http://127.0.0.1:8000/api/ventas/${venta.id}/articulos/`, {
-        headers: {
-          Authorization: `Bearer ${localStorage.getItem("access_token")}`,
-        },
-      });
-  
+      const res = await fetch(
+        `http://127.0.0.1:8000/api/ventas/${venta.id}/articulos/`,
+        {
+          headers: {
+            Authorization: `Bearer ${localStorage.getItem("access_token")}`,
+          },
+        }
+      );
+
       if (!res.ok) throw new Error("Error al obtener artículos");
-  
+
       const data = await res.json();
-  
+
       // Asegúrate de tener cliente_venta también:
-      setVentaSeleccionada(venta);  // <--- debe venir completo desde el principio
+      setVentaSeleccionada(venta); // <--- debe venir completo desde el principio
       setArticulosVenta(data);
       setMostrarModalVenta(true);
     } catch (error) {
       console.error("Error al obtener detalle de venta:", error);
     }
   };
-  
-  
+
   const combinarVentasYAbonos = () => {
     const abonosPorVenta = {};
-  
+
     // Sumar los montos abonados por cada venta
     abonos.forEach((abono) => {
       const ventaId = abono.venta?.id;
       if (!ventaId) return;
-  
+
       if (!abonosPorVenta[ventaId]) {
         abonosPorVenta[ventaId] = 0;
       }
-  
+
       abonosPorVenta[ventaId] += parseFloat(abono.monto || 0);
     });
-  
+
     // Recorremos todas las ventas y armamos el objeto final
     const resultado = ventas.map((venta) => {
       const abonado = abonosPorVenta[venta.id] || 0;
       const total = parseFloat(venta.total_venta || 0);
       const completado = abonado >= total - 0.0001;
-    
+
       return {
-        id: venta.id,  // <-- este sí es un ID numérico válido para tu API
-        venta,  // Aquí estás pasando la venta completa ✅
+        id: venta.id, // <-- este sí es un ID numérico válido para tu API
+        venta, // Aquí estás pasando la venta completa ✅
         cliente: venta.cliente_venta, // <-- asegúrate que `cliente_venta` sea un objeto con `nombre_cliente`
         monto: abonado,
         fecha: venta.fecha_venta,
@@ -366,17 +361,15 @@ export default function AbonosPage() {
         completado,
       };
     });
-    
-  
+
     return resultado;
   };
-  
-  
+
   return (
     <ProtectedRoute>
       <div className="min-h-screen w-full bg-gray-100">
         <Header
-          title="Abonos"
+          title="Ventas y Abonos"
           menuOpen={menuOpen}
           setMenuOpen={setMenuOpen}
           handleLogout={logout}
@@ -384,7 +377,9 @@ export default function AbonosPage() {
 
         <div className="w-full px-6 py-10">
           <div className="w-full bg-white rounded-xl shadow-lg p-6">
-            <h1 className="text-3xl font-bold text-[#712b39] mb-6">Historial de Abonos</h1>
+            <h1 className="text-3xl font-bold text-[#712b39] mb-6">
+              Historial de Ventas y Abonos
+            </h1>
 
             <input
               type="text"
@@ -443,14 +438,13 @@ export default function AbonosPage() {
               />
             )}
             {mostrarModalVenta && ventaSeleccionada && (
-  <ModalDetalleVenta
-    visible={mostrarModalVenta}
-    onClose={() => setMostrarModalVenta(false)}
-    venta={ventaSeleccionada}
-    articulos={articulosVenta}
-  />
-)}
-
+              <ModalDetalleVenta
+                visible={mostrarModalVenta}
+                onClose={() => setMostrarModalVenta(false)}
+                venta={ventaSeleccionada}
+                articulos={articulosVenta}
+              />
+            )}
           </div>
         </div>
       </div>

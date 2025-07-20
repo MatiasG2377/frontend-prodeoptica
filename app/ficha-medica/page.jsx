@@ -68,18 +68,18 @@ const decimalFields = [
 ];
 
 export default function FichaMedicaCompleta() {
-const [paciente, setPaciente] = useState({
-  ci_paciente: "",
-  apellidos: "",
-  nombres: "",
-  fecha_nacimiento: "",
-  ocupacion: "",
-  direccion: "",
-  telefono_celular: "",
-  antecedentes: "",
-  correo_cliente: "",           // <-- NUEVO
-  informacion_cliente: "",      // <-- NUEVO
-});
+  const [paciente, setPaciente] = useState({
+    ci_paciente: "",
+    apellidos: "",
+    nombres: "",
+    fecha_nacimiento: "",
+    ocupacion: "",
+    direccion: "",
+    telefono_celular: "",
+    antecedentes: "",
+    correo_cliente: "", // <-- NUEVO
+    informacion_cliente: "", // <-- NUEVO
+  });
 
   const printRef = useRef();
 
@@ -153,7 +153,17 @@ const [paciente, setPaciente] = useState({
     observaciones: "",
     altura: "",
     material: "",
+    esq_od_esfera_comp: "",
+    esq_od_cilindro_comp: "",
+    esq_od_eje_comp: "",
+    esq_oi_esfera_comp: "",
+    esq_oi_cilindro_comp: "",
+    esq_oi_eje_comp: "",
+    armazon: "",
   });
+  const [apellidoBusqueda, setApellidoBusqueda] = useState("");
+  const [resultadosApellido, setResultadosApellido] = useState([]);
+  const [mostrarModal, setMostrarModal] = useState(false);
 
   const handlePacienteChange = (field, value) => {
     setPaciente((prev) => ({ ...prev, [field]: value }));
@@ -163,76 +173,74 @@ const [paciente, setPaciente] = useState({
     setOpticalData((prev) => ({ ...prev, [field]: value }));
   };
 
-const handleSubmit = async (e) => {
-  e.preventDefault();
-  console.log("Usuario logueado:", user);
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    console.log("Usuario logueado:", user);
 
-  const token = localStorage.getItem("access_token");
+    const token = localStorage.getItem("access_token");
 
-  const payload = {
-    ci: paciente.ci_paciente,
-    nombre_cliente: paciente.nombres,
-    correo_cliente: paciente.correo_cliente,
-    telefono_cliente: paciente.telefono_celular,
-    direccion_cliente: paciente.direccion,
-    informacion_cliente: paciente.informacion_cliente,
-    nombres_paciente: paciente.nombres,
-    apellidos_paciente: paciente.apellidos,
-    fecha_nacimiento: paciente.fecha_nacimiento,
-    ocupacion_paciente: paciente.ocupacion,
-    direccion_paciente: paciente.direccion,
-    telefono_paciente: paciente.telefono_celular,
-    antecedentes_paciente: paciente.antecedentes,
-  };
+    const payload = {
+      ci: paciente.ci_paciente,
+      nombre_cliente: paciente.nombres,
+      correo_cliente: paciente.correo_cliente,
+      telefono_cliente: paciente.telefono_celular,
+      direccion_cliente: paciente.direccion,
+      informacion_cliente: paciente.informacion_cliente,
+      nombres_paciente: paciente.nombres,
+      apellidos_paciente: paciente.apellidos,
+      fecha_nacimiento: paciente.fecha_nacimiento,
+      ocupacion_paciente: paciente.ocupacion,
+      direccion_paciente: paciente.direccion,
+      telefono_paciente: paciente.telefono_celular,
+      antecedentes_paciente: paciente.antecedentes,
+    };
 
-  try {
-    const res = await fetch("http://localhost:8000/api/cliente-paciente/", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${token}`,
-      },
-      body: JSON.stringify(payload),
-    });
+    try {
+      const res = await fetch("http://localhost:8000/api/cliente-paciente/", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify(payload),
+      });
 
-    if (!res.ok && res.status !== 400) {
-      const errorText = await res.text();
-      throw new Error("Error al guardar paciente: " + errorText);
+      if (!res.ok && res.status !== 400) {
+        const errorText = await res.text();
+        throw new Error("Error al guardar paciente: " + errorText);
+      }
+
+      await res.json(); // puedes usarlo si necesitas los datos
+
+      Swal.fire({
+        icon: "success",
+        title: "Paciente y Cliente guardados",
+        text: "Los datos se guardaron correctamente.",
+        confirmButtonColor: "#7d2a3f",
+      });
+
+      setPaciente({
+        ci_paciente: "",
+        apellidos: "",
+        nombres: "",
+        fecha_nacimiento: "",
+        ocupacion: "",
+        direccion: "",
+        telefono_celular: "",
+        antecedentes: "",
+        correo_cliente: "",
+        informacion_cliente: "",
+      });
+    } catch (error) {
+      console.error("Error al guardar paciente:", error);
+      Swal.fire({
+        icon: "error",
+        title: "Error",
+        text: "Hubo un problema al guardar el paciente y cliente.",
+        confirmButtonColor: "#7d2a3f",
+      });
     }
-
-    await res.json(); // puedes usarlo si necesitas los datos
-
-    Swal.fire({
-      icon: "success",
-      title: "Paciente y Cliente guardados",
-      text: "Los datos se guardaron correctamente.",
-      confirmButtonColor: "#7d2a3f",
-    });
-
-    setPaciente({
-      ci_paciente: "",
-      apellidos: "",
-      nombres: "",
-      fecha_nacimiento: "",
-      ocupacion: "",
-      direccion: "",
-      telefono_celular: "",
-      antecedentes: "",
-      correo_cliente: "",
-      informacion_cliente: "",
-    });
-
-  } catch (error) {
-    console.error("Error al guardar paciente:", error);
-    Swal.fire({
-      icon: "error",
-      title: "Error",
-      text: "Hubo un problema al guardar el paciente y cliente.",
-      confirmButtonColor: "#7d2a3f",
-    });
-  }
-};
-
+  };
 
   const buscarPacientePorCI = async () => {
     if (!paciente.ci_paciente) return;
@@ -240,17 +248,16 @@ const handleSubmit = async (e) => {
     const token = localStorage.getItem("access_token");
 
     try {
-const res = await fetch(
-  `http://localhost:8000/api/cliente-paciente/buscar/?ci=${paciente.ci_paciente}`,
-  {
-    method: "GET",
-    headers: {
-      "Content-Type": "application/json",
-      Authorization: `Bearer ${token}`,
-    },
-  }
-);
-
+      const res = await fetch(
+        `http://localhost:8000/api/cliente-paciente/buscar/?ci=${paciente.ci_paciente}`,
+        {
+          method: "GET",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
 
       if (!res.ok) {
         setFichasPasadas([]);
@@ -263,32 +270,31 @@ const res = await fetch(
         return;
       }
 
-const data = await res.json();
+      const data = await res.json();
 
-if (!data.paciente) {
-  Swal.fire({
-    icon: "warning",
-    title: "Paciente no encontrado",
-    text: "Puedes continuar registrando un nuevo paciente.",
-    confirmButtonColor: "#7d2a3f",
-  });
-  return;
-}
+      if (!data.paciente) {
+        setFichasPasadas([]);
+        Swal.fire({
+          icon: "warning",
+          title: "Paciente no encontrado",
+          text: "Puedes continuar registrando un nuevo paciente.",
+          confirmButtonColor: "#7d2a3f",
+        });
+        return;
+      }
 
-setPaciente({
-  ci_paciente: data.paciente.ci_paciente || "",
-  apellidos: data.paciente.apellidos_paciente || "",
-  nombres: data.paciente.nombres_paciente || "",
-  fecha_nacimiento: data.paciente.fecha_nacimiento || "",
-  ocupacion: data.paciente.ocupacion_paciente || "",
-  direccion: data.paciente.direccion_paciente || "",
-  telefono_celular: data.paciente.telefono_paciente || "",
-  antecedentes: data.paciente.antecedentes_paciente || "",
-  correo_cliente: data.cliente?.correo_cliente || "",
-  informacion_cliente: data.cliente?.informacion_cliente || "",
-});
-
-
+      setPaciente({
+        ci_paciente: data.paciente.ci_paciente || "",
+        apellidos: data.paciente.apellidos_paciente || "",
+        nombres: data.paciente.nombres_paciente || "",
+        fecha_nacimiento: data.paciente.fecha_nacimiento || "",
+        ocupacion: data.paciente.ocupacion_paciente || "",
+        direccion: data.paciente.direccion_paciente || "",
+        telefono_celular: data.paciente.telefono_paciente || "",
+        antecedentes: data.paciente.antecedentes_paciente || "",
+        correo_cliente: data.cliente?.correo_cliente || "",
+        informacion_cliente: data.cliente?.informacion_cliente || "",
+      });
 
       setFichasPasadas(data.historial_fichas);
 
@@ -333,6 +339,8 @@ setPaciente({
       "rs_add_eje",
       "av_od_eje",
       "av_oi_eje",
+      "esq_od_eje_comp",
+      "esq_oi_eje_comp",
     ];
 
     const decimalFields = [
@@ -373,6 +381,10 @@ setPaciente({
       "av_od_cilindro",
       "av_oi_esfera",
       "av_oi_cilindro",
+      "esq_od_esfera_comp",
+      "esq_od_cilindro_comp",
+      "esq_oi_esfera_comp",
+      "esq_oi_cilindro_comp",
     ];
 
     const parsed = { ...data };
@@ -388,106 +400,129 @@ setPaciente({
   };
   const guardarFichaCompleta = async () => {
     try {
-let pacienteGuardado = null;
+      // Validación básica
+      if (!paciente.nombres || !paciente.apellidos) {
+        Swal.fire({
+          icon: "warning",
+          title: "Datos incompletos",
+          text: "Por favor completa cédula, nombres y apellidos del paciente.",
+          confirmButtonColor: "#7d2a3f",
+        });
+        return;
+      }
 
-// Verificar si el paciente ya existe
-const buscarRes = await fetch(
-  `http://localhost:8000/api/cliente-paciente/buscar/?ci=${paciente.ci_paciente}`,
-  {
-    headers: {
-      "Content-Type": "application/json",
-      Authorization: `Bearer ${localStorage.getItem("access_token")}`,
-    },
-  }
-);
+      const token = localStorage.getItem("access_token");
+      let pacienteId = null;
 
+      // 1. Verificar si el paciente ya existe
+      try {
+        const buscarRes = await fetch(
+          `http://localhost:8000/api/cliente-paciente/buscar/?ci=${paciente.ci_paciente}`,
+          {
+            headers: {
+              "Content-Type": "application/json",
+              Authorization: `Bearer ${token}`,
+            },
+          }
+        );
 
-if (buscarRes.ok) {
-  const data = await buscarRes.json();
-  pacienteGuardado = data.paciente;
-} else {
-  // Registrar cliente y paciente juntos
-  const res = await fetch("http://localhost:8000/api/cliente-paciente/", {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-      Authorization: `Bearer ${localStorage.getItem("access_token")}`,
-    },
-  body: JSON.stringify({
-    ci: paciente.ci_paciente,
-    nombre_cliente: paciente.nombres,
-    correo_cliente: paciente.correo_cliente,
-    telefono_cliente: paciente.telefono_celular,
-    direccion_cliente: paciente.direccion,
-    informacion_cliente: paciente.informacion_cliente,
+        if (buscarRes.ok) {
+          const data = await buscarRes.json();
+          if (data.paciente && data.paciente.id) {
+            pacienteId = data.paciente.id;
+            console.log("Paciente encontrado:", data.paciente);
+          }
+        }
+      } catch (error) {
+        console.error("Error al buscar paciente:", error);
+      }
 
-    nombres_paciente: paciente.nombres,
-    apellidos_paciente: paciente.apellidos,
-    fecha_nacimiento: paciente.fecha_nacimiento,
-    ocupacion_paciente: paciente.ocupacion,
-    direccion_paciente: paciente.direccion,
-    telefono_paciente: paciente.telefono_celular,
-    antecedentes_paciente: paciente.antecedentes,
-  }), 
-  });
+      // 2. Si no existe, crear nuevo paciente/cliente
+      if (!pacienteId) {
+        const payload = {
+          ci: paciente.ci_paciente,
+          nombre_cliente: paciente.nombres,
+          correo_cliente: paciente.correo_cliente,
+          telefono_cliente: paciente.telefono_celular,
+          direccion_cliente: paciente.direccion,
+          informacion_cliente: paciente.informacion_cliente,
+          nombres_paciente: paciente.nombres,
+          apellidos_paciente: paciente.apellidos,
+          fecha_nacimiento: paciente.fecha_nacimiento,
+          ocupacion_paciente: paciente.ocupacion,
+          direccion_paciente: paciente.direccion,
+          telefono_paciente: paciente.telefono_celular,
+          antecedentes_paciente: paciente.antecedentes,
+        };
 
-  if (!res.ok && res.status !== 400) {
-    const err = await res.text();
-    throw new Error("Error al registrar cliente y paciente: " + err);
-  }
+        const res = await fetch("http://localhost:8000/api/cliente-paciente/", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
+          body: JSON.stringify(payload),
+        });
 
-  const data = await res.json();
-  pacienteGuardado = data.paciente;
-}
+        if (!res.ok) {
+          const errorData = await res.json();
+          console.error("Error al crear paciente:", errorData);
+          throw new Error("Error al crear paciente");
+        }
 
-      // Preparar datos para ficha médica
+        const data = await res.json();
+        pacienteId = data.paciente.id;
+        console.log("Nuevo paciente creado:", data);
+      }
+
+      // 3. Preparar y enviar ficha médica
       const fichaPayload = {
         ...parseOpticalData(opticalData),
-        paciente: pacienteGuardado.id,
+        paciente: pacienteId,
         usuario: user?.id,
         sucursal: user?.sucursal,
       };
 
+      // Normalizar campos enteros
       const fichaPayloadFinal = normalizarCamposEnteros(
         fichaPayload,
         integerFields
       );
-      console.log("Ficha Payload:", fichaPayload);
 
-      // Enviar ficha médica al backend
       const fichaRes = await fetch(
         "http://localhost:8000/api/fichas-medicas/",
         {
           method: "POST",
           headers: {
             "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
           },
           body: JSON.stringify(fichaPayloadFinal),
         }
       );
 
       if (!fichaRes.ok) {
-        const errorText = await fichaRes.text();
-        throw new Error("No se pudo guardar la ficha médica: " + errorText);
+        const errorData = await fichaRes.json();
+        console.error("Error al guardar ficha:", errorData);
+        throw new Error("Error al guardar ficha médica");
       }
 
       const nuevaFicha = await fichaRes.json();
-      setFichasPasadas((prev) => [nuevaFicha, ...prev]);
+      setFichasPasadas((prev) => [nuevaFicha, ...(prev || [])]);
 
-      // Resetear formularios
-setPaciente({
-  ci_paciente: "",
-  apellidos: "",
-  nombres: "",
-  fecha_nacimiento: "",
-  ocupacion: "",
-  direccion: "",
-  telefono_celular: "",
-  antecedentes: "",
-  correo_cliente: "",
-  informacion_cliente: "",
-});
-
+      // Limpiar formularios
+      setPaciente({
+        ci_paciente: "",
+        apellidos: "",
+        nombres: "",
+        fecha_nacimiento: "",
+        ocupacion: "",
+        direccion: "",
+        telefono_celular: "",
+        antecedentes: "",
+        correo_cliente: "",
+        informacion_cliente: "",
+      });
 
       setOpticalData({
         // RX Distancia
@@ -536,7 +571,7 @@ setPaciente({
         esq_oi_cilindro: "",
         esq_oi_eje: "",
 
-        // Refracción rs
+        // RX FINAL
         rs_od_esfera: "",
         rs_od_cilindro: "",
         rs_od_eje: "",
@@ -585,16 +620,78 @@ setPaciente({
 
       Swal.fire({
         icon: "success",
-        title: "Ficha guardada",
-        text: "La ficha médica ha sido registrada correctamente.",
+        title: "Éxito",
+        text: "Paciente y ficha médica guardados correctamente",
         confirmButtonColor: "#7d2a3f",
       });
     } catch (error) {
-      console.error("Error al guardar ficha completa:", error);
+      console.error("Error en guardarFichaCompleta:", error);
       Swal.fire({
         icon: "error",
         title: "Error",
-        text: "Hubo un problema al guardar la ficha médica.",
+        text: error.message || "Ocurrió un error al guardar los datos",
+        confirmButtonColor: "#7d2a3f",
+      });
+    }
+  };
+  const cargarPacienteDesdeData = (entry) => {
+    setPaciente({
+      ci_paciente: entry.paciente?.ci_paciente || "",
+      apellidos: entry.paciente?.apellidos_paciente || "",
+      nombres: entry.paciente?.nombres_paciente || "",
+      fecha_nacimiento: entry.paciente?.fecha_nacimiento || "",
+      ocupacion: entry.paciente?.ocupacion_paciente || "",
+      direccion: entry.paciente?.direccion_paciente || "",
+      telefono_celular: entry.paciente?.telefono_paciente || "",
+      antecedentes: entry.paciente?.antecedentes_paciente || "",
+      correo_cliente: entry.cliente?.correo_cliente || "",
+      informacion_cliente: entry.cliente?.informacion_cliente || "",
+    });
+
+    setFichasPasadas(entry.historial_fichas || []);
+    setMostrarModal(false);
+  };
+
+  const buscarPorApellido = async () => {
+    const token = localStorage.getItem("access_token");
+
+    if (!apellidoBusqueda.trim()) return;
+
+    try {
+      const res = await fetch(
+        `http://localhost:8000/api/cliente-paciente/buscar-apellido/?apellido=${apellidoBusqueda}`,
+        {
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+
+      const data = await res.json();
+
+      if (data.length === 0) {
+        Swal.fire({
+          icon: "info",
+          title: "Sin resultados",
+          text: "No se encontraron pacientes con ese apellido.",
+          confirmButtonColor: "#7d2a3f",
+        });
+        return;
+      }
+
+      if (data.length === 1) {
+        cargarPacienteDesdeData(data[0]);
+      } else {
+        setResultadosApellido(data);
+        setMostrarModal(true);
+      }
+    } catch (err) {
+      console.error("Error al buscar por apellido:", err);
+      Swal.fire({
+        icon: "error",
+        title: "Error",
+        text: "Ocurrió un error al buscar el paciente.",
         confirmButtonColor: "#7d2a3f",
       });
     }
@@ -684,7 +781,7 @@ setPaciente({
                     htmlFor="ci_paciente"
                     className="block text-sm font-medium text-gray-700 mb-1"
                   >
-                    Cédula del Paciente <span className="text-red-500">*</span>
+                    Cédula del Paciente
                   </label>
                   <div className="flex">
                     <input
@@ -710,21 +807,28 @@ setPaciente({
                 {/* Apellidos */}
                 <div className="form-group">
                   <label
-                    htmlFor="apellidos"
+                    htmlFor="buscar_apellido"
                     className="block text-sm font-medium text-gray-700 mb-1"
                   >
-                    Apellidos <span className="text-red-500">*</span>
+                    Buscar por Apellido
                   </label>
-                  <input
-                    type="text"
-                    id="apellidos"
-                    className="border border-gray-300 rounded-md px-3 py-2 w-full focus:outline-none focus:ring-1 focus:ring-[#7d2a3f]"
-                    value={paciente.apellidos}
-                    onChange={(e) =>
-                      handlePacienteChange("apellidos", e.target.value)
-                    }
-                    required
-                  />
+                  <div className="flex">
+                    <input
+                      type="text"
+                      id="buscar_apellido"
+                      className="border border-gray-300 rounded-md px-3 py-2 w-full focus:outline-none focus:ring-1 focus:ring-[#7d2a3f]"
+                      value={apellidoBusqueda || paciente.apellidos}
+                      onChange={(e) => setApellidoBusqueda(e.target.value)}
+                      placeholder="Ej: Gamboa"
+                    />
+                    <button
+                      type="button"
+                      onClick={buscarPorApellido}
+                      className="bg-[#7d2a3f] text-white p-2 rounded-md ml-2"
+                    >
+                      <Search className="h-5 w-5" />
+                    </button>
+                  </div>
                 </div>
 
                 {/* Nombres */}
@@ -807,45 +911,48 @@ setPaciente({
                     placeholder="Ej: 099-123-4567"
                   />
                 </div>
-{/* Correo Electrónico */}
-<div className="form-group">
-  <label
-    htmlFor="correo_cliente"
-    className="block text-sm font-medium text-gray-700 mb-1"
-  >
-    Correo Electrónico
-  </label>
-  <input
-    type="email"
-    id="correo_cliente"
-    className="border border-gray-300 rounded-md px-3 py-2 w-full focus:outline-none focus:ring-1 focus:ring-[#7d2a3f]"
-    value={paciente.correo_cliente || ""}
-    onChange={(e) =>
-      handlePacienteChange("correo_cliente", e.target.value)
-    }
-    placeholder="Ej: ejemplo@email.com"
-  />
-</div>
+                {/* Correo Electrónico */}
+                <div className="form-group">
+                  <label
+                    htmlFor="correo_cliente"
+                    className="block text-sm font-medium text-gray-700 mb-1"
+                  >
+                    Correo Electrónico
+                  </label>
+                  <input
+                    type="email"
+                    id="correo_cliente"
+                    className="border border-gray-300 rounded-md px-3 py-2 w-full focus:outline-none focus:ring-1 focus:ring-[#7d2a3f]"
+                    value={paciente.correo_cliente || ""}
+                    onChange={(e) =>
+                      handlePacienteChange("correo_cliente", e.target.value)
+                    }
+                    placeholder="Ej: ejemplo@email.com"
+                  />
+                </div>
 
-{/* Información Adicional */}
-<div className="form-group md:col-span-2">
-  <label
-    htmlFor="informacion_cliente"
-    className="block text-sm font-medium text-gray-700 mb-1"
-  >
-    Información Adicional
-  </label>
-  <textarea
-    id="informacion_cliente"
-    rows={3}
-    className="border border-gray-300 rounded-md px-3 py-2 w-full focus:outline-none focus:ring-1 focus:ring-[#7d2a3f]"
-    value={paciente.informacion_cliente || ""}
-    onChange={(e) =>
-      handlePacienteChange("informacion_cliente", e.target.value)
-    }
-    placeholder="Ej: Cliente frecuente, refiere molestias, etc."
-  />
-</div>
+                {/* Información Adicional */}
+                <div className="form-group md:col-span-2">
+                  <label
+                    htmlFor="informacion_cliente"
+                    className="block text-sm font-medium text-gray-700 mb-1"
+                  >
+                    Información Adicional
+                  </label>
+                  <textarea
+                    id="informacion_cliente"
+                    rows={3}
+                    className="border border-gray-300 rounded-md px-3 py-2 w-full focus:outline-none focus:ring-1 focus:ring-[#7d2a3f]"
+                    value={paciente.informacion_cliente || ""}
+                    onChange={(e) =>
+                      handlePacienteChange(
+                        "informacion_cliente",
+                        e.target.value
+                      )
+                    }
+                    placeholder="Ej: Cliente frecuente, refiere molestias, etc."
+                  />
+                </div>
 
                 {/* Dirección */}
                 <div className="form-group md:col-span-2">
@@ -948,7 +1055,7 @@ setPaciente({
                           <input
                             type="text"
                             className="w-full p-1 border border-gray-300 rounded"
-                            value={opticalData.rx_distancia_od_av}
+                            value={opticalData.rx_distancia_od_av || ""}
                             onChange={(e) =>
                               handleOpticalDataChange(
                                 "rx_distancia_od_av",
@@ -961,7 +1068,7 @@ setPaciente({
                           <input
                             type="text"
                             className="w-full p-1 border border-gray-300 rounded"
-                            value={opticalData.rx_distancia_od_esfera}
+                            value={opticalData.rx_distancia_od_esfera || ""}
                             onChange={(e) =>
                               handleOpticalDataChange(
                                 "rx_distancia_od_esfera",
@@ -974,7 +1081,7 @@ setPaciente({
                           <input
                             type="text"
                             className="w-full p-1 border border-gray-300 rounded"
-                            value={opticalData.rx_distancia_od_cilindro}
+                            value={opticalData.rx_distancia_od_cilindro || ""}
                             onChange={(e) =>
                               handleOpticalDataChange(
                                 "rx_distancia_od_cilindro",
@@ -987,7 +1094,7 @@ setPaciente({
                           <input
                             type="text"
                             className="w-full p-1 border border-gray-300 rounded"
-                            value={opticalData.rx_distancia_od_eje}
+                            value={opticalData.rx_distancia_od_eje || ""}
                             onChange={(e) =>
                               handleOpticalDataChange(
                                 "rx_distancia_od_eje",
@@ -1000,7 +1107,7 @@ setPaciente({
                           <input
                             type="text"
                             className="w-full p-1 border border-gray-300 rounded"
-                            value={opticalData.rx_distancia_od_dnp}
+                            value={opticalData.rx_distancia_od_dnp || ""}
                             onChange={(e) =>
                               handleOpticalDataChange(
                                 "rx_distancia_od_dnp",
@@ -1018,7 +1125,7 @@ setPaciente({
                           <input
                             type="text"
                             className="w-full p-1 border border-gray-300 rounded"
-                            value={opticalData.rx_distancia_oi_av}
+                            value={opticalData.rx_distancia_oi_av || ""}
                             onChange={(e) =>
                               handleOpticalDataChange(
                                 "rx_distancia_oi_av",
@@ -1031,7 +1138,7 @@ setPaciente({
                           <input
                             type="text"
                             className="w-full p-1 border border-gray-300 rounded"
-                            value={opticalData.rx_distancia_oi_esfera}
+                            value={opticalData.rx_distancia_oi_esfera || ""}
                             onChange={(e) =>
                               handleOpticalDataChange(
                                 "rx_distancia_oi_esfera",
@@ -1044,7 +1151,7 @@ setPaciente({
                           <input
                             type="text"
                             className="w-full p-1 border border-gray-300 rounded"
-                            value={opticalData.rx_distancia_oi_cilindro}
+                            value={opticalData.rx_distancia_oi_cilindro || ""}
                             onChange={(e) =>
                               handleOpticalDataChange(
                                 "rx_distancia_oi_cilindro",
@@ -1057,7 +1164,7 @@ setPaciente({
                           <input
                             type="text"
                             className="w-full p-1 border border-gray-300 rounded"
-                            value={opticalData.rx_distancia_oi_eje}
+                            value={opticalData.rx_distancia_oi_eje || ""}
                             onChange={(e) =>
                               handleOpticalDataChange(
                                 "rx_distancia_oi_eje",
@@ -1070,7 +1177,7 @@ setPaciente({
                           <input
                             type="text"
                             className="w-full p-1 border border-gray-300 rounded"
-                            value={opticalData.rx_distancia_oi_dnp}
+                            value={opticalData.rx_distancia_oi_dnp || ""}
                             onChange={(e) =>
                               handleOpticalDataChange(
                                 "rx_distancia_oi_dnp",
@@ -1096,7 +1203,7 @@ setPaciente({
                           <input
                             type="text"
                             className="w-full p-1 border border-gray-300 rounded"
-                            value={opticalData.rx_add_od_av}
+                            value={opticalData.rx_add_od_av || ""}
                             onChange={(e) =>
                               handleOpticalDataChange(
                                 "rx_add_od_av",
@@ -1109,7 +1216,7 @@ setPaciente({
                           <input
                             type="text"
                             className="w-full p-1 border border-gray-300 rounded"
-                            value={opticalData.rx_add_od_esfera}
+                            value={opticalData.rx_add_od_esfera || ""}
                             onChange={(e) =>
                               handleOpticalDataChange(
                                 "rx_add_od_esfera",
@@ -1128,7 +1235,7 @@ setPaciente({
                           <input
                             type="text"
                             className="w-full p-1 border border-gray-300 rounded"
-                            value={opticalData.rx_add_oi_av}
+                            value={opticalData.rx_add_oi_av || ""}
                             onChange={(e) =>
                               handleOpticalDataChange(
                                 "rx_add_oi_av",
@@ -1141,7 +1248,7 @@ setPaciente({
                           <input
                             type="text"
                             className="w-full p-1 border border-gray-300 rounded"
-                            value={opticalData.rx_add_oi_esfera}
+                            value={opticalData.rx_add_oi_esfera || ""}
                             onChange={(e) =>
                               handleOpticalDataChange(
                                 "rx_add_oi_esfera",
@@ -1168,7 +1275,7 @@ setPaciente({
                           <input
                             type="text"
                             className="w-full p-1 border border-gray-300 rounded"
-                            value={opticalData.rx_lectura_od_av}
+                            value={opticalData.rx_lectura_od_av || ""}
                             onChange={(e) =>
                               handleOpticalDataChange(
                                 "rx_lectura_od_av",
@@ -1181,7 +1288,7 @@ setPaciente({
                           <input
                             type="text"
                             className="w-full p-1 border border-gray-300 rounded"
-                            value={opticalData.rx_lectura_od_esfera}
+                            value={opticalData.rx_lectura_od_esfera || ""}
                             onChange={(e) =>
                               handleOpticalDataChange(
                                 "rx_lectura_od_esfera",
@@ -1194,7 +1301,7 @@ setPaciente({
                           <input
                             type="text"
                             className="w-full p-1 border border-gray-300 rounded"
-                            value={opticalData.rx_lectura_od_cilindro}
+                            value={opticalData.rx_lectura_od_cilindro || ""}
                             onChange={(e) =>
                               handleOpticalDataChange(
                                 "rx_lectura_od_cilindro",
@@ -1207,7 +1314,7 @@ setPaciente({
                           <input
                             type="text"
                             className="w-full p-1 border border-gray-300 rounded"
-                            value={opticalData.rx_lectura_od_eje}
+                            value={opticalData.rx_lectura_od_eje || ""}
                             onChange={(e) =>
                               handleOpticalDataChange(
                                 "rx_lectura_od_eje",
@@ -1226,7 +1333,7 @@ setPaciente({
                           <input
                             type="text"
                             className="w-full p-1 border border-gray-300 rounded"
-                            value={opticalData.rx_lectura_oi_av}
+                            value={opticalData.rx_lectura_oi_av || ""}
                             onChange={(e) =>
                               handleOpticalDataChange(
                                 "rx_lectura_oi_av",
@@ -1239,7 +1346,7 @@ setPaciente({
                           <input
                             type="text"
                             className="w-full p-1 border border-gray-300 rounded"
-                            value={opticalData.rx_lectura_oi_esfera}
+                            value={opticalData.rx_lectura_oi_esfera || ""}
                             onChange={(e) =>
                               handleOpticalDataChange(
                                 "rx_lectura_oi_esfera",
@@ -1252,7 +1359,7 @@ setPaciente({
                           <input
                             type="text"
                             className="w-full p-1 border border-gray-300 rounded"
-                            value={opticalData.rx_lectura_oi_cilindro}
+                            value={opticalData.rx_lectura_oi_cilindro || ""}
                             onChange={(e) =>
                               handleOpticalDataChange(
                                 "rx_lectura_oi_cilindro",
@@ -1265,7 +1372,7 @@ setPaciente({
                           <input
                             type="text"
                             className="w-full p-1 border border-gray-300 rounded"
-                            value={opticalData.rx_lectura_oi_eje}
+                            value={opticalData.rx_lectura_oi_eje || ""}
                             onChange={(e) =>
                               handleOpticalDataChange(
                                 "rx_lectura_oi_eje",
@@ -1290,7 +1397,7 @@ setPaciente({
                           <input
                             type="text"
                             className="w-full p-1 border border-gray-300 rounded"
-                            value={opticalData.altura}
+                            value={opticalData.altura || ""}
                             onChange={(e) =>
                               handleOpticalDataChange("altura", e.target.value)
                             }
@@ -1303,7 +1410,7 @@ setPaciente({
                           <input
                             type="text"
                             className="w-full p-1 border border-gray-300 rounded"
-                            value={opticalData.material}
+                            value={opticalData.material || ""}
                             onChange={(e) =>
                               handleOpticalDataChange(
                                 "material",
@@ -1321,12 +1428,27 @@ setPaciente({
                           <input
                             type="text"
                             className="w-full p-1 border border-gray-300 rounded"
-                            value={opticalData.observaciones}
+                            value={opticalData.observaciones || ""}
                             onChange={(e) =>
                               handleOpticalDataChange(
                                 "observaciones",
                                 e.target.value
                               )
+                            }
+                          />
+                        </td>
+                      </tr>
+                      <tr>
+                        <td className="p-2 border border-gray-300 font-medium">
+                          Armazón
+                        </td>
+                        <td colSpan={3} className="p-2 border border-gray-300">
+                          <input
+                            type="text"
+                            className="w-full p-1 border border-gray-300 rounded"
+                            value={opticalData.armazon || ""}
+                            onChange={(e) =>
+                              handleOpticalDataChange("armazon", e.target.value)
                             }
                           />
                         </td>
@@ -1375,7 +1497,7 @@ setPaciente({
                           <input
                             type="text"
                             className="w-full p-1 border border-gray-300 rounded"
-                            value={opticalData.esq_od_sc}
+                            value={opticalData.esq_od_sc || ""}
                             onChange={(e) =>
                               handleOpticalDataChange(
                                 "esq_od_sc",
@@ -1388,7 +1510,7 @@ setPaciente({
                           <input
                             type="text"
                             className="w-full p-1 border border-gray-300 rounded"
-                            value={opticalData.esq_od_cc}
+                            value={opticalData.esq_od_cc || ""}
                             onChange={(e) =>
                               handleOpticalDataChange(
                                 "esq_od_cc",
@@ -1401,7 +1523,7 @@ setPaciente({
                           <input
                             type="text"
                             className="w-full p-1 border border-gray-300 rounded"
-                            value={opticalData.esq_od_esfera}
+                            value={opticalData.esq_od_esfera || ""}
                             onChange={(e) =>
                               handleOpticalDataChange(
                                 "esq_od_esfera",
@@ -1414,7 +1536,7 @@ setPaciente({
                           <input
                             type="text"
                             className="w-full p-1 border border-gray-300 rounded"
-                            value={opticalData.esq_od_cilindro}
+                            value={opticalData.esq_od_cilindro || ""}
                             onChange={(e) =>
                               handleOpticalDataChange(
                                 "esq_od_cilindro",
@@ -1427,7 +1549,7 @@ setPaciente({
                           <input
                             type="text"
                             className="w-full p-1 border border-gray-300 rounded"
-                            value={opticalData.esq_od_eje}
+                            value={opticalData.esq_od_eje || ""}
                             onChange={(e) =>
                               handleOpticalDataChange(
                                 "esq_od_eje",
@@ -1445,7 +1567,7 @@ setPaciente({
                           <input
                             type="text"
                             className="w-full p-1 border border-gray-300 rounded"
-                            value={opticalData.esq_oi_sc}
+                            value={opticalData.esq_oi_sc || ""}
                             onChange={(e) =>
                               handleOpticalDataChange(
                                 "esq_oi_sc",
@@ -1458,7 +1580,7 @@ setPaciente({
                           <input
                             type="text"
                             className="w-full p-1 border border-gray-300 rounded"
-                            value={opticalData.esq_oi_cc}
+                            value={opticalData.esq_oi_cc || ""}
                             onChange={(e) =>
                               handleOpticalDataChange(
                                 "esq_oi_cc",
@@ -1471,7 +1593,7 @@ setPaciente({
                           <input
                             type="text"
                             className="w-full p-1 border border-gray-300 rounded"
-                            value={opticalData.esq_oi_esfera}
+                            value={opticalData.esq_oi_esfera || ""}
                             onChange={(e) =>
                               handleOpticalDataChange(
                                 "esq_oi_esfera",
@@ -1484,7 +1606,7 @@ setPaciente({
                           <input
                             type="text"
                             className="w-full p-1 border border-gray-300 rounded"
-                            value={opticalData.esq_oi_cilindro}
+                            value={opticalData.esq_oi_cilindro || ""}
                             onChange={(e) =>
                               handleOpticalDataChange(
                                 "esq_oi_cilindro",
@@ -1497,7 +1619,7 @@ setPaciente({
                           <input
                             type="text"
                             className="w-full p-1 border border-gray-300 rounded"
-                            value={opticalData.esq_oi_eje}
+                            value={opticalData.esq_oi_eje || ""}
                             onChange={(e) =>
                               handleOpticalDataChange(
                                 "esq_oi_eje",
@@ -1509,8 +1631,123 @@ setPaciente({
                       </tr>
                     </tbody>
                   </table>
+                  {/* ESQUIASCOPIA COMPUTARIZADA */}
+                  <div className="overflow-x-auto mt-4">
+                    <table className="w-full border-collapse">
+                      <thead>
+                        <tr>
+                          <th
+                            colSpan={4}
+                            className="bg-[#7d2a3f] text-white text-left p-2 font-bold border border-gray-300"
+                          >
+                            ESQUIASCOPIA COMPUTARIZADA
+                          </th>
+                        </tr>
+                        <tr className="bg-gray-100">
+                          <th className="p-2 border border-gray-300">Ojo</th>
+                          <th className="p-2 border border-gray-300">Esfera</th>
+                          <th className="p-2 border border-gray-300">
+                            Cilindro
+                          </th>
+                          <th className="p-2 border border-gray-300">
+                            Eje (grados)
+                          </th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        <tr>
+                          <td className="p-2 border border-gray-300 bg-gray-100 font-medium">
+                            OD
+                          </td>
+                          <td className="p-2 border border-gray-300">
+                            <input
+                              type="text"
+                              className="w-full p-1 border border-gray-300 rounded"
+                              value={opticalData.esq_od_esfera_comp || ""}
+                              onChange={(e) =>
+                                handleOpticalDataChange(
+                                  "esq_od_esfera_comp",
+                                  e.target.value
+                                )
+                              }
+                            />
+                          </td>
+                          <td className="p-2 border border-gray-300">
+                            <input
+                              type="text"
+                              className="w-full p-1 border border-gray-300 rounded"
+                              value={opticalData.esq_od_cilindro_comp || ""}
+                              onChange={(e) =>
+                                handleOpticalDataChange(
+                                  "esq_od_cilindro_comp",
+                                  e.target.value
+                                )
+                              }
+                            />
+                          </td>
+                          <td className="p-2 border border-gray-300">
+                            <input
+                              type="text"
+                              className="w-full p-1 border border-gray-300 rounded"
+                              value={opticalData.esq_od_eje_comp || ""}
+                              onChange={(e) =>
+                                handleOpticalDataChange(
+                                  "esq_od_eje_comp",
+                                  e.target.value
+                                )
+                              }
+                            />
+                          </td>
+                        </tr>
+                        <tr>
+                          <td className="p-2 border border-gray-300 bg-gray-100 font-medium">
+                            OI
+                          </td>
+                          <td className="p-2 border border-gray-300">
+                            <input
+                              type="text"
+                              className="w-full p-1 border border-gray-300 rounded"
+                              value={opticalData.esq_oi_esfera_comp || ""}
+                              onChange={(e) =>
+                                handleOpticalDataChange(
+                                  "esq_oi_esfera_comp",
+                                  e.target.value
+                                )
+                              }
+                            />
+                          </td>
+                          <td className="p-2 border border-gray-300">
+                            <input
+                              type="text"
+                              className="w-full p-1 border border-gray-300 rounded"
+                              value={opticalData.esq_oi_cilindro_comp || ""}
+                              onChange={(e) =>
+                                handleOpticalDataChange(
+                                  "esq_oi_cilindro_comp",
+                                  e.target.value
+                                )
+                              }
+                            />
+                          </td>
+                          <td className="p-2 border border-gray-300">
+                            <input
+                              type="text"
+                              className="w-full p-1 border border-gray-300 rounded"
+                              value={opticalData.esq_oi_eje_comp || ""}
+                              onChange={(e) =>
+                                handleOpticalDataChange(
+                                  "esq_oi_eje_comp",
+                                  e.target.value
+                                )
+                              }
+                            />
+                          </td>
+                        </tr>
+                      </tbody>
+                    </table>
+                  </div>
 
-                  {/* Refracción rs */}
+                  {/* RX FINAL */}
                   <table className="w-full border-collapse mt-4">
                     <thead>
                       <tr>
@@ -1518,7 +1755,7 @@ setPaciente({
                           colSpan={5}
                           className="p-2 border border-gray-300 bg-[#7d2a3f] text-white text-left"
                         >
-                          Refracción rs
+                          RX FINAL
                         </th>
                       </tr>
                       <tr className="bg-gray-100">
@@ -1543,7 +1780,7 @@ setPaciente({
                           <input
                             type="text"
                             className="w-full p-1 border border-gray-300 rounded"
-                            value={opticalData.rs_od_esfera}
+                            value={opticalData.rs_od_esfera || ""}
                             onChange={(e) =>
                               handleOpticalDataChange(
                                 "rs_od_esfera",
@@ -1556,7 +1793,7 @@ setPaciente({
                           <input
                             type="text"
                             className="w-full p-1 border border-gray-300 rounded"
-                            value={opticalData.rs_od_cilindro}
+                            value={opticalData.rs_od_cilindro || ""}
                             onChange={(e) =>
                               handleOpticalDataChange(
                                 "rs_od_cilindro",
@@ -1569,7 +1806,7 @@ setPaciente({
                           <input
                             type="text"
                             className="w-full p-1 border border-gray-300 rounded"
-                            value={opticalData.rs_od_eje}
+                            value={opticalData.rs_od_eje || ""}
                             onChange={(e) =>
                               handleOpticalDataChange(
                                 "rs_od_eje",
@@ -1582,7 +1819,7 @@ setPaciente({
                           <input
                             type="text"
                             className="w-full p-1 border border-gray-300 rounded"
-                            value={opticalData.rs_od_correccion}
+                            value={opticalData.rs_od_correccion || ""}
                             onChange={(e) =>
                               handleOpticalDataChange(
                                 "rs_od_correccion",
@@ -1602,7 +1839,7 @@ setPaciente({
                           <input
                             type="text"
                             className="w-full p-1 border border-gray-300 rounded"
-                            value={opticalData.rs_oi_esfera}
+                            value={opticalData.rs_oi_esfera || ""}
                             onChange={(e) =>
                               handleOpticalDataChange(
                                 "rs_oi_esfera",
@@ -1615,7 +1852,7 @@ setPaciente({
                           <input
                             type="text"
                             className="w-full p-1 border border-gray-300 rounded"
-                            value={opticalData.rs_oi_cilindro}
+                            value={opticalData.rs_oi_cilindro || ""}
                             onChange={(e) =>
                               handleOpticalDataChange(
                                 "rs_oi_cilindro",
@@ -1628,7 +1865,7 @@ setPaciente({
                           <input
                             type="text"
                             className="w-full p-1 border border-gray-300 rounded"
-                            value={opticalData.rs_oi_eje}
+                            value={opticalData.rs_oi_eje || ""}
                             onChange={(e) =>
                               handleOpticalDataChange(
                                 "rs_oi_eje",
@@ -1641,7 +1878,7 @@ setPaciente({
                           <input
                             type="text"
                             className="w-full p-1 border border-gray-300 rounded"
-                            value={opticalData.rs_oi_correccion}
+                            value={opticalData.rs_oi_correccion || ""}
                             onChange={(e) =>
                               handleOpticalDataChange(
                                 "rs_oi_correccion",
@@ -1661,7 +1898,7 @@ setPaciente({
                           <input
                             type="text"
                             className="w-full p-1 border border-gray-300 rounded"
-                            value={opticalData.rs_add_esfera}
+                            value={opticalData.rs_add_esfera || ""}
                             onChange={(e) =>
                               handleOpticalDataChange(
                                 "rs_add_esfera",
@@ -1674,7 +1911,7 @@ setPaciente({
                           <input
                             type="text"
                             className="w-full p-1 border border-gray-300 rounded"
-                            value={opticalData.rs_add_cilindro}
+                            value={opticalData.rs_add_cilindro || ""}
                             onChange={(e) =>
                               handleOpticalDataChange(
                                 "rs_add_cilindro",
@@ -1687,7 +1924,7 @@ setPaciente({
                           <input
                             type="text"
                             className="w-full p-1 border border-gray-300 rounded"
-                            value={opticalData.rs_add_eje}
+                            value={opticalData.rs_add_eje || ""}
                             onChange={(e) =>
                               handleOpticalDataChange(
                                 "rs_add_eje",
@@ -1700,7 +1937,7 @@ setPaciente({
                           <input
                             type="text"
                             className="w-full p-1 border border-gray-300 rounded"
-                            value={opticalData.rs_add_correccion}
+                            value={opticalData.rs_add_correccion || ""}
                             onChange={(e) =>
                               handleOpticalDataChange(
                                 "rs_add_correccion",
@@ -1724,7 +1961,7 @@ setPaciente({
                           <input
                             type="text"
                             className="w-full p-1 border border-gray-300 rounded"
-                            value={opticalData.causa}
+                            value={opticalData.causa || ""}
                             onChange={(e) =>
                               handleOpticalDataChange("causa", e.target.value)
                             }
@@ -1755,10 +1992,10 @@ setPaciente({
             )}
             {activeTab === "historial" && (
               <div className="space-y-4">
-                {fichasPasadas.length === 0 ? (
-                  <p className="text-gray-500">
-                    No hay fichas anteriores disponibles.
-                  </p>
+                {!Array.isArray(fichasPasadas) ? (
+                  <p>Cargando historial...</p>
+                ) : fichasPasadas.length === 0 ? (
+                  <p>No hay fichas registradas para este paciente.</p>
                 ) : (
                   fichasPasadas.map((ficha, index) => (
                     <FichaVisual key={index} data={ficha} />
@@ -1768,6 +2005,41 @@ setPaciente({
             )}
           </div>
         </main>
+        {mostrarModal && (
+          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+            <div className="bg-white rounded-lg shadow-lg p-6 w-full max-w-2xl">
+              <h2 className="text-lg font-semibold mb-4 text-[#7d2a3f]">
+                Selecciona un paciente
+              </h2>
+              <ul className="divide-y divide-gray-200 max-h-80 overflow-y-auto">
+                {resultadosApellido.map((entry, index) => (
+                  <li
+                    key={index}
+                    className="py-3 px-4 hover:bg-gray-100 cursor-pointer"
+                    onClick={() => cargarPacienteDesdeData(entry)}
+                  >
+                    <div className="font-medium">
+                      {entry.paciente?.apellidos_paciente},{" "}
+                      {entry.paciente?.nombres_paciente}
+                    </div>
+                    <div className="text-sm text-gray-500">
+                      CI: {entry.paciente?.ci_paciente || "Sin cédula"} — Tel:{" "}
+                      {entry.paciente?.telefono_paciente || "N/A"}
+                    </div>
+                  </li>
+                ))}
+              </ul>
+              <div className="mt-4 text-right">
+                <button
+                  onClick={() => setMostrarModal(false)}
+                  className="text-[#7d2a3f] hover:underline"
+                >
+                  Cancelar
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
       </div>
     </ProtectedRoute>
   );
