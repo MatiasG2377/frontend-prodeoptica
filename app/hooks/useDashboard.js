@@ -11,7 +11,7 @@ export default function useDashboard() {
 
   // Cargar categorías
   useEffect(() => {
-    fetch(`${BASE_URL}/api/categorias/`)
+    fetch(`${BASE_URL}/categorias/`)
       .then((res) => res.json())
       .then(setCategorias)
       .catch((err) => console.error("Error al cargar categorías:", err));
@@ -28,11 +28,11 @@ export default function useDashboard() {
         let url = "";
 
         if (search.trim()) {
-          url = `${BASE_URL}/api/productos/buscar/?q=${search}`;
+          url = `${BASE_URL}/productos/buscar/?q=${search}`;
         } else if (selectedCategoria) {
-          url = `${BASE_URL}/api/productos/filtrar_por_categoria/?categoria=${selectedCategoria}`;
+          url = `${BASE_URL}/productos/filtrar_por_categoria/?categoria=${selectedCategoria}`;
         } else {
-          url = `${BASE_URL}/api/productos/disponibles/`;
+          url = `${BASE_URL}/productos/disponibles/`;
         }
 
         const res = await fetch(url, { signal });

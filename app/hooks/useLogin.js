@@ -12,7 +12,7 @@ export function useLogin() {
   const fetchUserId = async (username) => {
     try {
       const res = await fetch(
-        `${BASE_URL}/api/usuarios/obtener-id/?username=${username}`,
+        `${BASE_URL}/usuarios/obtener-id/?username=${username}`,
         {
           headers: {
             "Content-Type": "application/json",
@@ -40,7 +40,7 @@ export function useLogin() {
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
-      const res = await fetch(`${BASE_URL}/api/login/`, {
+      const res = await fetch(`${BASE_URL}/login/`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ username, password }),

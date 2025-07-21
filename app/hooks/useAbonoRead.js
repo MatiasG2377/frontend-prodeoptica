@@ -43,7 +43,7 @@ export function useAbonos() {
       );
       setAbonos(abonosFiltrados);
 
-      const resVentas = await fetch(`${BASE_URL}/api/ventas/`, {
+      const resVentas = await fetch(`${BASE_URL}/ventas/`, {
         headers: {
           Authorization: `Bearer ${localStorage.getItem("access_token")}`,
         },
@@ -76,7 +76,7 @@ export function useAbonos() {
       if (fechaFin) params.append("fecha_fin", fechaFin);
 
       const abonosRes = await fetch(
-        `${BASE_URL}/api/abonos/fecha/?${params.toString()}`,
+        `${BASE_URL}/abonos/fecha/?${params.toString()}`,
         {
           headers: {
             Authorization: `Bearer ${localStorage.getItem("access_token")}`,
@@ -85,7 +85,7 @@ export function useAbonos() {
       );
 
       const ventasRes = await fetch(
-        `${BASE_URL}/api/ventas/fecha/?${params.toString()}`,
+        `${BASE_URL}/ventas/fecha/?${params.toString()}`,
         {
           headers: {
             Authorization: `Bearer ${localStorage.getItem("access_token")}`,

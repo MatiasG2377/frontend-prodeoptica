@@ -59,7 +59,7 @@ export default function useCliente() {
 
     if (name === "ci_cliente" && value.length >= 10) {
       try {
-        const res = await fetch(`${BASE_URL}/api/clientes/ci/?ci=${value}`, {
+        const res = await fetch(`${BASE_URL}/clientes/ci/?ci=${value}`, {
           method: "GET",
           headers: {
             Authorization: `Bearer ${localStorage.getItem("access_token")}`,
@@ -144,8 +144,8 @@ export default function useCliente() {
 
     try {
       const url = clienteExistente
-        ? `${BASE_URL}/api/clientes/${clienteData.id}/`
-        : `${BASE_URL}/api/clientes/`;
+        ? `${BASE_URL}/clientes/${clienteData.id}/`
+        : `${BASE_URL}/clientes/`;
       const method = clienteExistente ? "PUT" : "POST";
 
       const res = await fetch(url, {

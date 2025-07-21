@@ -46,7 +46,7 @@ export function useAuth({ redirectToLogin = true } = {}) {
     }
 
     try {
-      const res = await fetch(`${BASE_URL}/api/logout/`, {
+      const res = await fetch(`${BASE_URL}/logout/`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
