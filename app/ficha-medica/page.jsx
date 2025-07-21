@@ -197,7 +197,7 @@ export default function FichaMedicaCompleta() {
     };
 
     try {
-      const res = await fetch(`${BASE_URL}/api/cliente-paciente/`, {
+      const res = await fetch(`${BASE_URL}/cliente-paciente/`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -250,7 +250,7 @@ export default function FichaMedicaCompleta() {
 
     try {
       const res = await fetch(
-        `${BASE_URL}/api/cliente-paciente/buscar/?ci=${paciente.ci_paciente}`,
+        `${BASE_URL}/cliente-paciente/buscar/?ci=${paciente.ci_paciente}`,
         {
           method: "GET",
           headers: {
@@ -418,7 +418,7 @@ export default function FichaMedicaCompleta() {
       // 1. Verificar si el paciente ya existe
       try {
         const buscarRes = await fetch(
-          `${BASE_URL}/api/cliente-paciente/buscar/?ci=${paciente.ci_paciente}`,
+          `${BASE_URL}/cliente-paciente/buscar/?ci=${paciente.ci_paciente}`,
           {
             headers: {
               "Content-Type": "application/json",
@@ -456,7 +456,7 @@ export default function FichaMedicaCompleta() {
           antecedentes_paciente: paciente.antecedentes,
         };
 
-        const res = await fetch(`${BASE_URL}/api/cliente-paciente/`, {
+        const res = await fetch(`${BASE_URL}/cliente-paciente/`, {
           method: "POST",
           headers: {
             "Content-Type": "application/json",
@@ -490,7 +490,7 @@ export default function FichaMedicaCompleta() {
         integerFields
       );
 
-      const fichaRes = await fetch(`${BASE_URL}/api/fichas-medicas/`, {
+      const fichaRes = await fetch(`${BASE_URL}/fichas-medicas/`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -657,7 +657,7 @@ export default function FichaMedicaCompleta() {
 
     try {
       const res = await fetch(
-        `${BASE_URL}/api/cliente-paciente/buscar-apellido/?apellido=${apellidoBusqueda}`,
+        `${BASE_URL}/cliente-paciente/buscar-apellido/?apellido=${apellidoBusqueda}`,
         {
           headers: {
             "Content-Type": "application/json",
