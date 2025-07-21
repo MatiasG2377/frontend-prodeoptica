@@ -11,7 +11,7 @@ const getAuthHeaders = () => {
 };
 
 export const buscarClienteYPaciente = async (ci) => {
-  const res = await fetch(`${BASE_URL}/api/cliente-paciente/buscar/?ci=${ci}`, {
+  const res = await fetch(`${BASE_URL}/cliente-paciente/buscar/?ci=${ci}`, {
     headers: getAuthHeaders(),
   });
   if (!res.ok) throw await res.json();
@@ -19,7 +19,7 @@ export const buscarClienteYPaciente = async (ci) => {
 };
 
 export const crearClientePaciente = async (payload) => {
-  const res = await fetch(`${BASE_URL}/api/cliente-paciente/`, {
+  const res = await fetch(`${BASE_URL}/cliente-paciente/`, {
     method: "POST",
     headers: getAuthHeaders(),
     body: JSON.stringify(payload),
@@ -29,7 +29,7 @@ export const crearClientePaciente = async (payload) => {
 };
 
 export const actualizarCliente = async (id, data) => {
-  const res = await fetch(`${BASE_URL}/api/clientes/${id}/`, {
+  const res = await fetch(`${BASE_URL}/clientes/${id}/`, {
     method: "PATCH",
     headers: getAuthHeaders(),
     body: JSON.stringify(data),
@@ -39,7 +39,7 @@ export const actualizarCliente = async (id, data) => {
 };
 
 export const actualizarPaciente = async (id, data) => {
-  const res = await fetch(`${BASE_URL}/api/pacientes/${id}/`, {
+  const res = await fetch(`${BASE_URL}/pacientes/${id}/`, {
     method: "PATCH",
     headers: getAuthHeaders(),
     body: JSON.stringify(data),
@@ -49,7 +49,7 @@ export const actualizarPaciente = async (id, data) => {
 };
 
 export const crearVenta = async (ventaData) => {
-  const res = await fetch(`${BASE_URL}/api/ventas/`, {
+  const res = await fetch(`${BASE_URL}/ventas/`, {
     method: "POST",
     headers: getAuthHeaders(),
     body: JSON.stringify(ventaData),
@@ -59,7 +59,7 @@ export const crearVenta = async (ventaData) => {
 };
 
 export const crearArticuloVenta = async (data) => {
-  const res = await fetch(`${BASE_URL}/api/articulos-venta/`, {
+  const res = await fetch(`${BASE_URL}/articulos-venta/`, {
     method: "POST",
     headers: getAuthHeaders(),
     body: JSON.stringify(data),
@@ -69,7 +69,7 @@ export const crearArticuloVenta = async (data) => {
 };
 
 export const actualizarStockProducto = async (id, data) => {
-  const res = await fetch(`${BASE_URL}/api/productos/${id}/`, {
+  const res = await fetch(`${BASE_URL}/productos/${id}/`, {
     method: "PATCH",
     headers: getAuthHeaders(),
     body: JSON.stringify(data),
@@ -79,7 +79,7 @@ export const actualizarStockProducto = async (id, data) => {
 };
 
 export const registrarMovimientoKardex = async (data) => {
-  const res = await fetch(`${BASE_URL}/api/kardex/`, {
+  const res = await fetch(`${BASE_URL}/kardex/`, {
     method: "POST",
     headers: getAuthHeaders(),
     body: JSON.stringify(data),
@@ -89,7 +89,7 @@ export const registrarMovimientoKardex = async (data) => {
 };
 
 export const registrarAbono = async (data) => {
-  const res = await fetch(`${BASE_URL}/api/abonos/`, {
+  const res = await fetch(`${BASE_URL}/abonos/`, {
     method: "POST",
     headers: getAuthHeaders(),
     body: JSON.stringify(data),

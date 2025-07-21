@@ -11,7 +11,7 @@ const getAuthHeaders = () => {
 };
 
 export async function registerAccount({ username, email, password }) {
-  const res = await fetch(`${BASE_URL}/api/register/`, {
+  const res = await fetch(`${BASE_URL}/register/`, {
     method: "POST",
     headers: getAuthHeaders(), // puede funcionar sin token también
     body: JSON.stringify({ username, email, password }),
@@ -21,7 +21,7 @@ export async function registerAccount({ username, email, password }) {
 }
 
 export async function createUsuario(data) {
-  const res = await fetch(`${BASE_URL}/api/usuarios/`, {
+  const res = await fetch(`${BASE_URL}/usuarios/`, {
     method: "POST",
     headers: getAuthHeaders(),
     body: JSON.stringify(data),
@@ -31,7 +31,7 @@ export async function createUsuario(data) {
 }
 
 export async function getSucursales() {
-  const res = await fetch(`${BASE_URL}/api/sucursales/`, {
+  const res = await fetch(`${BASE_URL}/sucursales/`, {
     headers: getAuthHeaders(),
   });
   const data = await res.json();
