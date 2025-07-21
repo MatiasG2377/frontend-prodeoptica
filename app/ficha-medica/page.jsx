@@ -197,7 +197,7 @@ export default function FichaMedicaCompleta() {
     };
 
     try {
-      const res = await fetch("${BASE_URL}/api/cliente-paciente/", {
+      const res = await fetch(`${BASE_URL}/api/cliente-paciente/`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -456,7 +456,7 @@ export default function FichaMedicaCompleta() {
           antecedentes_paciente: paciente.antecedentes,
         };
 
-        const res = await fetch("${BASE_URL}/api/cliente-paciente/", {
+        const res = await fetch(`${BASE_URL}/api/cliente-paciente/`, {
           method: "POST",
           headers: {
             "Content-Type": "application/json",
@@ -490,7 +490,7 @@ export default function FichaMedicaCompleta() {
         integerFields
       );
 
-      const fichaRes = await fetch("${BASE_URL}/api/fichas-medicas/", {
+      const fichaRes = await fetch(`${BASE_URL}/api/fichas-medicas/`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
