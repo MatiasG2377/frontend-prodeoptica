@@ -11,7 +11,7 @@ const getAuthHeaders = () => {
 };
 
 export const fetchProductos = async () => {
-  const res = await fetch(`${BASE_URL}/productos/`, {
+  const res = await fetch(`${BASE_URL}/api/productos/`, {
     headers: getAuthHeaders(),
   });
   const data = await res.json();
@@ -20,7 +20,7 @@ export const fetchProductos = async () => {
 
 export const fetchProductosBuscados = async (query) => {
   const res = await fetch(
-    `${BASE_URL}/productos/buscar/?q=${encodeURIComponent(query)}`,
+    `${BASE_URL}/api/productos/buscar/?q=${encodeURIComponent(query)}`,
     { headers: getAuthHeaders() }
   );
   const data = await res.json();
@@ -28,7 +28,7 @@ export const fetchProductosBuscados = async (query) => {
 };
 
 export const fetchCategorias = async () => {
-  const res = await fetch(`${BASE_URL}/categorias/`, {
+  const res = await fetch(`${BASE_URL}/api/categorias/`, {
     headers: getAuthHeaders(),
   });
   const data = await res.json();
@@ -36,7 +36,7 @@ export const fetchCategorias = async () => {
 };
 
 export const fetchProveedores = async () => {
-  const res = await fetch(`${BASE_URL}/proveedores/`, {
+  const res = await fetch(`${BASE_URL}/api/proveedores/`, {
     headers: getAuthHeaders(),
   });
   const data = await res.json();
@@ -44,7 +44,7 @@ export const fetchProveedores = async () => {
 };
 
 export const crearProducto = async (payload) => {
-  const res = await fetch(`${BASE_URL}/productos/`, {
+  const res = await fetch(`${BASE_URL}/api/productos/`, {
     method: "POST",
     headers: getAuthHeaders(),
     body: JSON.stringify(payload),
@@ -54,7 +54,7 @@ export const crearProducto = async (payload) => {
 };
 
 export const actualizarProducto = async (id, payload) => {
-  const res = await fetch(`${BASE_URL}/productos/${id}/`, {
+  const res = await fetch(`${BASE_URL}/api/productos/${id}/`, {
     method: "PUT",
     headers: getAuthHeaders(),
     body: JSON.stringify(payload),
@@ -64,7 +64,7 @@ export const actualizarProducto = async (id, payload) => {
 };
 
 export const eliminarProducto = async (id) => {
-  const res = await fetch(`${BASE_URL}/productos/${id}/`, {
+  const res = await fetch(`${BASE_URL}/api/productos/${id}/`, {
     method: "DELETE",
     headers: getAuthHeaders(),
   });
