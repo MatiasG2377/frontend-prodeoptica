@@ -21,7 +21,7 @@ export default function LoginPage() {
     e.preventDefault();
 
     try {
-      const res = await fetch(`${BASE_URL}/api/login/`, {
+      const res = await fetch(`${BASE_URL}/login/`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
