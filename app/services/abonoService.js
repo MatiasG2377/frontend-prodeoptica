@@ -1,5 +1,4 @@
-// services/abonoService.js
-const API_URL = "http://127.0.0.1:8000/api";
+const API_URL = process.env.NEXT_PUBLIC_API_URL;
 
 export const fetchAbonos = async () => {
   const res = await fetch(`${API_URL}/abonos/`);
@@ -21,9 +20,7 @@ export const buscarUsuariosPorNombre = async (nombre) => {
     if (!token) throw new Error("Token no disponible");
 
     const res = await fetch(
-      `http://127.0.0.1:8000/api/clientes/buscar/?q=${encodeURIComponent(
-        nombre
-      )}`,
+      `${API_URL}/clientes/buscar/?q=${encodeURIComponent(nombre)}`,
       {
         headers: {
           Authorization: `Bearer ${token}`,

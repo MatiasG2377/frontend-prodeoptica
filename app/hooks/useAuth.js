@@ -2,6 +2,8 @@ import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import Swal from "sweetalert2";
 
+const BASE_URL = process.env.NEXT_PUBLIC_API_URL;
+
 export function useAuth({ redirectToLogin = true } = {}) {
   const router = useRouter();
   const [user, setUser] = useState(null);
@@ -44,7 +46,7 @@ export function useAuth({ redirectToLogin = true } = {}) {
     }
 
     try {
-      const res = await fetch("http://localhost:8000/api/logout/", {
+      const res = await fetch(`${BASE_URL}/api/logout/`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",

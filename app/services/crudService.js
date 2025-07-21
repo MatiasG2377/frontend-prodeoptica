@@ -1,29 +1,28 @@
-export async function getAllItems(url) {
+// services/apiService.js
+const BASE_URL = process.env.NEXT_PUBLIC_API_URL;
+
+const getAuthHeaders = () => {
   const token =
     typeof window !== "undefined" ? localStorage.getItem("access_token") : null;
 
-  const headers = {
+  return {
     "Content-Type": "application/json",
     ...(token && { Authorization: `Bearer ${token}` }),
   };
+};
 
-  const res = await fetch(url, { headers });
+export async function getAllItems(endpoint) {
+  const url = `${BASE_URL}/${endpoint}`;
+  const res = await fetch(url, { headers: getAuthHeaders() });
   if (!res.ok) throw new Error("Error al obtener datos");
   return await res.json();
 }
 
-export async function createItem(url, item) {
-  const token =
-    typeof window !== "undefined" ? localStorage.getItem("access_token") : null;
-
-  const headers = {
-    "Content-Type": "application/json",
-    ...(token && { Authorization: `Bearer ${token}` }),
-  };
-
+export async function createItem(endpoint, item) {
+  const url = `${BASE_URL}/${endpoint}`;
   const res = await fetch(url, {
     method: "POST",
-    headers,
+    headers: getAuthHeaders(),
     body: JSON.stringify(item),
   });
 
@@ -31,18 +30,11 @@ export async function createItem(url, item) {
   return await res.json();
 }
 
-export async function updateItem(url, id, item) {
-  const token =
-    typeof window !== "undefined" ? localStorage.getItem("access_token") : null;
-
-  const headers = {
-    "Content-Type": "application/json",
-    ...(token && { Authorization: `Bearer ${token}` }),
-  };
-
-  const res = await fetch(`${url}${id}/`, {
+export async function updateItem(endpoint, id, item) {
+  const url = `${BASE_URL}/${endpoint}${id}/`;
+  const res = await fetch(url, {
     method: "PUT",
-    headers,
+    headers: getAuthHeaders(),
     body: JSON.stringify(item),
   });
 
@@ -50,18 +42,11 @@ export async function updateItem(url, id, item) {
   return await res.json();
 }
 
-export async function deleteItemById(url, id) {
-  const token =
-    typeof window !== "undefined" ? localStorage.getItem("access_token") : null;
-
-  const headers = {
-    "Content-Type": "application/json",
-    ...(token && { Authorization: `Bearer ${token}` }),
-  };
-
-  const res = await fetch(`${url}${id}/`, {
+export async function deleteItemById(endpoint, id) {
+  const url = `${BASE_URL}/${endpoint}${id}/`;
+  const res = await fetch(url, {
     method: "DELETE",
-    headers,
+    headers: getAuthHeaders(),
   });
 
   if (!res.ok) throw new Error("Error al eliminar");

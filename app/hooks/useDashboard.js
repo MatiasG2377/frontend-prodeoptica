@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+const BASE_URL = process.env.NEXT_PUBLIC_API_URL;
 
 export default function useDashboard() {
   const [productos, setProductos] = useState([]);
@@ -10,7 +11,7 @@ export default function useDashboard() {
 
   // Cargar categorías
   useEffect(() => {
-    fetch("http://127.0.0.1:8000/api/categorias/")
+    fetch(`${BASE_URL}/api/categorias/`)
       .then((res) => res.json())
       .then(setCategorias)
       .catch((err) => console.error("Error al cargar categorías:", err));
@@ -27,11 +28,11 @@ export default function useDashboard() {
         let url = "";
 
         if (search.trim()) {
-          url = `http://127.0.0.1:8000/api/productos/buscar/?q=${search}`;
+          url = `${BASE_URL}/api/productos/buscar/?q=${search}`;
         } else if (selectedCategoria) {
-          url = `http://127.0.0.1:8000/api/productos/filtrar_por_categoria/?categoria=${selectedCategoria}`;
+          url = `${BASE_URL}/api/productos/filtrar_por_categoria/?categoria=${selectedCategoria}`;
         } else {
-          url = "http://127.0.0.1:8000/api/productos/disponibles/";
+          url = `${BASE_URL}/api/productos/disponibles/`;
         }
 
         const res = await fetch(url, { signal });

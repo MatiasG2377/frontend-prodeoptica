@@ -1,10 +1,19 @@
-// services/registerService.js
-const BASE_URL = process.env.NEXT_PUBLIC_API_URL || "http://127.0.0.1:8000";
+const BASE_URL = process.env.NEXT_PUBLIC_API_URL;
+
+const getAuthHeaders = () => {
+  const token =
+    typeof window !== "undefined" ? localStorage.getItem("access_token") : null;
+
+  return {
+    "Content-Type": "application/json",
+    ...(token && { Authorization: `Bearer ${token}` }),
+  };
+};
 
 export async function registerAccount({ username, email, password }) {
   const res = await fetch(`${BASE_URL}/api/register/`, {
     method: "POST",
-    headers: { "Content-Type": "application/json" },
+    headers: getAuthHeaders(), // puede funcionar sin token también
     body: JSON.stringify({ username, email, password }),
   });
   if (!res.ok) throw await res.json();
@@ -14,7 +23,7 @@ export async function registerAccount({ username, email, password }) {
 export async function createUsuario(data) {
   const res = await fetch(`${BASE_URL}/api/usuarios/`, {
     method: "POST",
-    headers: { "Content-Type": "application/json" },
+    headers: getAuthHeaders(),
     body: JSON.stringify(data),
   });
   if (!res.ok) throw await res.json();
@@ -22,7 +31,9 @@ export async function createUsuario(data) {
 }
 
 export async function getSucursales() {
-  const res = await fetch(`${BASE_URL}/api/sucursales/`);
+  const res = await fetch(`${BASE_URL}/api/sucursales/`, {
+    headers: getAuthHeaders(),
+  });
   const data = await res.json();
   return Array.isArray(data) ? data : data.results ?? [];
 }

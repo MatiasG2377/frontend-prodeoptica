@@ -7,6 +7,7 @@ import Header from "../components/common/Header2";
 import Swal from "sweetalert2";
 import ProtectedRoute from "../components/auth/ProtectedRoute";
 import FichaVisual from "../components/ficha-medica/FichaVisual";
+const BASE_URL = process.env.NEXT_PUBLIC_API_URL;
 
 const integerFields = [
   "rx_distancia_od_eje",
@@ -196,7 +197,7 @@ export default function FichaMedicaCompleta() {
     };
 
     try {
-      const res = await fetch("http://localhost:8000/api/cliente-paciente/", {
+      const res = await fetch("${BASE_URL}/api/cliente-paciente/", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -249,7 +250,7 @@ export default function FichaMedicaCompleta() {
 
     try {
       const res = await fetch(
-        `http://localhost:8000/api/cliente-paciente/buscar/?ci=${paciente.ci_paciente}`,
+        `${BASE_URL}/api/cliente-paciente/buscar/?ci=${paciente.ci_paciente}`,
         {
           method: "GET",
           headers: {
@@ -417,7 +418,7 @@ export default function FichaMedicaCompleta() {
       // 1. Verificar si el paciente ya existe
       try {
         const buscarRes = await fetch(
-          `http://localhost:8000/api/cliente-paciente/buscar/?ci=${paciente.ci_paciente}`,
+          `${BASE_URL}/api/cliente-paciente/buscar/?ci=${paciente.ci_paciente}`,
           {
             headers: {
               "Content-Type": "application/json",
@@ -455,7 +456,7 @@ export default function FichaMedicaCompleta() {
           antecedentes_paciente: paciente.antecedentes,
         };
 
-        const res = await fetch("http://localhost:8000/api/cliente-paciente/", {
+        const res = await fetch("${BASE_URL}/api/cliente-paciente/", {
           method: "POST",
           headers: {
             "Content-Type": "application/json",
@@ -489,17 +490,14 @@ export default function FichaMedicaCompleta() {
         integerFields
       );
 
-      const fichaRes = await fetch(
-        "http://localhost:8000/api/fichas-medicas/",
-        {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${token}`,
-          },
-          body: JSON.stringify(fichaPayloadFinal),
-        }
-      );
+      const fichaRes = await fetch("${BASE_URL}/api/fichas-medicas/", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify(fichaPayloadFinal),
+      });
 
       if (!fichaRes.ok) {
         const errorData = await fichaRes.json();
@@ -659,7 +657,7 @@ export default function FichaMedicaCompleta() {
 
     try {
       const res = await fetch(
-        `http://localhost:8000/api/cliente-paciente/buscar-apellido/?apellido=${apellidoBusqueda}`,
+        `${BASE_URL}/api/cliente-paciente/buscar-apellido/?apellido=${apellidoBusqueda}`,
         {
           headers: {
             "Content-Type": "application/json",

@@ -2,33 +2,17 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import Swal from "sweetalert2";
 
-/**
- * Hook para manejar el login de un usuario.
- *
- * Retorna un objeto con las siguientes propiedades:
- * - username: string, el nombre de usuario ingresado.
- * - password: string, la contrase a ingresada.
- * - setUsername: function, cambia el valor de username.
- * - setPassword: function, cambia el valor de password.
- * - handleSubmit: function, se encarga de realizar el login y redirigir al usuario
- *   al panel principal si el login es exitoso.
- */
+const BASE_URL = process.env.NEXT_PUBLIC_API_URL;
+
 export function useLogin() {
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const router = useRouter();
 
-  /**
-   * Obtiene el ID del usuario con el nombre de usuario especificado.
-   *
-   * @param {string} username - El nombre de usuario del usuario.
-   *
-   * @return {number|null} El ID del usuario o null en caso de error.
-   */
   const fetchUserId = async (username) => {
     try {
       const res = await fetch(
-        `http://127.0.0.1:8000/api/usuarios/obtener-id/?username=${username}`,
+        `${BASE_URL}/api/usuarios/obtener-id/?username=${username}`,
         {
           headers: {
             "Content-Type": "application/json",
@@ -53,21 +37,10 @@ export function useLogin() {
     }
   };
 
-  /**
-   * Maneja el envío del formulario de inicio de sesión.
-   *
-   * Previene el comportamiento por defecto del formulario y realiza una petición
-   * al endpoint de login. Si el login es exitoso, guarda los tokens de acceso y
-   * actualización en el almacenamiento local, obtiene el ID del usuario y redirige
-   * al usuario al panel principal. Muestra mensajes de error en caso de fallos.
-   *
-   *? @param {Object} e - El evento de envío del formulario.
-   */
-
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
-      const res = await fetch("http://127.0.0.1:8000/api/login/", {
+      const res = await fetch(`${BASE_URL}/api/login/`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ username, password }),

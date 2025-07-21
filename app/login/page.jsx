@@ -4,6 +4,8 @@ import { useRouter } from "next/navigation";
 import Swal from "sweetalert2";
 import LoginForm from "../components/login/LoginForm";
 
+const BASE_URL = process.env.NEXT_PUBLIC_API_URL;
+
 export default function LoginPage() {
   const router = useRouter();
 
@@ -11,14 +13,15 @@ export default function LoginPage() {
   const [password, setPassword] = useState("");
 
   const redirectToAdminLogin = () => {
-    window.location.href = "http://localhost:8000/admin/login/?next=/admin/";
+    // Este sí queda en localhost porque solo lo usarías en local para Django admin
+    window.location.href = `${BASE_URL}/admin/login/?next=/admin/`;
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
 
     try {
-      const res = await fetch("http://localhost:8000/api/login/", {
+      const res = await fetch(`${BASE_URL}/api/login/`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -36,17 +39,16 @@ export default function LoginPage() {
       localStorage.setItem("access_token", data.access);
       localStorage.setItem("refresh_token", data.refresh);
       localStorage.setItem("usuario_info", JSON.stringify(data.usuario));
-      
 
       Swal.fire({
         icon: "success",
         title: "Sesión iniciada",
         text: `Bienvenido, ${data.usuario.username_usuario}`,
         confirmButtonColor: "#712b39",
-        allowOutsideClick: false, // 👈 previene cerrar fuera del modal
+        allowOutsideClick: false,
       }).then((result) => {
         if (result.isConfirmed) {
-          router.push("/dashboard"); // Cambia esta ruta si es otra
+          router.push("/dashboard");
         }
       });
     } catch (error) {

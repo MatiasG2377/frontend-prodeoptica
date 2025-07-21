@@ -1,4 +1,3 @@
-// hooks/useAbono.js
 import { useState } from "react";
 import {
   fetchAbonos,
@@ -7,6 +6,8 @@ import {
   fetchAbonoPorVenta,
   actualizarAbono,
 } from "../services/abonoService";
+
+const BASE_URL = process.env.NEXT_PUBLIC_API_URL;
 
 export function useAbonos() {
   const [abonos, setAbonos] = useState([]);
@@ -27,13 +28,12 @@ export function useAbonos() {
   const buscarPorNombre = async (nombre, setVentas) => {
     try {
       setLoading(true);
-
       const clientes = await buscarUsuariosPorNombre(nombre);
       const clienteIds = clientes.map((c) => c.id);
 
       if (clienteIds.length === 0) {
         setAbonos([]);
-        setVentas([]); // <-- ahora puedes usarlo aquí
+        setVentas([]);
         return;
       }
 
@@ -43,8 +43,7 @@ export function useAbonos() {
       );
       setAbonos(abonosFiltrados);
 
-      // 🔁 cargar ventas
-      const resVentas = await fetch("http://127.0.0.1:8000/api/ventas/", {
+      const resVentas = await fetch(`${BASE_URL}/api/ventas/`, {
         headers: {
           Authorization: `Bearer ${localStorage.getItem("access_token")}`,
         },
@@ -64,10 +63,9 @@ export function useAbonos() {
     }
   };
 
-  const filtrarPorFecha = async () => {
+  const filtrarPorFecha = async (fechaInicio, fechaFin, setVentas) => {
     if (!fechaInicio && !fechaFin) {
       cargarAbonos();
-      fetchVentas();
       return;
     }
 
@@ -78,7 +76,7 @@ export function useAbonos() {
       if (fechaFin) params.append("fecha_fin", fechaFin);
 
       const abonosRes = await fetch(
-        `${API_URL}/abonos/fecha/?${params.toString()}`,
+        `${BASE_URL}/api/abonos/fecha/?${params.toString()}`,
         {
           headers: {
             Authorization: `Bearer ${localStorage.getItem("access_token")}`,
@@ -87,7 +85,7 @@ export function useAbonos() {
       );
 
       const ventasRes = await fetch(
-        `${API_URL}/ventas/fecha/?${params.toString()}`,
+        `${BASE_URL}/api/ventas/fecha/?${params.toString()}`,
         {
           headers: {
             Authorization: `Bearer ${localStorage.getItem("access_token")}`,
@@ -100,9 +98,6 @@ export function useAbonos() {
 
       const abonosData = await abonosRes.json();
       const ventasData = await ventasRes.json();
-
-      console.log("👉 Abonos:", abonosData.results || abonosData);
-      console.log("👉 Ventas:", ventasData.results || ventasData);
 
       setAbonos(abonosData.results || abonosData);
       setVentas(ventasData.results || ventasData);

@@ -1,6 +1,7 @@
 "use client";
 import { useState } from "react";
 import Swal from "sweetalert2";
+const BASE_URL = process.env.NEXT_PUBLIC_API_URL;
 
 /**
  * Hook que maneja el estado y la lógica para registrar o actualizar clientes.
@@ -58,16 +59,13 @@ export default function useCliente() {
 
     if (name === "ci_cliente" && value.length >= 10) {
       try {
-        const res = await fetch(
-          `http://127.0.0.1:8000/api/clientes/ci/?ci=${value}`,
-          {
-            method: "GET",
-            headers: {
-              Authorization: `Bearer ${localStorage.getItem("access_token")}`,
-              "Content-Type": "application/json",
-            },
-          }
-        );
+        const res = await fetch(`${BASE_URL}/api/clientes/ci/?ci=${value}`, {
+          method: "GET",
+          headers: {
+            Authorization: `Bearer ${localStorage.getItem("access_token")}`,
+            "Content-Type": "application/json",
+          },
+        });
 
         if (res.ok) {
           const resultado = await res.json();
@@ -146,8 +144,8 @@ export default function useCliente() {
 
     try {
       const url = clienteExistente
-        ? `http://127.0.0.1:8000/api/clientes/${clienteData.id}/`
-        : "http://127.0.0.1:8000/api/clientes/";
+        ? `${BASE_URL}/api/clientes/${clienteData.id}/`
+        : `${BASE_URL}/api/clientes/`;
       const method = clienteExistente ? "PUT" : "POST";
 
       const res = await fetch(url, {

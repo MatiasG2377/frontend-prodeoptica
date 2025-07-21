@@ -1,5 +1,6 @@
 import React, { useState } from "react";
 import Swal from "sweetalert2";
+const BASE_URL = process.env.NEXT_PUBLIC_API_URL;
 
 export default function FichaVisual({ data }) {
   const [abierto, setAbierto] = useState(false);
@@ -12,16 +13,13 @@ export default function FichaVisual({ data }) {
   };
   const handleGuardarEdicion = async () => {
     try {
-      const res = await fetch(
-        `http://localhost:8000/api/fichas-medicas/${data.id}/`,
-        {
-          method: "PATCH",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify(datosParaEnviar),
-        }
-      );
+      const res = await fetch(`${BASE_URL}/api/fichas-medicas/${data.id}/`, {
+        method: "PATCH",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(datosParaEnviar),
+      });
 
       if (!res.ok) {
         const err = await res.text();
