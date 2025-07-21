@@ -1,4 +1,5 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState } from "react";
+const BASE_URL = process.env.NEXT_PUBLIC_API_URL;
 
 export default function ClienteForm({
   clienteData,
@@ -11,14 +12,14 @@ export default function ClienteForm({
 }) {
   const [laboratorios, setLaboratorios] = useState([]);
   useEffect(() => {
-  fetch("http://localhost:8000/api/laboratorios/")
-    .then((res) => res.json())
-    .then((data) => {
-      console.log("Laboratorios cargados:", data);  // para verificar en consola
-      setLaboratorios(data);
-    })
-    .catch((err) => console.error("Error al cargar laboratorios:", err));
-}, []);
+    fetch(`${BASE_URL}/laboratorios/`)
+      .then((res) => res.json())
+      .then((data) => {
+        console.log("Laboratorios cargados:", data); // para verificar en consola
+        setLaboratorios(data);
+      })
+      .catch((err) => console.error("Error al cargar laboratorios:", err));
+  }, []);
 
   return (
     <div className="bg-white p-6 rounded-lg shadow-md mb-6">
@@ -62,22 +63,21 @@ export default function ClienteForm({
             <option value="Crédito-empresarial">Crédito empresarial</option>
           </select>
         </div>
-<div>
-  <label className="block font-bold">Laboratorio:</label>
-  <select
-    value={laboratorioVenta}
-    onChange={(e) => setLaboratorioVenta(e.target.value)}
-    className="w-full border p-2 rounded"
-  >
-    <option value="">Seleccionar laboratorio</option>
-    {laboratorios.map((lab) => (
-      <option key={lab.id} value={lab.id}>
-        {lab.nombre_laboratorio}
-      </option>
-    ))}
-  </select>
-</div>
-
+        <div>
+          <label className="block font-bold">Laboratorio:</label>
+          <select
+            value={laboratorioVenta}
+            onChange={(e) => setLaboratorioVenta(e.target.value)}
+            className="w-full border p-2 rounded"
+          >
+            <option value="">Seleccionar laboratorio</option>
+            {laboratorios.map((lab) => (
+              <option key={lab.id} value={lab.id}>
+                {lab.nombre_laboratorio}
+              </option>
+            ))}
+          </select>
+        </div>
 
         <div>
           <label className="block font-bold">Nombre:</label>
@@ -91,16 +91,16 @@ export default function ClienteForm({
           />
         </div>
         <div>
-  <label className="block font-bold">Apellidos:</label>
-  <input
-    type="text"
-    name="apellidos_paciente"
-    value={clienteData.apellidos_paciente}
-    onChange={handleInputChange}
-    className="w-full border p-2 rounded"
-    placeholder="Ingrese los apellidos"
-  />
-</div>
+          <label className="block font-bold">Apellidos:</label>
+          <input
+            type="text"
+            name="apellidos_paciente"
+            value={clienteData.apellidos_paciente}
+            onChange={handleInputChange}
+            className="w-full border p-2 rounded"
+            placeholder="Ingrese los apellidos"
+          />
+        </div>
         <div>
           <label className="block font-bold">Teléfono:</label>
           <input
@@ -145,41 +145,39 @@ export default function ClienteForm({
           />
         </div>
 
+        <div>
+          <label className="block font-bold">Fecha de Nacimiento:</label>
+          <input
+            type="date"
+            name="fecha_nacimiento"
+            value={clienteData.fecha_nacimiento}
+            onChange={handleInputChange}
+            className="w-full border p-2 rounded"
+          />
+        </div>
 
-<div>
-  <label className="block font-bold">Fecha de Nacimiento:</label>
-  <input
-    type="date"
-    name="fecha_nacimiento"
-    value={clienteData.fecha_nacimiento}
-    onChange={handleInputChange}
-    className="w-full border p-2 rounded"
-  />
-</div>
+        <div>
+          <label className="block font-bold">Ocupación:</label>
+          <input
+            type="text"
+            name="ocupacion_paciente"
+            value={clienteData.ocupacion_paciente}
+            onChange={handleInputChange}
+            className="w-full border p-2 rounded"
+            placeholder="Ingrese la ocupación"
+          />
+        </div>
 
-<div>
-  <label className="block font-bold">Ocupación:</label>
-  <input
-    type="text"
-    name="ocupacion_paciente"
-    value={clienteData.ocupacion_paciente}
-    onChange={handleInputChange}
-    className="w-full border p-2 rounded"
-    placeholder="Ingrese la ocupación"
-  />
-</div>
-
-<div className="md:col-span-2">
-  <label className="block font-bold">Antecedentes Médicos:</label>
-  <textarea
-    name="antecedentes_paciente"
-    value={clienteData.antecedentes_paciente}
-    onChange={handleInputChange}
-    className="w-full border p-2 rounded"
-    placeholder="Ingrese los antecedentes del paciente"
-  />
-</div>
-
+        <div className="md:col-span-2">
+          <label className="block font-bold">Antecedentes Médicos:</label>
+          <textarea
+            name="antecedentes_paciente"
+            value={clienteData.antecedentes_paciente}
+            onChange={handleInputChange}
+            className="w-full border p-2 rounded"
+            placeholder="Ingrese los antecedentes del paciente"
+          />
+        </div>
       </div>
     </div>
   );

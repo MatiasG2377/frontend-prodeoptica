@@ -9,10 +9,11 @@ import { useAuth } from "../hooks/useAuth";
 import { useState, useEffect } from "react";
 import ProtectedRoute from "../components/auth/ProtectedRoute";
 import Swal from "sweetalert2";
+const BASE_URL = process.env.NEXT_PUBLIC_API_URL;
 
 export default function AbonosPage() {
   const { logout } = useAuth();
-  const API_URL = "http://127.0.0.1:8000/api";
+  const API_URL = BASE_URL;
   const [busqueda, setBusqueda] = useState("");
   const [debouncedBusqueda, setDebouncedBusqueda] = useState("");
   const [fechaInicio, setFechaInicio] = useState("");
@@ -63,7 +64,7 @@ export default function AbonosPage() {
 
   const fetchVentas = async () => {
     try {
-      const res = await fetch("http://127.0.0.1:8000/api/ventas/", {
+      const res = await fetch(`${BASE_URL}/ventas/`, {
         headers: {
           Authorization: `Bearer ${localStorage.getItem("access_token")}`,
         },
@@ -307,14 +308,11 @@ export default function AbonosPage() {
   };
   const verDetalleVenta = async (venta) => {
     try {
-      const res = await fetch(
-        `http://127.0.0.1:8000/api/ventas/${venta.id}/articulos/`,
-        {
-          headers: {
-            Authorization: `Bearer ${localStorage.getItem("access_token")}`,
-          },
-        }
-      );
+      const res = await fetch(`${BASE_URL}/ventas/${venta.id}/articulos/`, {
+        headers: {
+          Authorization: `Bearer ${localStorage.getItem("access_token")}`,
+        },
+      });
 
       if (!res.ok) throw new Error("Error al obtener artículos");
 

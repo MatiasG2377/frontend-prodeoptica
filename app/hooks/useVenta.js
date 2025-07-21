@@ -168,24 +168,49 @@ export default function useVenta() {
             descuento_articuloVenta: 0,
           });
 
-          const nuevoStock = producto.cantidad_producto - cantidad;
+          const controlaStock =
+            producto.controla_stock === true ||
+            producto.controla_stock === 1 ||
+            producto.controla_stock === "true";
 
-          await actualizarStockProducto(producto.id, {
-            cantidad_producto: nuevoStock,
-          });
+          if (
+            controlaStock &&
+            producto.cantidad_producto !== undefined &&
+            producto.cantidad_producto !== null
+          ) {
+            const cantidadProducto = parseInt(producto.cantidad_producto);
+            const nuevoStock = isNaN(cantidadProducto)
+              ? 0
+              : cantidadProducto - cantidad;
 
-          await registrarMovimientoKardex({
-            producto_kardex: producto.id,
-            tipo_kardex: "Salida",
-            cantidad_kardex: cantidad,
-            costo_unitario_kardex: parseFloat(producto.costo_producto || 0),
-            costo_total_kardex:
-              parseFloat(producto.costo_producto || 0) * cantidad,
-            saldo_cantidad_kardex: nuevoStock,
-            saldo_costo_kardex:
-              parseFloat(producto.costo_producto || 0) * nuevoStock,
-            referencia_kardex: `Venta #${venta.id}`,
-          });
+            const costoUnitario = parseFloat(producto.costo_producto);
+            const costoValido = isNaN(costoUnitario) ? 0 : costoUnitario;
+
+            if (costoValido > 0 && nuevoStock >= 0) {
+              await actualizarStockProducto(producto.id, {
+                cantidad_producto: nuevoStock,
+              });
+
+              await registrarMovimientoKardex({
+                producto_kardex: producto.id,
+                tipo_kardex: "Salida",
+                cantidad_kardex: cantidad,
+                costo_unitario_kardex: costoValido,
+                costo_total_kardex: costoValido * cantidad,
+                saldo_cantidad_kardex: nuevoStock,
+                saldo_costo_kardex: costoValido * nuevoStock,
+                referencia_kardex: `Venta #${venta.id}`,
+              });
+            } else {
+              console.warn(
+                `❌ Producto ${producto.nombre_producto} no válido para Kardex: costo=${costoValido}, stock=${nuevoStock}`
+              );
+            }
+          } else {
+            console.log(
+              `🔁 Producto ${producto.nombre_producto} no registra Kardex (controla_stock = ${producto.controla_stock})`
+            );
+          }
         })
       );
 
