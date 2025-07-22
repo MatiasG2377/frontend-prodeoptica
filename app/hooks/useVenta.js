@@ -114,6 +114,7 @@ export default function useVenta() {
     }
 
     const payload = {
+      ci: data.ci_cliente,
       ci_cliente: ci,
       nombre_cliente: data.nombre_cliente,
       correo_cliente: data.correo_cliente,
