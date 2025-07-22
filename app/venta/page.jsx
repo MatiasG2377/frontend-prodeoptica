@@ -63,7 +63,7 @@ export default function VentaPage() {
       return;
     }
 
-    if (!clienteData.ci_cliente || !clienteData.nombre_cliente) {
+    if (!clienteData.nombre_cliente) {
       await Swal.fire({
         icon: "warning",
         title: "Datos incompletos",
