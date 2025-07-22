@@ -51,6 +51,9 @@ export function useLogin() {
         localStorage.setItem("access_token", access);
         localStorage.setItem("refresh_token", refresh);
 
+        // 🔧 Espera mínima para que el token esté disponible
+        await new Promise((resolve) => setTimeout(resolve, 100));
+
         const userId = await fetchUserId(username);
 
         if (userId) {
