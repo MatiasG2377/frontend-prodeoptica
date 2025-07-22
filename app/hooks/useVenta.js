@@ -106,11 +106,16 @@ export default function useVenta() {
 
   const registrarClienteYPaciente = async (data) => {
     const ci = data?.ci_cliente?.trim();
+
+    // Validación mínima
     if (!ci || ci.length < 10) {
       throw new Error(
         "El campo cédula es obligatorio y debe tener al menos 10 dígitos."
       );
     }
+
+    // Resetear cédula cargada si cambia
+    setCiCargado(null);
 
     const resultado = await buscarClienteYPaciente(ci);
     const cliente = resultado.cliente;
