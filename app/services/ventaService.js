@@ -10,8 +10,12 @@ const getAuthHeaders = () => {
   };
 };
 
-// Buscar cliente y paciente por CI
+// Buscar cliente y paciente por CI (valida que haya CI)
 export const buscarClienteYPaciente = async (ci) => {
+  if (!ci || ci.trim() === "") {
+    throw { detail: "El campo 'ci' es obligatorio para la búsqueda." };
+  }
+
   const res = await fetch(`${BASE_URL}/cliente-paciente/buscar/?ci=${ci}`, {
     headers: getAuthHeaders(),
   });
@@ -19,8 +23,15 @@ export const buscarClienteYPaciente = async (ci) => {
   return await res.json();
 };
 
-// Crear cliente y paciente (solo ci_cliente es obligatorio, los demás opcionales)
+// Crear cliente y paciente (valida que ci_cliente esté presente)
 export const crearClientePaciente = async (payload) => {
+  if (!payload?.ci_cliente || payload.ci_cliente.trim() === "") {
+    throw {
+      detail:
+        "El campo 'ci_cliente' es obligatorio para crear cliente/paciente.",
+    };
+  }
+
   const res = await fetch(`${BASE_URL}/cliente-paciente/`, {
     method: "POST",
     headers: getAuthHeaders(),
