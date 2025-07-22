@@ -122,7 +122,7 @@ export default function useVenta() {
     const paciente = resultado.paciente;
 
     const payload = {
-      ci: data.ci_cliente,
+      ci_cliente: data.ci_cliente,
       nombre_cliente: data.nombre_cliente,
       correo_cliente: data.correo_cliente,
       telefono_cliente: data.telefono_cliente,
