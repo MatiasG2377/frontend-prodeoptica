@@ -104,51 +104,52 @@ export default function useVenta() {
     }
   };
 
-  const registrarClienteYPaciente = async (data) => {
-    const ci = data?.ci_cliente?.trim();
+  /*******  546ba153-be84-4856-8bdb-1d4d2b1fe6bb  *******/ const registrarClienteYPaciente =
+    async (data) => {
+      const ci = data?.ci_cliente?.trim();
 
-    if (!ci || ci.length < 10) {
-      throw new Error(
-        "El campo cédula es obligatorio y debe tener al menos 10 dígitos."
-      );
-    }
-
-    const payload = {
-      ci: data.ci_cliente,
-      ci_cliente: ci,
-      nombre_cliente: data.nombre_cliente,
-      correo_cliente: data.correo_cliente,
-      telefono_cliente: data.telefono_cliente,
-      direccion_cliente: data.direccion_cliente,
-      informacion_cliente: data.informacion_cliente || "",
-      nombres_paciente: data.nombre_cliente,
-      apellidos_paciente: data.apellidos_paciente,
-      fecha_nacimiento: data.fecha_nacimiento,
-      ocupacion_paciente: data.ocupacion_paciente,
-      direccion_paciente: data.direccion_cliente,
-      telefono_paciente: data.telefono_cliente,
-      antecedentes_paciente: data.antecedentes_paciente,
-    };
-
-    try {
-      const resultado = await buscarClienteYPaciente(ci);
-      const cliente = resultado.cliente;
-      const paciente = resultado.paciente;
-
-      if (cliente && paciente) {
-        await actualizarCliente(cliente.id, payload);
-        await actualizarPaciente(paciente.id, payload);
-        return;
+      if (!ci || ci.length < 10) {
+        throw new Error(
+          "El campo cédula es obligatorio 0y debe tener al menos 10 dígitos."
+        );
       }
-    } catch (err) {
-      console.log("Cliente no encontrado, se creará nuevo.");
-    }
 
-    // 🧪 Verifica que sí llega el campo
-    console.log("🧪 Enviando payload final:", payload);
+      const payload = {
+        ci: data.ci_cliente,
+        ci_cliente: ci,
+        nombre_cliente: data.nombre_cliente,
+        correo_cliente: data.correo_cliente,
+        telefono_cliente: data.telefono_cliente,
+        direccion_cliente: data.direccion_cliente,
+        informacion_cliente: data.informacion_cliente || "",
+        nombres_paciente: data.nombre_cliente,
+        apellidos_paciente: data.apellidos_paciente,
+        fecha_nacimiento: data.fecha_nacimiento,
+        ocupacion_paciente: data.ocupacion_paciente,
+        direccion_paciente: data.direccion_cliente,
+        telefono_paciente: data.telefono_cliente,
+        antecedentes_paciente: data.antecedentes_paciente,
+      };
 
-    await crearClientePaciente(payload);
-  };
+      try {
+        const resultado = await buscarClienteYPaciente(ci);
+        const cliente = resultado.cliente;
+        const paciente = resultado.paciente;
+
+        if (cliente && paciente) {
+          await actualizarCliente(cliente.id, payload);
+          await actualizarPaciente(paciente.id, payload);
+          return;
+        }
+      } catch (err) {
+        console.log("Cliente no encontrado, se creará nuevo.");
+      }
+
+      // 🧪 Verifica que sí llega el campo
+      console.log("🧪 Enviando payload final:", payload);
+
+      await crearClientePaciente(payload);
+    };
 
   const handleSubmit = async ({
     abonoInicial = false,
