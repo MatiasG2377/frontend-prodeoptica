@@ -80,24 +80,6 @@ export default function useIngresoProducto(router) {
   };
 
   const handleIngreso = async () => {
-    const usuarioId = localStorage.getItem("userId");
-    console.log("📦 ID de usuario:", usuarioId);
-
-    if (
-      !usuarioId ||
-      usuarioId === "null" ||
-      usuarioId === "undefined" ||
-      isNaN(parseInt(usuarioId))
-    ) {
-      Swal.fire({
-        icon: "error",
-        title: "Error",
-        text: "Usuario no autenticado. Inicie sesión nuevamente.",
-        confirmButtonColor: "#712b39",
-      });
-      return;
-    }
-
     if (!selectedProducto) {
       Swal.fire({
         icon: "warning",
@@ -153,19 +135,15 @@ export default function useIngresoProducto(router) {
         metodo_valoracion: metodoValoracion,
       };
 
-      // Actualizar producto
       await updateProducto(selectedProducto.id, productoActualizado);
 
-      // Registrar movimiento de inventario
       await registrarMovimiento({
         producto_movimientoInventario: selectedProducto.id,
-        usuario_movimientoInventario: usuarioId,
         tipo_movimientoInventario: "Entrada",
         cantidad_movimientoInventario: cantidad,
         motivo_movimientoInventario: motivo,
       });
 
-      // Registrar en kardex
       await registrarKardex({
         producto_kardex: selectedProducto.id,
         tipo_kardex: "Entrada",
