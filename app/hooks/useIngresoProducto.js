@@ -81,7 +81,14 @@ export default function useIngresoProducto(router) {
 
   const handleIngreso = async () => {
     const usuarioId = localStorage.getItem("userId");
-    if (!usuarioId) {
+    console.log("📦 ID de usuario:", usuarioId);
+
+    if (
+      !usuarioId ||
+      usuarioId === "null" ||
+      usuarioId === "undefined" ||
+      isNaN(parseInt(usuarioId))
+    ) {
       Swal.fire({
         icon: "error",
         title: "Error",
