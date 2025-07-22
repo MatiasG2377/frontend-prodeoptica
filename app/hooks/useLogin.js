@@ -9,34 +9,6 @@ export function useLogin() {
   const [password, setPassword] = useState("");
   const router = useRouter();
 
-  const fetchUserId = async (username) => {
-    try {
-      const res = await fetch(
-        `${BASE_URL}/usuarios/obtener-id/?username=${username}`,
-        {
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${localStorage.getItem("access_token")}`,
-          },
-        }
-      );
-      if (res.ok) {
-        const data = await res.json();
-        localStorage.setItem("userId", data.id);
-        return data.id;
-      }
-      const error = await res.json();
-      throw new Error(error.error || "Error desconocido.");
-    } catch (err) {
-      Swal.fire(
-        "Error",
-        err.message || "No se pudo obtener el ID del usuario.",
-        "error"
-      );
-      return null;
-    }
-  };
-
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
@@ -47,26 +19,22 @@ export function useLogin() {
       });
 
       if (res.ok) {
-        const { access, refresh } = await res.json();
+        const { access, refresh, usuario } = await res.json();
+
+        // Guardar tokens e ID del usuario directamente
         localStorage.setItem("access_token", access);
         localStorage.setItem("refresh_token", refresh);
+        localStorage.setItem("userId", usuario.id);
 
-        // 🔧 Espera mínima para que el token esté disponible
-        await new Promise((resolve) => setTimeout(resolve, 100));
-
-        const userId = await fetchUserId(username);
-
-        if (userId) {
-          Swal.fire({
-            icon: "success",
-            title: "Inicio de sesión exitoso",
-            text: "Serás redirigido al panel principal.",
-            timer: 2000,
-            showConfirmButton: false,
-          }).then(() => {
-            router.push("/dashboard");
-          });
-        }
+        Swal.fire({
+          icon: "success",
+          title: "Inicio de sesión exitoso",
+          text: "Serás redirigido al panel principal.",
+          timer: 2000,
+          showConfirmButton: false,
+        }).then(() => {
+          router.push("/dashboard");
+        });
       } else {
         const error = await res.json();
         Swal.fire({
