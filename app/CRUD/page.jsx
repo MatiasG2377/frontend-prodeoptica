@@ -6,7 +6,8 @@ import { DashboardGrid } from "../components/CRUD/dashboard-grid";
 import Header from "../components/common/Header2";
 import { useAuth } from "../hooks/useAuth";
 import { useCrud } from "../hooks/useCrud";
-import ProtectedRoute from "../components/auth/ProtectedRoute"; 
+import ProtectedRoute from "../components/auth/ProtectedRoute";
+const BASE_URL = process.env.NEXT_PUBLIC_API_URL;
 
 const tableConfigs = {
   proveedor: {
@@ -18,7 +19,7 @@ const tableConfigs = {
       { key: "telefono_proveedor", label: "Teléfono" },
       { key: "direccion_proveedor", label: "Dirección", type: "textarea" },
     ],
-    endpoint: "http://localhost:8000/api/proveedores/",
+    endpoint: `${BASE_URL}/proveedores/`,
   },
   laboratorio: {
     name: "Laboratorios",
@@ -28,7 +29,7 @@ const tableConfigs = {
       { key: "direccion_laboratorio", label: "Dirección", type: "textarea" },
       { key: "telefono_laboratorio", label: "Teléfono" },
     ],
-    endpoint: "http://localhost:8000/api/laboratorios/",
+    endpoint: `${BASE_URL}/laboratorios/`,
   },
 };
 
@@ -59,23 +60,23 @@ export default function CrudSystem() {
 
   return (
     <ProtectedRoute>
-    <div className="min-h-screen bg-gray-100">
-      <Header
-        title={`Gestión de ${currentConfig.name}`}
-        menuOpen={menuOpen}
-        setMenuOpen={setMenuOpen}
-        handleLogout={logout}
-      />
-      <CrudTable
-        tableName={currentConfig.name}
-        data={data}
-        columns={currentConfig.columns}
-        onAdd={addItem}
-        onEdit={editItem}
-        onDelete={deleteItem}
-        onBack={handleBackToDashboard}
-      />
-    </div>
+      <div className="min-h-screen bg-gray-100">
+        <Header
+          title={`Gestión de ${currentConfig.name}`}
+          menuOpen={menuOpen}
+          setMenuOpen={setMenuOpen}
+          handleLogout={logout}
+        />
+        <CrudTable
+          tableName={currentConfig.name}
+          data={data}
+          columns={currentConfig.columns}
+          onAdd={addItem}
+          onEdit={editItem}
+          onDelete={deleteItem}
+          onBack={handleBackToDashboard}
+        />
+      </div>
     </ProtectedRoute>
   );
 }
