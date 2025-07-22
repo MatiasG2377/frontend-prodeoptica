@@ -127,13 +127,18 @@ export default function useVenta() {
     metodoAbono = "Efectivo",
   } = {}) => {
     if (
-      !isValidCI(clienteData.ci_cliente) ||
       !clienteData.nombre_cliente ||
       !isValidPhone(clienteData.telefono_cliente) ||
       !isValidEmail(clienteData.correo_cliente) ||
       !clienteData.direccion_cliente
     ) {
-      Swal.fire("Error", "Complete todos los campos correctamente.", "error");
+      Swal.fire({
+        icon: "error",
+        title: "Error",
+        text: "Complete todos los campos correctamente.",
+        confirmButtonColor: "#712b39",
+        cancelButtonColor: "#d1d5db",
+      });
       return;
     }
 
