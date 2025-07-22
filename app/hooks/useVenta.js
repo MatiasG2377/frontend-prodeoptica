@@ -96,6 +96,7 @@ export default function useVenta() {
     const resultado = await buscarClienteYPaciente(data.ci_cliente);
     const cliente = resultado.cliente;
     const paciente = resultado.paciente;
+    if (!data.ci_cliente) delete payload.ci;
 
     const payload = {
       ci: data.ci_cliente,
