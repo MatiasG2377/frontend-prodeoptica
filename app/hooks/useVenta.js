@@ -107,22 +107,25 @@ export default function useVenta() {
   const registrarClienteYPaciente = async (data) => {
     const ci = data?.ci_cliente?.trim();
 
-    // Validación mínima
     if (!ci || ci.length < 10) {
       throw new Error(
         "El campo cédula es obligatorio y debe tener al menos 10 dígitos."
       );
     }
 
-    // Resetear cédula cargada si cambia
-    setCiCargado(null);
+    let cliente = null;
+    let paciente = null;
 
-    const resultado = await buscarClienteYPaciente(ci);
-    const cliente = resultado.cliente;
-    const paciente = resultado.paciente;
+    try {
+      const resultado = await buscarClienteYPaciente(ci);
+      cliente = resultado.cliente;
+      paciente = resultado.paciente;
+    } catch (err) {
+      console.warn("Cliente nuevo, se procederá a crear:", err?.detail || err);
+    }
 
     const payload = {
-      ci_cliente: data.ci_cliente,
+      ci_cliente: ci,
       nombre_cliente: data.nombre_cliente,
       correo_cliente: data.correo_cliente,
       telefono_cliente: data.telefono_cliente,
@@ -141,7 +144,7 @@ export default function useVenta() {
       await actualizarCliente(cliente.id, payload);
       await actualizarPaciente(paciente.id, payload);
     } else {
-      await crearClientePaciente(payload);
+      await crearClientePaciente(payload); // ✅ Aquí sí llega bien ci_cliente
     }
   };
 
