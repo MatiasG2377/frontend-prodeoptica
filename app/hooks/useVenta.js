@@ -271,7 +271,11 @@ export default function useVenta() {
       Swal.fire({
         icon: "error",
         title: "Error",
-        text: "Ocurrió un error al registrar la venta.",
+        text:
+          error?.detail ||
+          error?.message ||
+          "Ocurrió un error al registrar la venta.",
+        confirmButtonColor: "#712b39",
       });
     } finally {
       setIsSubmitting(false);
