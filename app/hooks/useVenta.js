@@ -66,9 +66,20 @@ export default function useVenta() {
     const { name, value } = e.target;
     setClienteData((prev) => ({ ...prev, [name]: value }));
 
-    if (name === "ci_cliente" && value.length >= 10 && value !== ciCargado) {
+    if (name === "ci_cliente") {
+      const trimmedValue = value.trim();
+
+      // ⚠️ Validación: evitar búsqueda si está vacío o menos de 10 caracteres
+      if (
+        !trimmedValue ||
+        trimmedValue.length < 10 ||
+        trimmedValue === ciCargado
+      ) {
+        return;
+      }
+
       try {
-        const resultado = await buscarClienteYPaciente(value);
+        const resultado = await buscarClienteYPaciente(trimmedValue);
         const cliente = resultado.cliente;
         const paciente = resultado.paciente;
 
@@ -78,7 +89,7 @@ export default function useVenta() {
             ...cliente,
             ...paciente,
           }));
-          setCiCargado(value);
+          setCiCargado(trimmedValue);
           Swal.fire({
             icon: "info",
             title: "Datos encontrados",
@@ -87,16 +98,23 @@ export default function useVenta() {
           });
         }
       } catch (err) {
-        console.error("Error al buscar cliente/paciente", err);
+        console.warn("Cliente no encontrado o error:", err?.detail || err);
+        // No es necesario mostrar error si solo no existe (silencioso)
       }
     }
   };
 
   const registrarClienteYPaciente = async (data) => {
-    const resultado = await buscarClienteYPaciente(data.ci_cliente);
+    const ci = data?.ci_cliente?.trim();
+    if (!ci || ci.length < 10) {
+      throw new Error(
+        "El campo cédula es obligatorio y debe tener al menos 10 dígitos."
+      );
+    }
+
+    const resultado = await buscarClienteYPaciente(ci);
     const cliente = resultado.cliente;
     const paciente = resultado.paciente;
-    if (!data.ci_cliente) delete payload.ci;
 
     const payload = {
       ci: data.ci_cliente,
