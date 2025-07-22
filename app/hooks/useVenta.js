@@ -113,17 +113,6 @@ export default function useVenta() {
       );
     }
 
-    let cliente = null;
-    let paciente = null;
-
-    try {
-      const resultado = await buscarClienteYPaciente(ci);
-      cliente = resultado.cliente;
-      paciente = resultado.paciente;
-    } catch (err) {
-      console.warn("Cliente nuevo, se procederá a crear:", err?.detail || err);
-    }
-
     const payload = {
       ci_cliente: ci,
       nombre_cliente: data.nombre_cliente,
@@ -140,12 +129,24 @@ export default function useVenta() {
       antecedentes_paciente: data.antecedentes_paciente,
     };
 
-    if (cliente && paciente) {
-      await actualizarCliente(cliente.id, payload);
-      await actualizarPaciente(paciente.id, payload);
-    } else {
-      await crearClientePaciente(payload); // ✅ Aquí sí llega bien ci_cliente
+    try {
+      const resultado = await buscarClienteYPaciente(ci);
+      const cliente = resultado.cliente;
+      const paciente = resultado.paciente;
+
+      if (cliente && paciente) {
+        await actualizarCliente(cliente.id, payload);
+        await actualizarPaciente(paciente.id, payload);
+        return;
+      }
+    } catch (err) {
+      console.log("Cliente no encontrado, se creará nuevo.");
     }
+
+    // 🧪 Verifica que sí llega el campo
+    console.log("🧪 Enviando payload final:", payload);
+
+    await crearClientePaciente(payload);
   };
 
   const handleSubmit = async ({
