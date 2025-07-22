@@ -127,12 +127,7 @@ export default function useVenta() {
     montoAbono = "",
     metodoAbono = "Efectivo",
   } = {}) => {
-    if (
-      !clienteData.nombre_cliente ||
-      !isValidPhone(clienteData.telefono_cliente) ||
-      !isValidEmail(clienteData.correo_cliente) ||
-      !clienteData.direccion_cliente
-    ) {
+    if (!clienteData.nombre_cliente) {
       Swal.fire({
         icon: "error",
         title: "Error",

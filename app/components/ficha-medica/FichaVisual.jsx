@@ -11,7 +11,6 @@ export default function FichaVisual({ data }) {
     paciente: fichaEditada.paciente?.id, // o null
     usuario: fichaEditada.usuario?.id, // si aplica
   };
-
   const handleGuardarEdicion = async () => {
     try {
       const res = await fetch(`${BASE_URL}/fichas-medicas/${data.id}/`, {
