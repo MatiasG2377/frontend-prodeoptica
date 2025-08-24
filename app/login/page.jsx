@@ -14,7 +14,7 @@ export default function LoginPage() {
 
   const redirectToAdminLogin = () => {
     // Este sí queda en localhost porque solo lo usarías en local para Django admin
-    window.location.href = `${BASE_URL}/admin/login/?next=/admin/`;
+    window.location.href = "http://127.0.0.1:8000/admin/login/?next=/admin/";
   };
 
   const handleSubmit = async (e) => {

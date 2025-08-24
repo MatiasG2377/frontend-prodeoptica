@@ -128,12 +128,10 @@ export default function FichaMedicaCompleta() {
     rx_lectura_oi_esfera: "",
     rx_lectura_oi_cilindro: "",
     rx_lectura_oi_eje: "",
-    esq_od_sc: "",
     esq_od_cc: "",
     esq_od_esfera: "",
     esq_od_cilindro: "",
     esq_od_eje: "",
-    esq_oi_sc: "",
     esq_oi_cc: "",
     esq_oi_esfera: "",
     esq_oi_cilindro: "",
@@ -154,13 +152,16 @@ export default function FichaMedicaCompleta() {
     observaciones: "",
     altura: "",
     material: "",
-    esq_od_esfera_comp: "",
-    esq_od_cilindro_comp: "",
-    esq_od_eje_comp: "",
-    esq_oi_esfera_comp: "",
-    esq_oi_cilindro_comp: "",
-    esq_oi_eje_comp: "",
+    esq_od_esfera_computarizado: "",
+    esq_od_cilindro_computarizado: "",
+    esq_od_eje_computarizado: "",
+    esq_oi_esfera_computarizado: "",
+    esq_oi_cilindro_computarizado: "",
+    esq_oi_eje_computarizado: "",
     armazon: "",
+    rx_anterior_od_avsc: "",
+    rx_anterior_oi_avsc: "",
+    rx_anterior_add_avsc: "",
   });
   const [apellidoBusqueda, setApellidoBusqueda] = useState("");
   const [resultadosApellido, setResultadosApellido] = useState([]);
@@ -183,6 +184,7 @@ export default function FichaMedicaCompleta() {
     const payload = {
       ci: paciente.ci_paciente,
       nombre_cliente: paciente.nombres,
+      apellido_cliente: paciente.apellidos,
       correo_cliente: paciente.correo_cliente,
       telefono_cliente: paciente.telefono_celular,
       direccion_cliente: paciente.direccion,
@@ -295,6 +297,7 @@ export default function FichaMedicaCompleta() {
         antecedentes: data.paciente.antecedentes_paciente || "",
         correo_cliente: data.cliente?.correo_cliente || "",
         informacion_cliente: data.cliente?.informacion_cliente || "",
+        apellido_cliente: data.cliente?.apellido_cliente || "",
       });
 
       setFichasPasadas(data.historial_fichas);
@@ -340,8 +343,8 @@ export default function FichaMedicaCompleta() {
       "rs_add_eje",
       "av_od_eje",
       "av_oi_eje",
-      "esq_od_eje_comp",
-      "esq_oi_eje_comp",
+      "esq_od_eje_computarizado",
+      "esq_oi_eje_computarizado",
     ];
 
     const decimalFields = [
@@ -382,10 +385,10 @@ export default function FichaMedicaCompleta() {
       "av_od_cilindro",
       "av_oi_esfera",
       "av_oi_cilindro",
-      "esq_od_esfera_comp",
-      "esq_od_cilindro_comp",
-      "esq_oi_esfera_comp",
-      "esq_oi_cilindro_comp",
+      "esq_od_esfera_computarizado",
+      "esq_od_cilindro_computarizado",
+      "esq_oi_esfera_computarizado",
+      "esq_oi_cilindro_computarizado",
     ];
 
     const parsed = { ...data };
@@ -443,6 +446,7 @@ export default function FichaMedicaCompleta() {
         const payload = {
           ci: paciente.ci_paciente,
           nombre_cliente: paciente.nombres,
+          apellido_cliente: paciente.apellidos,
           correo_cliente: paciente.correo_cliente,
           telefono_cliente: paciente.telefono_celular,
           direccion_cliente: paciente.direccion,
@@ -557,13 +561,11 @@ export default function FichaMedicaCompleta() {
         rx_lectura_oi_cilindro: "",
         rx_lectura_oi_eje: "",
 
-        // Esquiascopia
-        esq_od_sc: "",
+        // Lentes de contacto
         esq_od_cc: "",
         esq_od_esfera: "",
         esq_od_cilindro: "",
         esq_od_eje: "",
-        esq_oi_sc: "",
         esq_oi_cc: "",
         esq_oi_esfera: "",
         esq_oi_cilindro: "",
@@ -608,6 +610,10 @@ export default function FichaMedicaCompleta() {
         av_oi_esfera: "",
         av_oi_cilindro: "",
         av_oi_eje: "",
+        // RX ANTERIOR
+        rx_anterior_od_avsc: "",
+        rx_anterior_oi_avsc: "",
+        rx_anterior_add_avsc: "",
 
         // Extras
         causa: "",
@@ -644,6 +650,7 @@ export default function FichaMedicaCompleta() {
       antecedentes: entry.paciente?.antecedentes_paciente || "",
       correo_cliente: entry.cliente?.correo_cliente || "",
       informacion_cliente: entry.cliente?.informacion_cliente || "",
+      apellido_cliente: entry.cliente?.apellido_cliente || "",
     });
 
     setFichasPasadas(entry.historial_fichas || []);
@@ -722,7 +729,7 @@ export default function FichaMedicaCompleta() {
                   className="bg-[#7d2a3f] text-white px-4 py-2 rounded-md hover:bg-[#6d2435] flex items-center"
                 >
                   <Save className="h-4 w-4 mr-2" />
-                  Guardar Paciente
+                  Guardar solo paciente
                 </button>
               </div>
             </div>
@@ -849,6 +856,26 @@ export default function FichaMedicaCompleta() {
                   />
                 </div>
 
+                {/* Apellidos - NUEVO CAMPO */}
+                <div className="form-group">
+                  <label
+                    htmlFor="apellidos"
+                    className="block text-sm font-medium text-gray-700 mb-1"
+                  >
+                    Apellidos <span className="text-red-500">*</span>
+                  </label>
+                  <input
+                    type="text"
+                    id="apellidos"
+                    className="border border-gray-300 rounded-md px-3 py-2 w-full focus:outline-none focus:ring-1 focus:ring-[#7d2a3f]"
+                    value={paciente.apellidos}
+                    onChange={(e) =>
+                      handlePacienteChange("apellidos", e.target.value)
+                    }
+                    required
+                  />
+                </div>
+
                 {/* Fecha de Nacimiento */}
                 <div className="form-group">
                   <label
@@ -928,7 +955,24 @@ export default function FichaMedicaCompleta() {
                     placeholder="Ej: ejemplo@email.com"
                   />
                 </div>
-
+                {/* Dirección */}
+                <div className="form-group md:col-span-2">
+                  <label
+                    htmlFor="direccion"
+                    className="block text-sm font-medium text-gray-700 mb-1"
+                  >
+                    Dirección
+                  </label>
+                  <input
+                    type="text"
+                    id="direccion"
+                    className="border border-gray-300 rounded-md px-3 py-2 w-full focus:outline-none focus:ring-1 focus:ring-[#7d2a3f]"
+                    value={paciente.direccion}
+                    onChange={(e) =>
+                      handlePacienteChange("direccion", e.target.value)
+                    }
+                  />
+                </div>
                 {/* Información Adicional */}
                 <div className="form-group md:col-span-2">
                   <label
@@ -952,33 +996,6 @@ export default function FichaMedicaCompleta() {
                   />
                 </div>
 
-                {/* Dirección */}
-                <div className="form-group md:col-span-2">
-                  <label
-                    htmlFor="direccion"
-                    className="block text-sm font-medium text-gray-700 mb-1"
-                  >
-                    Dirección
-                  </label>
-                  <textarea
-                    id="direccion"
-                    rows={3}
-                    className="border border-gray-300 rounded-md px-3 py-2 w-full focus:outline-none focus:ring-1 focus:ring-[#7d2a3f]"
-                    value={paciente.direccion}
-                    onChange={(e) =>
-                      handlePacienteChange("direccion", e.target.value)
-                    }
-                  ></textarea>
-                </div>
-
-                {/* Antecedentes Médicos */}
-                <div className="md:col-span-2">
-                  <h3 className="text-lg font-medium text-gray-700 mb-4 pb-2 border-b">
-                    Antecedentes Médicos
-                  </h3>
-                </div>
-
-                {/* Antecedentes */}
                 <div className="form-group md:col-span-2">
                   <label
                     htmlFor="antecedentes"
@@ -1013,9 +1030,365 @@ export default function FichaMedicaCompleta() {
             {/* Ficha Médica */}
             {activeTab === "ficha" && (
               <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                {/* RX ANTERIOR */}
+                <table className="w-full border-collapse mt-4">
+                  <thead>
+                    <tr>
+                      <th
+                        colSpan={6}
+                        className="p-2 border border-gray-300 bg-[#7d2a3f] text-white text-left"
+                      >
+                        RX ANTERIOR
+                      </th>
+                    </tr>
+                    <tr className="bg-gray-100">
+                      <th className="p-2 border border-gray-300">Ojo</th>
+                      <th className="p-2 border border-gray-300">AV SC</th>
+                      <th className="p-2 border border-gray-300">Esfera</th>
+                      <th className="p-2 border border-gray-300">Cilindro</th>
+                      <th className="p-2 border border-gray-300">
+                        Eje(grados)
+                      </th>
+                      <th className="p-2 border border-gray-300">AV CC</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {/* OD */}
+                    <tr>
+                      <td className="p-2 border border-gray-300 bg-gray-100 font-medium">
+                        O.D.
+                      </td>
+                      <td className="p-2 border border-gray-300">
+                        <input
+                          type="text"
+                          className="w-full p-1 border border-gray-300 rounded"
+                          value={opticalData.rx_anterior_od_avsc || ""}
+                          onChange={(e) =>
+                            handleOpticalDataChange(
+                              "rx_anterior_od_avsc",
+                              e.target.value
+                            )
+                          }
+                        />
+                      </td>
+                      <td className="p-2 border border-gray-300">
+                        <input
+                          type="text"
+                          className="w-full p-1 border border-gray-300 rounded"
+                          value={opticalData.rs_od_esfera || ""}
+                          onChange={(e) =>
+                            handleOpticalDataChange(
+                              "rs_od_esfera",
+                              e.target.value
+                            )
+                          }
+                        />
+                      </td>
+                      <td className="p-2 border border-gray-300">
+                        <input
+                          type="text"
+                          className="w-full p-1 border border-gray-300 rounded"
+                          value={opticalData.rs_od_cilindro || ""}
+                          onChange={(e) =>
+                            handleOpticalDataChange(
+                              "rs_od_cilindro",
+                              e.target.value
+                            )
+                          }
+                        />
+                      </td>
+                      <td className="p-2 border border-gray-300">
+                        <input
+                          type="text"
+                          className="w-full p-1 border border-gray-300 rounded"
+                          value={opticalData.rs_od_eje || ""}
+                          onChange={(e) =>
+                            handleOpticalDataChange("rs_od_eje", e.target.value)
+                          }
+                        />
+                      </td>
+                      <td className="p-2 border border-gray-300">
+                        <input
+                          type="text"
+                          className="w-full p-1 border border-gray-300 rounded"
+                          value={opticalData.rs_od_correccion || ""}
+                          onChange={(e) =>
+                            handleOpticalDataChange(
+                              "rs_od_correccion",
+                              e.target.value
+                            )
+                          }
+                        />
+                      </td>
+                    </tr>
+
+                    {/* OI */}
+                    <tr>
+                      <td className="p-2 border border-gray-300 bg-gray-100 font-medium">
+                        O.I.
+                      </td>
+                      <td className="p-2 border border-gray-300">
+                        <input
+                          type="text"
+                          className="w-full p-1 border border-gray-300 rounded"
+                          value={opticalData.rx_anterior_oi_avsc || ""}
+                          onChange={(e) =>
+                            handleOpticalDataChange(
+                              "rx_anterior_oi_avsc",
+                              e.target.value
+                            )
+                          }
+                        />
+                      </td>
+                      <td className="p-2 border border-gray-300">
+                        <input
+                          type="text"
+                          className="w-full p-1 border border-gray-300 rounded"
+                          value={opticalData.rs_oi_esfera || ""}
+                          onChange={(e) =>
+                            handleOpticalDataChange(
+                              "rs_oi_esfera",
+                              e.target.value
+                            )
+                          }
+                        />
+                      </td>
+                      <td className="p-2 border border-gray-300">
+                        <input
+                          type="text"
+                          className="w-full p-1 border border-gray-300 rounded"
+                          value={opticalData.rs_oi_cilindro || ""}
+                          onChange={(e) =>
+                            handleOpticalDataChange(
+                              "rs_oi_cilindro",
+                              e.target.value
+                            )
+                          }
+                        />
+                      </td>
+                      <td className="p-2 border border-gray-300">
+                        <input
+                          type="text"
+                          className="w-full p-1 border border-gray-300 rounded"
+                          value={opticalData.rs_oi_eje || ""}
+                          onChange={(e) =>
+                            handleOpticalDataChange("rs_oi_eje", e.target.value)
+                          }
+                        />
+                      </td>
+                      <td className="p-2 border border-gray-300">
+                        <input
+                          type="text"
+                          className="w-full p-1 border border-gray-300 rounded"
+                          value={opticalData.rs_oi_correccion || ""}
+                          onChange={(e) =>
+                            handleOpticalDataChange(
+                              "rs_oi_correccion",
+                              e.target.value
+                            )
+                          }
+                        />
+                      </td>
+                    </tr>
+
+                    {/* ADD */}
+                    <tr>
+                      <td className="p-2 border border-gray-300 bg-gray-100 font-medium">
+                        A.D.D
+                      </td>
+                      <td className="p-2 border border-gray-300">
+                        <input
+                          type="text"
+                          className="w-full p-1 border border-gray-300 rounded"
+                          value={opticalData.rx_anterior_add_avsc || ""}
+                          onChange={(e) =>
+                            handleOpticalDataChange(
+                              "rx_anterior_add_avsc",
+                              e.target.value
+                            )
+                          }
+                        />
+                      </td>
+                      <td className="p-2 border border-gray-300">
+                        <input
+                          type="text"
+                          className="w-full p-1 border border-gray-300 rounded"
+                          value={opticalData.rs_add_esfera || ""}
+                          onChange={(e) =>
+                            handleOpticalDataChange(
+                              "rs_add_esfera",
+                              e.target.value
+                            )
+                          }
+                        />
+                      </td>
+                      <td className="p-2 border border-gray-300">
+                        <input
+                          type="text"
+                          className="w-full p-1 border border-gray-300 rounded"
+                          value={opticalData.rs_add_cilindro || ""}
+                          onChange={(e) =>
+                            handleOpticalDataChange(
+                              "rs_add_cilindro",
+                              e.target.value
+                            )
+                          }
+                        />
+                      </td>
+                      <td className="p-2 border border-gray-300">
+                        <input
+                          type="text"
+                          className="w-full p-1 border border-gray-300 rounded"
+                          value={opticalData.rs_add_eje || ""}
+                          onChange={(e) =>
+                            handleOpticalDataChange(
+                              "rs_add_eje",
+                              e.target.value
+                            )
+                          }
+                        />
+                      </td>
+                      <td className="p-2 border border-gray-300">
+                        <input
+                          type="text"
+                          className="w-full p-1 border border-gray-300 rounded"
+                          value={opticalData.rs_add_correccion || ""}
+                          onChange={(e) =>
+                            handleOpticalDataChange(
+                              "rs_add_correccion",
+                              e.target.value
+                            )
+                          }
+                        />
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
+
+                {/* EXAMÉN COMPUTARIZADA */}
+                <div className="overflow-x-auto mt-4">
+                  <table className="w-full border-collapse">
+                    <thead>
+                      <tr>
+                        <th
+                          colSpan={4}
+                          className="bg-[#7d2a3f] text-white text-left p-2 font-bold border border-gray-300"
+                        >
+                          EXAMÉN COMPUTARIZADO
+                        </th>
+                      </tr>
+                      <tr className="bg-gray-100">
+                        <th className="p-2 border border-gray-300">Ojo</th>
+                        <th className="p-2 border border-gray-300">Esfera</th>
+                        <th className="p-2 border border-gray-300">Cilindro</th>
+                        <th className="p-2 border border-gray-300">
+                          Eje (grados)
+                        </th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      <tr>
+                        <td className="p-2 border border-gray-300 bg-gray-100 font-medium">
+                          OD
+                        </td>
+                        <td className="p-2 border border-gray-300">
+                          <input
+                            type="text"
+                            className="w-full p-1 border border-gray-300 rounded"
+                            value={
+                              opticalData.esq_od_esfera_computarizado || ""
+                            }
+                            onChange={(e) =>
+                              handleOpticalDataChange(
+                                "esq_od_esfera_computarizado",
+                                e.target.value
+                              )
+                            }
+                          />
+                        </td>
+                        <td className="p-2 border border-gray-300">
+                          <input
+                            type="text"
+                            className="w-full p-1 border border-gray-300 rounded"
+                            value={
+                              opticalData.esq_od_cilindro_computarizado || ""
+                            }
+                            onChange={(e) =>
+                              handleOpticalDataChange(
+                                "esq_od_cilindro_computarizado",
+                                e.target.value
+                              )
+                            }
+                          />
+                        </td>
+                        <td className="p-2 border border-gray-300">
+                          <input
+                            type="text"
+                            className="w-full p-1 border border-gray-300 rounded"
+                            value={opticalData.esq_od_eje_computarizado || ""}
+                            onChange={(e) =>
+                              handleOpticalDataChange(
+                                "esq_od_eje_computarizado",
+                                e.target.value
+                              )
+                            }
+                          />
+                        </td>
+                      </tr>
+                      <tr>
+                        <td className="p-2 border border-gray-300 bg-gray-100 font-medium">
+                          OI
+                        </td>
+                        <td className="p-2 border border-gray-300">
+                          <input
+                            type="text"
+                            className="w-full p-1 border border-gray-300 rounded"
+                            value={
+                              opticalData.esq_oi_esfera_computarizado || ""
+                            }
+                            onChange={(e) =>
+                              handleOpticalDataChange(
+                                "esq_oi_esfera_computarizado",
+                                e.target.value
+                              )
+                            }
+                          />
+                        </td>
+                        <td className="p-2 border border-gray-300">
+                          <input
+                            type="text"
+                            className="w-full p-1 border border-gray-300 rounded"
+                            value={
+                              opticalData.esq_oi_cilindro_computarizado || ""
+                            }
+                            onChange={(e) =>
+                              handleOpticalDataChange(
+                                "esq_oi_cilindro_computarizado",
+                                e.target.value
+                              )
+                            }
+                          />
+                        </td>
+                        <td className="p-2 border border-gray-300">
+                          <input
+                            type="text"
+                            className="w-full p-1 border border-gray-300 rounded"
+                            value={opticalData.esq_oi_eje_computarizado || ""}
+                            onChange={(e) =>
+                              handleOpticalDataChange(
+                                "esq_oi_eje_computarizado",
+                                e.target.value
+                              )
+                            }
+                          />
+                        </td>
+                      </tr>
+                    </tbody>
+                  </table>
+                </div>
                 {/* RX. REFRACCIÓN */}
                 <div className="overflow-x-auto">
-                  <table className="w-full border-collapse">
+                  <table className="w-full border-collapse border border-gray-300 mt-4 text-sm">
                     <thead>
                       <tr>
                         <th
@@ -1028,450 +1401,248 @@ export default function FichaMedicaCompleta() {
                       <tr className="bg-gray-100">
                         <th className="p-2 border border-gray-300"></th>
                         <th className="p-2 border border-gray-300">Ojo</th>
-                        <th className="p-2 border border-gray-300">A.V.</th>
                         <th className="p-2 border border-gray-300">Esfera</th>
                         <th className="p-2 border border-gray-300">Cilindro</th>
                         <th className="p-2 border border-gray-300">
                           Eje(Grados)
                         </th>
                         <th className="p-2 border border-gray-300">DNP(mm)</th>
+                        <th className="p-2 border border-gray-300">A.V.</th>
                       </tr>
                     </thead>
                     <tbody>
-                      {/* Distancia */}
-                      <tr>
-                        <td
-                          rowSpan={2}
-                          className="p-2 border border-gray-300 bg-gray-100 font-medium"
-                        >
-                          Distancia
-                        </td>
-                        <td className="p-2 border border-gray-300 bg-gray-100 font-medium">
-                          OD
-                        </td>
-                        <td className="p-2 border border-gray-300">
-                          <input
-                            type="text"
-                            className="w-full p-1 border border-gray-300 rounded"
-                            value={opticalData.rx_distancia_od_av || ""}
-                            onChange={(e) =>
-                              handleOpticalDataChange(
-                                "rx_distancia_od_av",
-                                e.target.value
-                              )
-                            }
-                          />
-                        </td>
-                        <td className="p-2 border border-gray-300">
-                          <input
-                            type="text"
-                            className="w-full p-1 border border-gray-300 rounded"
-                            value={opticalData.rx_distancia_od_esfera || ""}
-                            onChange={(e) =>
-                              handleOpticalDataChange(
-                                "rx_distancia_od_esfera",
-                                e.target.value
-                              )
-                            }
-                          />
-                        </td>
-                        <td className="p-2 border border-gray-300">
-                          <input
-                            type="text"
-                            className="w-full p-1 border border-gray-300 rounded"
-                            value={opticalData.rx_distancia_od_cilindro || ""}
-                            onChange={(e) =>
-                              handleOpticalDataChange(
-                                "rx_distancia_od_cilindro",
-                                e.target.value
-                              )
-                            }
-                          />
-                        </td>
-                        <td className="p-2 border border-gray-300">
-                          <input
-                            type="text"
-                            className="w-full p-1 border border-gray-300 rounded"
-                            value={opticalData.rx_distancia_od_eje || ""}
-                            onChange={(e) =>
-                              handleOpticalDataChange(
-                                "rx_distancia_od_eje",
-                                e.target.value
-                              )
-                            }
-                          />
-                        </td>
-                        <td className="p-2 border border-gray-300">
-                          <input
-                            type="text"
-                            className="w-full p-1 border border-gray-300 rounded"
-                            value={opticalData.rx_distancia_od_dnp || ""}
-                            onChange={(e) =>
-                              handleOpticalDataChange(
-                                "rx_distancia_od_dnp",
-                                e.target.value
-                              )
-                            }
-                          />
-                        </td>
-                      </tr>
-                      <tr>
-                        <td className="p-2 border border-gray-300 bg-gray-100 font-medium">
-                          OI
-                        </td>
-                        <td className="p-2 border border-gray-300">
-                          <input
-                            type="text"
-                            className="w-full p-1 border border-gray-300 rounded"
-                            value={opticalData.rx_distancia_oi_av || ""}
-                            onChange={(e) =>
-                              handleOpticalDataChange(
-                                "rx_distancia_oi_av",
-                                e.target.value
-                              )
-                            }
-                          />
-                        </td>
-                        <td className="p-2 border border-gray-300">
-                          <input
-                            type="text"
-                            className="w-full p-1 border border-gray-300 rounded"
-                            value={opticalData.rx_distancia_oi_esfera || ""}
-                            onChange={(e) =>
-                              handleOpticalDataChange(
-                                "rx_distancia_oi_esfera",
-                                e.target.value
-                              )
-                            }
-                          />
-                        </td>
-                        <td className="p-2 border border-gray-300">
-                          <input
-                            type="text"
-                            className="w-full p-1 border border-gray-300 rounded"
-                            value={opticalData.rx_distancia_oi_cilindro || ""}
-                            onChange={(e) =>
-                              handleOpticalDataChange(
-                                "rx_distancia_oi_cilindro",
-                                e.target.value
-                              )
-                            }
-                          />
-                        </td>
-                        <td className="p-2 border border-gray-300">
-                          <input
-                            type="text"
-                            className="w-full p-1 border border-gray-300 rounded"
-                            value={opticalData.rx_distancia_oi_eje || ""}
-                            onChange={(e) =>
-                              handleOpticalDataChange(
-                                "rx_distancia_oi_eje",
-                                e.target.value
-                              )
-                            }
-                          />
-                        </td>
-                        <td className="p-2 border border-gray-300">
-                          <input
-                            type="text"
-                            className="w-full p-1 border border-gray-300 rounded"
-                            value={opticalData.rx_distancia_oi_dnp || ""}
-                            onChange={(e) =>
-                              handleOpticalDataChange(
-                                "rx_distancia_oi_dnp",
-                                e.target.value
-                              )
-                            }
-                          />
-                        </td>
-                      </tr>
+                      {/* DISTANCIA */}
+                      {["od", "oi"].map((ojo) => (
+                        <tr key={`distancia_${ojo}`}>
+                          {ojo === "od" && (
+                            <td
+                              rowSpan={2}
+                              className="p-2 border border-gray-300 bg-gray-100 font-medium"
+                            >
+                              Distancia
+                            </td>
+                          )}
+                          <td className="p-2 border border-gray-300 bg-gray-100 font-medium">
+                            {ojo.toUpperCase()}
+                          </td>
+                          <td className="p-2 border border-gray-300">
+                            <input
+                              className="w-full p-1 border border-gray-300 rounded"
+                              type="text"
+                              value={
+                                opticalData[`rx_distancia_${ojo}_esfera`] || ""
+                              }
+                              onChange={(e) =>
+                                handleOpticalDataChange(
+                                  `rx_distancia_${ojo}_esfera`,
+                                  e.target.value
+                                )
+                              }
+                            />
+                          </td>
+                          <td className="p-2 border border-gray-300">
+                            <input
+                              className="w-full p-1 border border-gray-300 rounded"
+                              type="text"
+                              value={
+                                opticalData[`rx_distancia_${ojo}_cilindro`] ||
+                                ""
+                              }
+                              onChange={(e) =>
+                                handleOpticalDataChange(
+                                  `rx_distancia_${ojo}_cilindro`,
+                                  e.target.value
+                                )
+                              }
+                            />
+                          </td>
+                          <td className="p-2 border border-gray-300">
+                            <input
+                              className="w-full p-1 border border-gray-300 rounded"
+                              type="text"
+                              value={
+                                opticalData[`rx_distancia_${ojo}_eje`] || ""
+                              }
+                              onChange={(e) =>
+                                handleOpticalDataChange(
+                                  `rx_distancia_${ojo}_eje`,
+                                  e.target.value
+                                )
+                              }
+                            />
+                          </td>
+                          <td className="p-2 border border-gray-300">
+                            <input
+                              className="w-full p-1 border border-gray-300 rounded"
+                              type="text"
+                              value={
+                                opticalData[`rx_distancia_${ojo}_dnp`] || ""
+                              }
+                              onChange={(e) =>
+                                handleOpticalDataChange(
+                                  `rx_distancia_${ojo}_dnp`,
+                                  e.target.value
+                                )
+                              }
+                            />
+                          </td>
+                          <td className="p-2 border border-gray-300">
+                            <input
+                              className="w-full p-1 border border-gray-300 rounded"
+                              type="text"
+                              value={
+                                opticalData[`rx_distancia_${ojo}_av`] || ""
+                              }
+                              onChange={(e) =>
+                                handleOpticalDataChange(
+                                  `rx_distancia_${ojo}_av`,
+                                  e.target.value
+                                )
+                              }
+                            />
+                          </td>
+                        </tr>
+                      ))}
 
-                      {/* A.D.D. */}
-                      <tr>
-                        <td
-                          rowSpan={2}
-                          className="p-2 border border-gray-300 bg-gray-100 font-medium"
-                        >
-                          A.D.D.
-                        </td>
-                        <td className="p-2 border border-gray-300 bg-gray-100 font-medium">
-                          OD
-                        </td>
-                        <td className="p-2 border border-gray-300">
-                          <input
-                            type="text"
-                            className="w-full p-1 border border-gray-300 rounded"
-                            value={opticalData.rx_add_od_av || ""}
-                            onChange={(e) =>
-                              handleOpticalDataChange(
-                                "rx_add_od_av",
-                                e.target.value
-                              )
-                            }
-                          />
-                        </td>
-                        <td className="p-2 border border-gray-300">
-                          <input
-                            type="text"
-                            className="w-full p-1 border border-gray-300 rounded"
-                            value={opticalData.rx_add_od_esfera || ""}
-                            onChange={(e) =>
-                              handleOpticalDataChange(
-                                "rx_add_od_esfera",
-                                e.target.value
-                              )
-                            }
-                          />
-                        </td>
-                        <td colSpan={3}></td>
-                      </tr>
-                      <tr>
-                        <td className="p-2 border border-gray-300 bg-gray-100 font-medium">
-                          OI
-                        </td>
-                        <td className="p-2 border border-gray-300">
-                          <input
-                            type="text"
-                            className="w-full p-1 border border-gray-300 rounded"
-                            value={opticalData.rx_add_oi_av || ""}
-                            onChange={(e) =>
-                              handleOpticalDataChange(
-                                "rx_add_oi_av",
-                                e.target.value
-                              )
-                            }
-                          />
-                        </td>
-                        <td className="p-2 border border-gray-300">
-                          <input
-                            type="text"
-                            className="w-full p-1 border border-gray-300 rounded"
-                            value={opticalData.rx_add_oi_esfera || ""}
-                            onChange={(e) =>
-                              handleOpticalDataChange(
-                                "rx_add_oi_esfera",
-                                e.target.value
-                              )
-                            }
-                          />
-                        </td>
-                        <td colSpan={3}></td>
-                      </tr>
+                      {/* ADD */}
+                      {["od", "oi"].map((ojo) => (
+                        <tr key={`add_${ojo}`}>
+                          {ojo === "od" && (
+                            <td
+                              rowSpan={2}
+                              className="p-2 border border-gray-300 bg-gray-100 font-medium"
+                            >
+                              A.D.D.
+                            </td>
+                          )}
+                          <td className="p-2 border border-gray-300 bg-gray-100 font-medium">
+                            {ojo.toUpperCase()}
+                          </td>
+                          <td className="p-2 border border-gray-300">
+                            <input
+                              className="w-full p-1 border border-gray-300 rounded"
+                              type="text"
+                              value={opticalData[`rx_add_${ojo}_esfera`] || ""}
+                              onChange={(e) =>
+                                handleOpticalDataChange(
+                                  `rx_add_${ojo}_esfera`,
+                                  e.target.value
+                                )
+                              }
+                            />
+                          </td>
+                          <td className="p-2 border border-gray-300 bg-gray-200"></td>
+                          <td className="p-2 border border-gray-300 bg-gray-200"></td>
+                          <td className="p-2 border border-gray-300 bg-gray-200"></td>
+                          <td className="p-2 border border-gray-300">
+                            <input
+                              className="w-full p-1 border border-gray-300 rounded"
+                              type="text"
+                              value={opticalData[`rx_add_${ojo}_av`] || ""}
+                              onChange={(e) =>
+                                handleOpticalDataChange(
+                                  `rx_add_${ojo}_av`,
+                                  e.target.value
+                                )
+                              }
+                            />
+                          </td>
+                        </tr>
+                      ))}
 
-                      {/* Lectura */}
-                      <tr>
-                        <td
-                          rowSpan={2}
-                          className="p-2 border border-gray-300 bg-gray-100 font-medium"
-                        >
-                          Lectura
-                        </td>
-                        <td className="p-2 border border-gray-300 bg-gray-100 font-medium">
-                          OD
-                        </td>
-                        <td className="p-2 border border-gray-300">
-                          <input
-                            type="text"
-                            className="w-full p-1 border border-gray-300 rounded"
-                            value={opticalData.rx_lectura_od_av || ""}
-                            onChange={(e) =>
-                              handleOpticalDataChange(
-                                "rx_lectura_od_av",
-                                e.target.value
-                              )
-                            }
-                          />
-                        </td>
-                        <td className="p-2 border border-gray-300">
-                          <input
-                            type="text"
-                            className="w-full p-1 border border-gray-300 rounded"
-                            value={opticalData.rx_lectura_od_esfera || ""}
-                            onChange={(e) =>
-                              handleOpticalDataChange(
-                                "rx_lectura_od_esfera",
-                                e.target.value
-                              )
-                            }
-                          />
-                        </td>
-                        <td className="p-2 border border-gray-300">
-                          <input
-                            type="text"
-                            className="w-full p-1 border border-gray-300 rounded"
-                            value={opticalData.rx_lectura_od_cilindro || ""}
-                            onChange={(e) =>
-                              handleOpticalDataChange(
-                                "rx_lectura_od_cilindro",
-                                e.target.value
-                              )
-                            }
-                          />
-                        </td>
-                        <td className="p-2 border border-gray-300">
-                          <input
-                            type="text"
-                            className="w-full p-1 border border-gray-300 rounded"
-                            value={opticalData.rx_lectura_od_eje || ""}
-                            onChange={(e) =>
-                              handleOpticalDataChange(
-                                "rx_lectura_od_eje",
-                                e.target.value
-                              )
-                            }
-                          />
-                        </td>
-                        <td></td>
-                      </tr>
-                      <tr>
-                        <td className="p-2 border border-gray-300 bg-gray-100 font-medium">
-                          OI
-                        </td>
-                        <td className="p-2 border border-gray-300">
-                          <input
-                            type="text"
-                            className="w-full p-1 border border-gray-300 rounded"
-                            value={opticalData.rx_lectura_oi_av || ""}
-                            onChange={(e) =>
-                              handleOpticalDataChange(
-                                "rx_lectura_oi_av",
-                                e.target.value
-                              )
-                            }
-                          />
-                        </td>
-                        <td className="p-2 border border-gray-300">
-                          <input
-                            type="text"
-                            className="w-full p-1 border border-gray-300 rounded"
-                            value={opticalData.rx_lectura_oi_esfera || ""}
-                            onChange={(e) =>
-                              handleOpticalDataChange(
-                                "rx_lectura_oi_esfera",
-                                e.target.value
-                              )
-                            }
-                          />
-                        </td>
-                        <td className="p-2 border border-gray-300">
-                          <input
-                            type="text"
-                            className="w-full p-1 border border-gray-300 rounded"
-                            value={opticalData.rx_lectura_oi_cilindro || ""}
-                            onChange={(e) =>
-                              handleOpticalDataChange(
-                                "rx_lectura_oi_cilindro",
-                                e.target.value
-                              )
-                            }
-                          />
-                        </td>
-                        <td className="p-2 border border-gray-300">
-                          <input
-                            type="text"
-                            className="w-full p-1 border border-gray-300 rounded"
-                            value={opticalData.rx_lectura_oi_eje || ""}
-                            onChange={(e) =>
-                              handleOpticalDataChange(
-                                "rx_lectura_oi_eje",
-                                e.target.value
-                              )
-                            }
-                          />
-                        </td>
-                        <td></td>
-                      </tr>
-                    </tbody>
-                  </table>
-
-                  {/* Altura y Material */}
-                  <table className="w-full border-collapse mt-4">
-                    <tbody>
-                      <tr>
-                        <td className="p-2 border border-gray-300 font-medium">
-                          Altura
-                        </td>
-                        <td className="p-2 border border-gray-300">
-                          <input
-                            type="text"
-                            className="w-full p-1 border border-gray-300 rounded"
-                            value={opticalData.altura || ""}
-                            onChange={(e) =>
-                              handleOpticalDataChange("altura", e.target.value)
-                            }
-                          />
-                        </td>
-                        <td className="p-2 border border-gray-300 font-medium">
-                          Material
-                        </td>
-                        <td className="p-2 border border-gray-300">
-                          <input
-                            type="text"
-                            className="w-full p-1 border border-gray-300 rounded"
-                            value={opticalData.material || ""}
-                            onChange={(e) =>
-                              handleOpticalDataChange(
-                                "material",
-                                e.target.value
-                              )
-                            }
-                          />
-                        </td>
-                      </tr>
-                      <tr>
-                        <td className="p-2 border border-gray-300 font-medium">
-                          Observaciones
-                        </td>
-                        <td colSpan={3} className="p-2 border border-gray-300">
-                          <input
-                            type="text"
-                            className="w-full p-1 border border-gray-300 rounded"
-                            value={opticalData.observaciones || ""}
-                            onChange={(e) =>
-                              handleOpticalDataChange(
-                                "observaciones",
-                                e.target.value
-                              )
-                            }
-                          />
-                        </td>
-                      </tr>
-                      <tr>
-                        <td className="p-2 border border-gray-300 font-medium">
-                          Armazón
-                        </td>
-                        <td colSpan={3} className="p-2 border border-gray-300">
-                          <input
-                            type="text"
-                            className="w-full p-1 border border-gray-300 rounded"
-                            value={opticalData.armazon || ""}
-                            onChange={(e) =>
-                              handleOpticalDataChange("armazon", e.target.value)
-                            }
-                          />
-                        </td>
-                      </tr>
+                      {/* LECTURA */}
+                      {["od", "oi"].map((ojo) => (
+                        <tr key={`lectura_${ojo}`}>
+                          {ojo === "od" && (
+                            <td
+                              rowSpan={2}
+                              className="p-2 border border-gray-300 bg-gray-100 font-medium"
+                            >
+                              Lectura
+                            </td>
+                          )}
+                          <td className="p-2 border border-gray-300 bg-gray-100 font-medium">
+                            {ojo.toUpperCase()}
+                          </td>
+                          <td className="p-2 border border-gray-300">
+                            <input
+                              className="w-full p-1 border border-gray-300 rounded"
+                              type="text"
+                              value={
+                                opticalData[`rx_lectura_${ojo}_esfera`] || ""
+                              }
+                              onChange={(e) =>
+                                handleOpticalDataChange(
+                                  `rx_lectura_${ojo}_esfera`,
+                                  e.target.value
+                                )
+                              }
+                            />
+                          </td>
+                          <td className="p-2 border border-gray-300">
+                            <input
+                              className="w-full p-1 border border-gray-300 rounded"
+                              type="text"
+                              value={
+                                opticalData[`rx_lectura_${ojo}_cilindro`] || ""
+                              }
+                              onChange={(e) =>
+                                handleOpticalDataChange(
+                                  `rx_lectura_${ojo}_cilindro`,
+                                  e.target.value
+                                )
+                              }
+                            />
+                          </td>
+                          <td className="p-2 border border-gray-300">
+                            <input
+                              className="w-full p-1 border border-gray-300 rounded"
+                              type="text"
+                              value={opticalData[`rx_lectura_${ojo}_eje`] || ""}
+                              onChange={(e) =>
+                                handleOpticalDataChange(
+                                  `rx_lectura_${ojo}_eje`,
+                                  e.target.value
+                                )
+                              }
+                            />
+                          </td>
+                          <td className="p-2 border border-gray-300 bg-gray-200"></td>
+                          <td className="p-2 border border-gray-300">
+                            <input
+                              className="w-full p-1 border border-gray-300 rounded"
+                              type="text"
+                              value={opticalData[`rx_lectura_${ojo}_av`] || ""}
+                              onChange={(e) =>
+                                handleOpticalDataChange(
+                                  `rx_lectura_${ojo}_av`,
+                                  e.target.value
+                                )
+                              }
+                            />
+                          </td>
+                        </tr>
+                      ))}
                     </tbody>
                   </table>
                 </div>
 
-                {/* ESQUIASCOPIA */}
+                {/* LENTES DE CONTACTO */}
                 <div className="overflow-x-auto">
                   <table className="w-full border-collapse">
                     <thead>
                       <tr>
                         <th
-                          colSpan={7}
+                          colSpan={6}
                           className="bg-[#7d2a3f] text-white text-left p-2 font-bold border border-gray-300"
                         >
-                          ESQUIASCOPIA
+                          LENTES DE CONTACTO
                         </th>
                       </tr>
                       <tr className="bg-gray-100">
                         <th className="p-2 border border-gray-300"></th>
                         <th className="p-2 border border-gray-300">Ojo</th>
-                        <th className="p-2 border border-gray-300">S.C</th>
-                        <th className="p-2 border border-gray-300">C.C</th>
+                        <th className="p-2 border border-gray-300">AV CC</th>
                         <th className="p-2 border border-gray-300">Esfera</th>
                         <th className="p-2 border border-gray-300">Cilindro</th>
                         <th className="p-2 border border-gray-300">
@@ -1490,19 +1661,6 @@ export default function FichaMedicaCompleta() {
                         </td>
                         <td className="p-2 border border-gray-300 bg-gray-100 font-medium">
                           OD
-                        </td>
-                        <td className="p-2 border border-gray-300">
-                          <input
-                            type="text"
-                            className="w-full p-1 border border-gray-300 rounded"
-                            value={opticalData.esq_od_sc || ""}
-                            onChange={(e) =>
-                              handleOpticalDataChange(
-                                "esq_od_sc",
-                                e.target.value
-                              )
-                            }
-                          />
                         </td>
                         <td className="p-2 border border-gray-300">
                           <input
@@ -1565,19 +1723,6 @@ export default function FichaMedicaCompleta() {
                           <input
                             type="text"
                             className="w-full p-1 border border-gray-300 rounded"
-                            value={opticalData.esq_oi_sc || ""}
-                            onChange={(e) =>
-                              handleOpticalDataChange(
-                                "esq_oi_sc",
-                                e.target.value
-                              )
-                            }
-                          />
-                        </td>
-                        <td className="p-2 border border-gray-300">
-                          <input
-                            type="text"
-                            className="w-full p-1 border border-gray-300 rounded"
                             value={opticalData.esq_oi_cc || ""}
                             onChange={(e) =>
                               handleOpticalDataChange(
@@ -1629,329 +1774,24 @@ export default function FichaMedicaCompleta() {
                       </tr>
                     </tbody>
                   </table>
-                  {/* ESQUIASCOPIA COMPUTARIZADA */}
-                  <div className="overflow-x-auto mt-4">
-                    <table className="w-full border-collapse">
-                      <thead>
-                        <tr>
-                          <th
-                            colSpan={4}
-                            className="bg-[#7d2a3f] text-white text-left p-2 font-bold border border-gray-300"
-                          >
-                            ESQUIASCOPIA COMPUTARIZADA
-                          </th>
-                        </tr>
-                        <tr className="bg-gray-100">
-                          <th className="p-2 border border-gray-300">Ojo</th>
-                          <th className="p-2 border border-gray-300">Esfera</th>
-                          <th className="p-2 border border-gray-300">
-                            Cilindro
-                          </th>
-                          <th className="p-2 border border-gray-300">
-                            Eje (grados)
-                          </th>
-                        </tr>
-                      </thead>
-                      <tbody>
-                        <tr>
-                          <td className="p-2 border border-gray-300 bg-gray-100 font-medium">
-                            OD
-                          </td>
-                          <td className="p-2 border border-gray-300">
-                            <input
-                              type="text"
-                              className="w-full p-1 border border-gray-300 rounded"
-                              value={opticalData.esq_od_esfera_comp || ""}
-                              onChange={(e) =>
-                                handleOpticalDataChange(
-                                  "esq_od_esfera_comp",
-                                  e.target.value
-                                )
-                              }
-                            />
-                          </td>
-                          <td className="p-2 border border-gray-300">
-                            <input
-                              type="text"
-                              className="w-full p-1 border border-gray-300 rounded"
-                              value={opticalData.esq_od_cilindro_comp || ""}
-                              onChange={(e) =>
-                                handleOpticalDataChange(
-                                  "esq_od_cilindro_comp",
-                                  e.target.value
-                                )
-                              }
-                            />
-                          </td>
-                          <td className="p-2 border border-gray-300">
-                            <input
-                              type="text"
-                              className="w-full p-1 border border-gray-300 rounded"
-                              value={opticalData.esq_od_eje_comp || ""}
-                              onChange={(e) =>
-                                handleOpticalDataChange(
-                                  "esq_od_eje_comp",
-                                  e.target.value
-                                )
-                              }
-                            />
-                          </td>
-                        </tr>
-                        <tr>
-                          <td className="p-2 border border-gray-300 bg-gray-100 font-medium">
-                            OI
-                          </td>
-                          <td className="p-2 border border-gray-300">
-                            <input
-                              type="text"
-                              className="w-full p-1 border border-gray-300 rounded"
-                              value={opticalData.esq_oi_esfera_comp || ""}
-                              onChange={(e) =>
-                                handleOpticalDataChange(
-                                  "esq_oi_esfera_comp",
-                                  e.target.value
-                                )
-                              }
-                            />
-                          </td>
-                          <td className="p-2 border border-gray-300">
-                            <input
-                              type="text"
-                              className="w-full p-1 border border-gray-300 rounded"
-                              value={opticalData.esq_oi_cilindro_comp || ""}
-                              onChange={(e) =>
-                                handleOpticalDataChange(
-                                  "esq_oi_cilindro_comp",
-                                  e.target.value
-                                )
-                              }
-                            />
-                          </td>
-                          <td className="p-2 border border-gray-300">
-                            <input
-                              type="text"
-                              className="w-full p-1 border border-gray-300 rounded"
-                              value={opticalData.esq_oi_eje_comp || ""}
-                              onChange={(e) =>
-                                handleOpticalDataChange(
-                                  "esq_oi_eje_comp",
-                                  e.target.value
-                                )
-                              }
-                            />
-                          </td>
-                        </tr>
-                      </tbody>
-                    </table>
-                  </div>
 
-                  {/* RX FINAL */}
-                  <table className="w-full border-collapse mt-4">
-                    <thead>
-                      <tr>
-                        <th
-                          colSpan={5}
-                          className="p-2 border border-gray-300 bg-[#7d2a3f] text-white text-left"
-                        >
-                          RX FINAL
-                        </th>
-                      </tr>
-                      <tr className="bg-gray-100">
-                        <th className="p-2 border border-gray-300">Ojo</th>
-                        <th className="p-2 border border-gray-300">Esfera</th>
-                        <th className="p-2 border border-gray-300">Cilindro</th>
-                        <th className="p-2 border border-gray-300">
-                          Eje(grados)
-                        </th>
-                        <th className="p-2 border border-gray-300">
-                          Corrección
-                        </th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {/* OD */}
-                      <tr>
-                        <td className="p-2 border border-gray-300 bg-gray-100 font-medium">
-                          O.D.
-                        </td>
-                        <td className="p-2 border border-gray-300">
-                          <input
-                            type="text"
-                            className="w-full p-1 border border-gray-300 rounded"
-                            value={opticalData.rs_od_esfera || ""}
-                            onChange={(e) =>
-                              handleOpticalDataChange(
-                                "rs_od_esfera",
-                                e.target.value
-                              )
-                            }
-                          />
-                        </td>
-                        <td className="p-2 border border-gray-300">
-                          <input
-                            type="text"
-                            className="w-full p-1 border border-gray-300 rounded"
-                            value={opticalData.rs_od_cilindro || ""}
-                            onChange={(e) =>
-                              handleOpticalDataChange(
-                                "rs_od_cilindro",
-                                e.target.value
-                              )
-                            }
-                          />
-                        </td>
-                        <td className="p-2 border border-gray-300">
-                          <input
-                            type="text"
-                            className="w-full p-1 border border-gray-300 rounded"
-                            value={opticalData.rs_od_eje || ""}
-                            onChange={(e) =>
-                              handleOpticalDataChange(
-                                "rs_od_eje",
-                                e.target.value
-                              )
-                            }
-                          />
-                        </td>
-                        <td className="p-2 border border-gray-300">
-                          <input
-                            type="text"
-                            className="w-full p-1 border border-gray-300 rounded"
-                            value={opticalData.rs_od_correccion || ""}
-                            onChange={(e) =>
-                              handleOpticalDataChange(
-                                "rs_od_correccion",
-                                e.target.value
-                              )
-                            }
-                          />
-                        </td>
-                      </tr>
-
-                      {/* OI */}
-                      <tr>
-                        <td className="p-2 border border-gray-300 bg-gray-100 font-medium">
-                          O.I.
-                        </td>
-                        <td className="p-2 border border-gray-300">
-                          <input
-                            type="text"
-                            className="w-full p-1 border border-gray-300 rounded"
-                            value={opticalData.rs_oi_esfera || ""}
-                            onChange={(e) =>
-                              handleOpticalDataChange(
-                                "rs_oi_esfera",
-                                e.target.value
-                              )
-                            }
-                          />
-                        </td>
-                        <td className="p-2 border border-gray-300">
-                          <input
-                            type="text"
-                            className="w-full p-1 border border-gray-300 rounded"
-                            value={opticalData.rs_oi_cilindro || ""}
-                            onChange={(e) =>
-                              handleOpticalDataChange(
-                                "rs_oi_cilindro",
-                                e.target.value
-                              )
-                            }
-                          />
-                        </td>
-                        <td className="p-2 border border-gray-300">
-                          <input
-                            type="text"
-                            className="w-full p-1 border border-gray-300 rounded"
-                            value={opticalData.rs_oi_eje || ""}
-                            onChange={(e) =>
-                              handleOpticalDataChange(
-                                "rs_oi_eje",
-                                e.target.value
-                              )
-                            }
-                          />
-                        </td>
-                        <td className="p-2 border border-gray-300">
-                          <input
-                            type="text"
-                            className="w-full p-1 border border-gray-300 rounded"
-                            value={opticalData.rs_oi_correccion || ""}
-                            onChange={(e) =>
-                              handleOpticalDataChange(
-                                "rs_oi_correccion",
-                                e.target.value
-                              )
-                            }
-                          />
-                        </td>
-                      </tr>
-
-                      {/* ADD */}
-                      <tr>
-                        <td className="p-2 border border-gray-300 bg-gray-100 font-medium">
-                          A.D.D
-                        </td>
-                        <td className="p-2 border border-gray-300">
-                          <input
-                            type="text"
-                            className="w-full p-1 border border-gray-300 rounded"
-                            value={opticalData.rs_add_esfera || ""}
-                            onChange={(e) =>
-                              handleOpticalDataChange(
-                                "rs_add_esfera",
-                                e.target.value
-                              )
-                            }
-                          />
-                        </td>
-                        <td className="p-2 border border-gray-300">
-                          <input
-                            type="text"
-                            className="w-full p-1 border border-gray-300 rounded"
-                            value={opticalData.rs_add_cilindro || ""}
-                            onChange={(e) =>
-                              handleOpticalDataChange(
-                                "rs_add_cilindro",
-                                e.target.value
-                              )
-                            }
-                          />
-                        </td>
-                        <td className="p-2 border border-gray-300">
-                          <input
-                            type="text"
-                            className="w-full p-1 border border-gray-300 rounded"
-                            value={opticalData.rs_add_eje || ""}
-                            onChange={(e) =>
-                              handleOpticalDataChange(
-                                "rs_add_eje",
-                                e.target.value
-                              )
-                            }
-                          />
-                        </td>
-                        <td className="p-2 border border-gray-300">
-                          <input
-                            type="text"
-                            className="w-full p-1 border border-gray-300 rounded"
-                            value={opticalData.rs_add_correccion || ""}
-                            onChange={(e) =>
-                              handleOpticalDataChange(
-                                "rs_add_correccion",
-                                e.target.value
-                              )
-                            }
-                          />
-                        </td>
-                      </tr>
-                    </tbody>
-                  </table>
-
-                  {/* Causa */}
-                  <table className="w-full border-collapse mt-4">
+                  {/* Altura, Material, Armazón, Causa, Observaciones */}
+                  <table className="w-full border-collapse border border-gray-300 mt-4 text-sm">
                     <tbody>
                       <tr>
+                        <td className="p-2 border border-gray-300 font-medium">
+                          Altura
+                        </td>
+                        <td className="p-2 border border-gray-300">
+                          <input
+                            type="text"
+                            className="w-full p-1 border border-gray-300 rounded"
+                            value={opticalData.altura || ""}
+                            onChange={(e) =>
+                              handleOpticalDataChange("altura", e.target.value)
+                            }
+                          />
+                        </td>
                         <td className="p-2 border border-gray-300 font-medium">
                           Causa
                         </td>
@@ -1966,10 +1806,58 @@ export default function FichaMedicaCompleta() {
                           />
                         </td>
                       </tr>
+                      <tr>
+                        <td className="p-2 border border-gray-300 font-medium">
+                          Material
+                        </td>
+                        <td className="p-2 border border-gray-300">
+                          <input
+                            type="text"
+                            className="w-full p-1 border border-gray-300 rounded"
+                            value={opticalData.material || ""}
+                            onChange={(e) =>
+                              handleOpticalDataChange(
+                                "material",
+                                e.target.value
+                              )
+                            }
+                          />
+                        </td>
+                        <td className="p-2 border border-gray-300 font-medium">
+                          Armazón
+                        </td>
+                        <td className="p-2 border border-gray-300">
+                          <input
+                            type="text"
+                            className="w-full p-1 border border-gray-300 rounded"
+                            value={opticalData.armazon || ""}
+                            onChange={(e) =>
+                              handleOpticalDataChange("armazon", e.target.value)
+                            }
+                          />
+                        </td>
+                      </tr>
+                      <tr>
+                        <td className="p-2 border border-gray-300 font-medium">
+                          Observaciones
+                        </td>
+                        <td colSpan={3} className="p-2 border border-gray-300">
+                          <input
+                            type="text"
+                            className="w-full p-1 border border-gray-300 rounded"
+                            value={opticalData.observaciones || ""}
+                            onChange={(e) =>
+                              handleOpticalDataChange(
+                                "observaciones",
+                                e.target.value
+                              )
+                            }
+                          />
+                        </td>
+                      </tr>
                     </tbody>
                   </table>
                 </div>
-
                 <div className="lg:col-span-2 flex justify-between mt-4">
                   <button
                     type="button"

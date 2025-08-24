@@ -26,8 +26,9 @@ export default function VentaPage() {
     metodoVenta,
     setMetodoVenta,
     progreso,
-    laboratorioVenta, // ✅ AGREGA ESTO
+    laboratorioVenta,
     setLaboratorioVenta,
+    buscarClienteManual, // Añadir esta línea
   } = useVenta();
 
   const [abonoInicial, setAbonoInicial] = useState(false);
@@ -93,6 +94,7 @@ export default function VentaPage() {
         laboratorioVenta={laboratorioVenta}
         setLaboratorioVenta={setLaboratorioVenta}
         progreso={progreso}
+        onBuscarCliente={buscarClienteManual}
       />
 
       <AbonoInicialForm

@@ -34,7 +34,7 @@ export async function updateProducto(id, productoActualizado) {
 }
 
 export async function registrarMovimiento(data) {
-  return await fetch(`${BASE_URL}/movimiento/`, {
+  return await fetch(`${BASE_URL}/movimientos-inventario/`, {
     method: "POST",
     headers: getAuthHeaders(),
     body: JSON.stringify(data),

@@ -57,7 +57,7 @@ export default function useCliente() {
     const nuevoData = { ...clienteData, [name]: value };
     setClienteData(nuevoData);
 
-    if (name === "ci_cliente" && value.length >= 10) {
+    if (name === "ci_cliente" && value.length >= 9) {
       try {
         const res = await fetch(`${BASE_URL}/clientes/ci/?ci=${value}`, {
           method: "GET",

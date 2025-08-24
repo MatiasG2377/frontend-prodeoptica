@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { Search } from "lucide-react";
 const BASE_URL = process.env.NEXT_PUBLIC_API_URL;
 
 export default function ClienteForm({
@@ -9,6 +10,7 @@ export default function ClienteForm({
   laboratorioVenta,
   setLaboratorioVenta,
   progreso,
+  onBuscarCliente, // Nueva prop
 }) {
   const [laboratorios, setLaboratorios] = useState([]);
   useEffect(() => {
@@ -41,14 +43,24 @@ export default function ClienteForm({
       <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-4">
         <div>
           <label className="block font-bold">Cédula/ID:</label>
-          <input
-            type="text"
-            name="ci_cliente"
-            value={clienteData.ci_cliente}
-            onChange={handleInputChange}
-            className="w-full border p-2 rounded"
-            placeholder="Ingrese la cédula o identificación"
-          />
+          <div className="flex">
+            <input
+              type="text"
+              name="ci_cliente"
+              value={clienteData.ci_cliente}
+              onChange={handleInputChange}
+              className="w-full border p-2 rounded-l"
+              placeholder="Ingrese la cédula o identificación"
+            />
+            <button
+              type="button"
+              onClick={() => onBuscarCliente(clienteData.ci_cliente)}
+              className="bg-[#712b39] text-white p-2 rounded-r hover:bg-[#5e242e]"
+              disabled={!clienteData.ci_cliente?.trim()}
+            >
+              <Search className="h-5 w-5" />
+            </button>
+          </div>
         </div>
         <div>
           <label className="block font-bold">Método de venta:</label>

@@ -6,6 +6,7 @@ export default function AbonoTabla({
   onAbonar,
   onEditar,
   onVerVenta,
+  onVerHistorialAbonos,
   loading,
 }) {
   if (abonos.length === 0) {
@@ -35,6 +36,7 @@ export default function AbonoTabla({
               onAbonar={onAbonar}
               onEditar={onEditar}
               onVerVenta={onVerVenta}
+              onVerHistorialAbonos={onVerHistorialAbonos}
               loading={loading}
             />
           ))}

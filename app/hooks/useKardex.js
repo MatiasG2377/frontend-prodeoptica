@@ -83,11 +83,12 @@ import {
       });
     } catch {
       setKardexMovimientos([]);
-      Swal.fire(
-        "Información",
-        "No hay movimientos registrados para este producto.",
-        "info"
-      );
+      Swal.fire({
+        icon: "info",
+        title: "Información",
+        text: "No hay movimientos registrados para este producto.",
+        confirmButtonColor: "#712b39",
+      });
     } finally {
       setIsLoading(false);
     }

@@ -46,7 +46,27 @@ export default function FormularioProducto({
       });
       return;
     }
-
+    
+    // Validación obligatoria para control de stock
+    if (formData.controla_stock) {
+      const faltanDatos = [];
+      
+      if (formData.cantidad_producto === undefined || formData.cantidad_producto === null || formData.cantidad_producto === "") 
+        faltanDatos.push("cantidad actual");
+      if (!formData.minimo_producto) faltanDatos.push("stock mínimo");
+      if (!formData.maximo_producto) faltanDatos.push("stock máximo");
+      
+      if (faltanDatos.length > 0) {
+        Swal.fire({
+          title: "Datos obligatorios para control de stock",
+          text: `Para activar el control de stock debe ingresar: ${faltanDatos.join(", ")}`,
+          icon: "warning",
+          confirmButtonColor: "#712b39",
+        });
+        return;
+      }
+    }
+    
     // ✅ Todo validado
     onSubmit();
   };

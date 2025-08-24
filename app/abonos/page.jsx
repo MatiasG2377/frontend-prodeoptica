@@ -9,6 +9,8 @@ import { useAuth } from "../hooks/useAuth";
 import { useState, useEffect } from "react";
 import ProtectedRoute from "../components/auth/ProtectedRoute";
 import Swal from "sweetalert2";
+import HistorialAbonosModal from "../components/abonos/HistorialAbonosModal";
+
 const BASE_URL = process.env.NEXT_PUBLIC_API_URL;
 
 export default function AbonosPage() {
@@ -19,7 +21,8 @@ export default function AbonosPage() {
   const [fechaInicio, setFechaInicio] = useState("");
   const [fechaFin, setFechaFin] = useState("");
   const [ventas, setVentas] = useState([]);
-
+  const [historialAbonos, setHistorialAbonos] = useState([]);
+  const [mostrarHistorialAbonos, setMostrarHistorialAbonos] = useState(false);
   const {
     abonos,
     setAbonos,
@@ -193,46 +196,30 @@ export default function AbonosPage() {
     try {
       setLoading(true);
 
-      // 🔍 Buscar el abono real asociado a esta venta
-      const buscarAbono = await fetch(
-        `${API_URL}/abonos/por-venta/${abono.venta?.id || abono.venta}/`,
-        {
-          headers: {
-            Authorization: `Bearer ${localStorage.getItem("access_token")}`,
-          },
-        }
-      );
-
-      if (!buscarAbono.ok) throw new Error("No se pudo obtener el abono");
-
-      const abonoData = await buscarAbono.json(); // contiene el abono con ID real
-
-      const nuevoMonto = parseFloat(abonoData.monto || 0) + montoNuevo;
-
-      // 🛠 Actualizar el abono real
-      const res = await fetch(`${API_URL}/abonos/${abonoData.id}/`, {
-        method: "PUT",
+      // 🆕 Registrar un nuevo abono (POST)
+      const res = await fetch(`${API_URL}/abonos/`, {
+        method: "POST",
         headers: {
           "Content-Type": "application/json",
           Authorization: `Bearer ${localStorage.getItem("access_token")}`,
         },
         body: JSON.stringify({
-          cliente: abonoData.cliente?.id || abonoData.cliente,
-          venta: abonoData.venta?.id || abonoData.venta,
-          monto: nuevoMonto,
+          cliente: abono.cliente?.id || abono.venta?.cliente?.id,
+          venta: abono.venta?.id || abono.venta,
+          monto: montoNuevo,
           fecha: new Date().toISOString(),
-          metodo_pago: abonoData.metodo_pago || "Efectivo",
+          metodo_pago: "Efectivo", // O personaliza según preferencia
         }),
       });
 
-      if (!res.ok) throw new Error("Error al actualizar el abono");
+      if (!res.ok) throw new Error("Error al registrar el abono");
 
       await cargarAbonos();
 
       await Swal.fire({
         icon: "success",
-        title: "Abono actualizado",
-        text: `Abono de $${montoNuevo.toFixed(2)} registrado correctamente.`,
+        title: "Abono registrado",
+        text: `Se registró un abono de $${montoNuevo.toFixed(2)}.`,
         confirmButtonColor: "#712b39",
       });
     } catch (error) {
@@ -362,6 +349,23 @@ export default function AbonosPage() {
 
     return resultado;
   };
+  const abrirHistorialAbonos = async (ventaId) => {
+    try {
+      const res = await fetch(`${BASE_URL}/abonos/venta/${ventaId}/`, {
+        headers: {
+          Authorization: `Bearer ${localStorage.getItem("access_token")}`,
+        },
+      });
+
+      if (!res.ok) throw new Error("Error al obtener historial de abonos");
+
+      const data = await res.json();
+      setHistorialAbonos(data);
+      setMostrarHistorialAbonos(true);
+    } catch (error) {
+      console.error("Error al abrir historial de abonos:", error);
+    }
+  };
 
   return (
     <ProtectedRoute>
@@ -381,7 +385,7 @@ export default function AbonosPage() {
 
             <input
               type="text"
-              placeholder="Buscar por nombre de usuario..."
+              placeholder="Buscar por nombre de cliente..."
               className="w-full mb-4 border rounded px-4 py-2"
               value={busqueda}
               onChange={(e) => setBusqueda(e.target.value)}
@@ -422,6 +426,7 @@ export default function AbonosPage() {
                 onAbonar={handleReducirPendiente}
                 onEditar={abrirModalEdicion}
                 onVerVenta={verDetalleVenta}
+                onVerHistorialAbonos={abrirHistorialAbonos}
                 loading={loading}
               />
             )}
@@ -441,6 +446,13 @@ export default function AbonosPage() {
                 onClose={() => setMostrarModalVenta(false)}
                 venta={ventaSeleccionada}
                 articulos={articulosVenta}
+              />
+            )}
+            {mostrarHistorialAbonos && (
+              <HistorialAbonosModal
+                visible={mostrarHistorialAbonos}
+                abonos={historialAbonos}
+                onClose={() => setMostrarHistorialAbonos(false)}
               />
             )}
           </div>

@@ -53,31 +53,41 @@ export function useCart() {
   const addToCart = (product) => {
     const existingIndex = cart.findIndex((item) => item.id === product.id);
 
-    // Cuántos ya hay en el carrito de este producto
     const cantidadEnCarrito =
       existingIndex >= 0 ? cart[existingIndex].cantidad : 0;
-    const nuevaCantidadTotal = cantidadEnCarrito + 1;
 
-    // Validar si controla stock y estamos alcanzando el stock mínimo
+    const nuevaCantidadTotal = cantidadEnCarrito + 1;
+    const disponiblesDespuesDeAgregar =
+      product.cantidad_producto - nuevaCantidadTotal;
+
+    // ❌ Bloquear si no hay suficiente stock
     if (
       product.controla_stock &&
-      product.cantidad_producto - nuevaCantidadTotal <= product.minimo_producto
+      nuevaCantidadTotal > product.cantidad_producto
+    ) {
+      Swal.fire({
+        title: "Stock insuficiente",
+        text: `No hay suficiente stock para agregar este producto. Solo hay ${product.cantidad_producto} unidades disponibles.`,
+        icon: "error",
+        confirmButtonColor: "#712b39",
+      });
+      return;
+    }
+
+    // ⚠️ Mostrar alerta si quedaría por debajo del stock mínimo, pero permitir agregar
+    if (
+      product.controla_stock &&
+      disponiblesDespuesDeAgregar < product.minimo_producto
     ) {
       Swal.fire({
         title: "Alerta de stock",
-        text: `El producto "${
-          product.nombre_producto
-        }" está por debajo del stock mínimo (${
-          product.minimo_producto
-        }). Solo quedan ${
-          product.cantidad_producto - cantidadEnCarrito
-        } unidades disponibles.`,
+        html: `El producto <strong>"${product.nombre_producto}"</strong> está por debajo del stock mínimo (<strong>${product.minimo_producto}</strong>).<br/>Solo quedarían <strong>${disponiblesDespuesDeAgregar}</strong> unidades disponibles si lo agregas.`,
         icon: "warning",
         confirmButtonColor: "#712b39",
       });
     }
 
-    // Agregar o actualizar en el carrito
+    // ✅ Agregar al carrito
     const newCart =
       existingIndex >= 0
         ? cart.map((item, i) =>

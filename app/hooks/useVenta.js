@@ -65,43 +65,7 @@ export default function useVenta() {
   const handleInputChange = async (e) => {
     const { name, value } = e.target;
     setClienteData((prev) => ({ ...prev, [name]: value }));
-
-    if (name === "ci_cliente") {
-      const trimmedValue = value.trim();
-
-      // ⚠️ Validación: evitar búsqueda si está vacío o menos de 10 caracteres
-      if (
-        !trimmedValue ||
-        trimmedValue.length < 10 ||
-        trimmedValue === ciCargado
-      ) {
-        return;
-      }
-
-      try {
-        const resultado = await buscarClienteYPaciente(trimmedValue);
-        const cliente = resultado.cliente;
-        const paciente = resultado.paciente;
-
-        if (cliente || paciente) {
-          setClienteData((prev) => ({
-            ...prev,
-            ...cliente,
-            ...paciente,
-          }));
-          setCiCargado(trimmedValue);
-          Swal.fire({
-            icon: "info",
-            title: "Datos encontrados",
-            text: "Se cargaron los datos del cliente y/o paciente.",
-            confirmButtonColor: "#712b39",
-          });
-        }
-      } catch (err) {
-        console.warn("Cliente no encontrado o error:", err?.detail || err);
-        // No es necesario mostrar error si solo no existe (silencioso)
-      }
-    }
+    // Eliminar la búsqueda automática por CI
   };
 
   /*******  546ba153-be84-4856-8bdb-1d4d2b1fe6bb  *******/ const registrarClienteYPaciente =
@@ -119,6 +83,7 @@ export default function useVenta() {
         ci_cliente: ci,
         nombre_cliente: data.nombre_cliente,
         correo_cliente: data.correo_cliente,
+        apellido_cliente: data.apellidos_paciente,
         telefono_cliente: data.telefono_cliente,
         direccion_cliente: data.direccion_cliente,
         informacion_cliente: data.informacion_cliente || "",
@@ -150,7 +115,53 @@ export default function useVenta() {
 
       await crearClientePaciente(payload);
     };
+  const buscarClienteManual = async (ci) => {
+    if (!ci || !ci.trim()) {
+      Swal.fire({
+        icon: "warning",
+        title: "Campo requerido",
+        text: "Debe ingresar una cédula o identificación para buscar.",
+        confirmButtonColor: "#712b39",
+      });
+      return;
+    }
 
+    try {
+      const resultado = await buscarClienteYPaciente(ci.trim());
+      const cliente = resultado.cliente;
+      const paciente = resultado.paciente;
+
+      if (cliente || paciente) {
+        setClienteData((prev) => ({
+          ...prev,
+          ...cliente,
+          ...paciente,
+        }));
+        setCiCargado(ci.trim());
+        Swal.fire({
+          icon: "success",
+          title: "Cliente encontrado",
+          text: "Se cargaron los datos del cliente y/o paciente.",
+          confirmButtonColor: "#712b39",
+        });
+      } else {
+        Swal.fire({
+          icon: "info",
+          title: "Cliente no encontrado",
+          text: "No se encontró ningún cliente con esa identificación.",
+          confirmButtonColor: "#712b39",
+        });
+      }
+    } catch (err) {
+      console.warn("Error en búsqueda:", err?.detail || err);
+      Swal.fire({
+        icon: "error",
+        title: "Error en la búsqueda",
+        text: "No se encontró ningún cliente con esa identificación.",
+        confirmButtonColor: "#712b39",
+      });
+    }
+  };
   const handleSubmit = async ({
     abonoInicial = false,
     montoAbono = "",
@@ -203,37 +214,51 @@ export default function useVenta() {
             producto.controla_stock === 1 ||
             producto.controla_stock === "true";
 
-          if (
-            controlaStock &&
-            producto.cantidad_producto !== undefined &&
-            producto.cantidad_producto !== null
-          ) {
+          // Se eliminó la validación de datos necesarios para controlar stock que ya no es necesaria
+          if (controlaStock) {
+            // Obtener la cantidad actual del producto, asegurando que sea un número válido
             const cantidadProducto = parseInt(producto.cantidad_producto);
-            const nuevoStock = isNaN(cantidadProducto)
+            const cantidadActual = isNaN(cantidadProducto)
               ? 0
-              : cantidadProducto - cantidad;
+              : cantidadProducto;
+
+            // Calcular el nuevo stock, pero nunca permitir que sea menor que 0
+            const nuevoStock = Math.max(0, cantidadActual - cantidad);
+
+            // Si la cantidad actual es 0 o no está definida, mostrar una advertencia
+            if (cantidadActual === 0 || isNaN(cantidadProducto)) {
+              console.warn(
+                `⚠️ Producto ${producto.nombre_producto} sin stock inicial definido. Se mantendrá en 0.`
+              );
+            }
 
             const costoUnitario = parseFloat(producto.costo_producto);
-            const costoValido = isNaN(costoUnitario) ? 0 : costoUnitario;
+            // Usar 0.01 como valor mínimo para el costo
+            const costoValido =
+              isNaN(costoUnitario) || costoUnitario <= 0 ? 0.01 : costoUnitario;
 
-            if (costoValido > 0 && nuevoStock >= 0) {
-              await actualizarStockProducto(producto.id, {
-                cantidad_producto: nuevoStock,
-              });
+            // Actualizar el stock siempre a 0 como mínimo
+            await actualizarStockProducto(producto.id, {
+              cantidad_producto: nuevoStock,
+            });
 
+            // Solo registrar movimiento Kardex si hay stock disponible para vender
+            if (cantidadActual > 0) {
               await registrarMovimientoKardex({
                 producto_kardex: producto.id,
                 tipo_kardex: "Salida",
-                cantidad_kardex: cantidad,
-                costo_unitario_kardex: costoValido,
-                costo_total_kardex: costoValido * cantidad,
+                cantidad_kardex: Math.min(cantidad, cantidadActual), // Solo registrar lo que realmente había
+                costo_unitario_kardex: costoValido.toFixed(2),
+                costo_total_kardex: (
+                  costoValido * Math.min(cantidad, cantidadActual)
+                ).toFixed(2),
                 saldo_cantidad_kardex: nuevoStock,
-                saldo_costo_kardex: costoValido * nuevoStock,
+                saldo_costo_kardex: (costoValido * nuevoStock).toFixed(2),
                 referencia_kardex: `Venta #${venta.id}`,
               });
             } else {
               console.warn(
-                `❌ Producto ${producto.nombre_producto} no válido para Kardex: costo=${costoValido}, stock=${nuevoStock}`
+                `❌ Producto ${producto.nombre_producto} sin stock disponible para Kardex`
               );
             }
           } else {
@@ -309,6 +334,7 @@ export default function useVenta() {
   };
 
   return {
+    buscarClienteManual,
     cart,
     clienteData,
     handleInputChange,
