@@ -46,21 +46,19 @@ export const fetchProveedores = async () => {
 export const crearProducto = async (payload) => {
   const res = await fetch(`${BASE_URL}/productos/`, {
     method: "POST",
-    headers: getAuthHeaders(),
-    body: JSON.stringify(payload),
+    body: payload, // FormData directamente
   });
   if (!res.ok) throw await res.json();
-  return await res.json();
+  return res.json();
 };
 
 export const actualizarProducto = async (id, payload) => {
-  const res = await fetch(`${BASE_URL}/productos/${id}/`, {
-    method: "PUT",
-    headers: getAuthHeaders(),
-    body: JSON.stringify(payload),
+  const res = await fetch(`/api/productos/${id}/`, {
+    method: "PATCH",
+    body: payload,
   });
   if (!res.ok) throw await res.json();
-  return await res.json();
+  return res.json();
 };
 
 export const eliminarProducto = async (id) => {

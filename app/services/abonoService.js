@@ -1,5 +1,5 @@
 const API_URL = process.env.NEXT_PUBLIC_API_URL;
-
+import Swal from "sweetalert2";
 export const fetchAbonos = async () => {
   const res = await fetch(`${API_URL}/abonos/`);
   if (!res.ok) throw new Error("Error al obtener los abonos");
@@ -30,13 +30,21 @@ export const buscarUsuariosPorNombre = async (nombre) => {
 
     if (!res.ok) {
       const errorData = await res.json();
-      console.error("Error en la búsqueda:", errorData);
+      Swal.fire({
+        icon: "error",
+        title: "Error",
+        text: "Error al buscar clientes por nombre",
+      });
       throw new Error("Error al buscar clientes por nombre");
     }
 
     return await res.json();
   } catch (error) {
-    console.error("Error al buscar clientes:", error);
+    Swal.fire({
+      icon: "error",
+      title: "Error",
+      text: "Error al buscar clientes por nombre",
+    });
     throw error;
   }
 };

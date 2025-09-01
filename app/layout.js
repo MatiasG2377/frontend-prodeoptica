@@ -18,6 +18,15 @@ const geistMono = localFont({
 export const metadata = {
   title: "Sistema Gestión ProdeOptica",
   description: "Sistema de gestión de óptica privado",
+  icons: {
+    icon: "/img/logo.webp",
+    shortcut: "/img/logo.webp",
+    apple: "/img/logo.webp",
+    other: {
+      rel: "apple-touch-icon",
+      url: "/img/logo.webp",
+    },
+  },
 };
 
 export default function RootLayout({ children }) {

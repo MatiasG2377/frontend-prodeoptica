@@ -92,7 +92,12 @@ export default function useCliente() {
         }
         setClienteExistente(false);
       } catch (error) {
-        console.error("Error al buscar cliente:", error);
+        Swal.fire({
+          icon: "error",
+          title: "Error",
+          text: "Hubo un problema al buscar el cliente.",
+          confirmButtonColor: "#7d2a3f",
+        });
       }
     }
   };
@@ -174,7 +179,6 @@ export default function useCliente() {
       });
       setClienteExistente(false);
     } catch (error) {
-      console.error(error);
       Swal.fire({
         icon: "error",
         title: "Error",

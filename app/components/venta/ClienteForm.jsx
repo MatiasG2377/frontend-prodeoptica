@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { Search } from "lucide-react";
 const BASE_URL = process.env.NEXT_PUBLIC_API_URL;
-
+import Swal from "sweetalert2";
 export default function ClienteForm({
   clienteData,
   handleInputChange,
@@ -17,10 +17,16 @@ export default function ClienteForm({
     fetch(`${BASE_URL}/laboratorios/`)
       .then((res) => res.json())
       .then((data) => {
-        console.log("Laboratorios cargados:", data); // para verificar en consola
         setLaboratorios(data);
       })
-      .catch((err) => console.error("Error al cargar laboratorios:", err));
+      .catch((err) => {
+        Swal.fire({
+          icon: "error",
+          title: "Error",
+          text: "Hubo un problema al cargar los laboratorios.",
+          confirmButtonColor: "#7d2a3f",
+        });
+      });
   }, []);
 
   return (
@@ -75,6 +81,18 @@ export default function ClienteForm({
             <option value="Crédito-empresarial">Crédito empresarial</option>
           </select>
         </div>
+
+        <div>
+          <label className="block font-bold">Nombre:</label>
+          <input
+            type="text"
+            name="nombre_cliente"
+            value={clienteData.nombre_cliente}
+            onChange={handleInputChange}
+            className="w-full border p-2 rounded"
+            placeholder="Ingrese el nombre del cliente"
+          />
+        </div>
         <div>
           <label className="block font-bold">Laboratorio:</label>
           <select
@@ -89,18 +107,6 @@ export default function ClienteForm({
               </option>
             ))}
           </select>
-        </div>
-
-        <div>
-          <label className="block font-bold">Nombre:</label>
-          <input
-            type="text"
-            name="nombre_cliente"
-            value={clienteData.nombre_cliente}
-            onChange={handleInputChange}
-            className="w-full border p-2 rounded"
-            placeholder="Ingrese el nombre del cliente"
-          />
         </div>
         <div>
           <label className="block font-bold">Apellidos:</label>

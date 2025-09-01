@@ -36,7 +36,6 @@ export default function FichaVisual({ data }) {
         confirmButtonColor: "#7d2a3f",
       });
     } catch (error) {
-      console.error(error);
       Swal.fire({
         icon: "error",
         title: "Error",

@@ -1,3 +1,19 @@
+/**
+ * Página de abonos.
+ *
+ * Esta página muestra la tabla de abonos y permite buscar y filtrar
+ * los abonos, mostrar detalles de un abono, registrar un nuevo abono,
+ * y mostrar un historial de abonos realizados.
+ *
+ * - `AbonoTabla`: Componente que muestra la tabla de abonos.
+ * - `AbonoModal`: Componente que muestra un formulario para registrar un nuevo abono.
+ * - `useAbonos`: Hook que maneja el estado y la lógica para buscar y filtrar abonos.
+ * - `ModalDetalleVenta`: Componente que muestra detalles de un abono.
+ * - `HistorialAbonosModal`: Componente que muestra un historial de abonos realizados.
+ *
+ *? @return {JSX.Element} La página de abonos.
+ */
+
 "use client";
 
 import Header from "../components/common/Header2";
@@ -45,7 +61,6 @@ export default function AbonosPage() {
     });
   };
 
-  // Debounce para búsqueda por nombre
   useEffect(() => {
     const timer = setTimeout(() => {
       setDebouncedBusqueda(busqueda);
@@ -54,7 +69,6 @@ export default function AbonosPage() {
     return () => clearTimeout(timer);
   }, [busqueda]);
 
-  // Buscar abonos por usuario (nombre) cuando cambia debouncedBusqueda
   useEffect(() => {
     if (!debouncedBusqueda.trim()) {
       cargarAbonos();
@@ -62,7 +76,7 @@ export default function AbonosPage() {
       return;
     }
 
-    buscarPorNombre(debouncedBusqueda, setVentas); // <-- aquí lo pasas
+    buscarPorNombre(debouncedBusqueda, setVentas);
   }, [debouncedBusqueda]);
 
   const fetchVentas = async () => {
@@ -76,19 +90,15 @@ export default function AbonosPage() {
       if (!res.ok) throw new Error("Error al cargar ventas");
 
       const data = await res.json();
-      setVentas(data.results || data); // si usas paginación
-    } catch (error) {
-      console.error("Error cargando ventas:", error);
-    }
+      setVentas(data.results || data);
+    } catch (error) {}
   };
 
-  // Carga inicial de abonos
   useEffect(() => {
     cargarAbonos();
-    fetchVentas(); // esto debe estar aquí
+    fetchVentas();
   }, []);
 
-  // Función para filtrar abonos por fechas cuando se presiona el botón
   const filtrarPorFechas = async () => {
     if (!fechaInicio && !fechaFin) {
       cargarAbonos();
@@ -129,21 +139,17 @@ export default function AbonosPage() {
       setAbonos(abonosData.results || abonosData);
       setVentas(ventasData.results || ventasData);
     } catch (error) {
-      console.error("Error filtrando abonos y ventas:", error);
     } finally {
       setLoading(false);
     }
   };
 
-  // Función para limpiar filtros de fecha y recargar abonos
   const limpiarFiltrosFecha = () => {
     setFechaInicio("");
     setFechaFin("");
     cargarAbonos();
     fetchVentas();
   };
-
-  // El resto de funciones para editar y abonar
 
   const handleReducirPendiente = async (abono) => {
     const total = parseFloat(abono.venta?.total_venta || 0);
@@ -196,7 +202,6 @@ export default function AbonosPage() {
     try {
       setLoading(true);
 
-      // 🆕 Registrar un nuevo abono (POST)
       const res = await fetch(`${API_URL}/abonos/`, {
         method: "POST",
         headers: {
@@ -208,7 +213,7 @@ export default function AbonosPage() {
           venta: abono.venta?.id || abono.venta,
           monto: montoNuevo,
           fecha: new Date().toISOString(),
-          metodo_pago: "Efectivo", // O personaliza según preferencia
+          metodo_pago: "Efectivo",
         }),
       });
 
@@ -223,7 +228,6 @@ export default function AbonosPage() {
         confirmButtonColor: "#712b39",
       });
     } catch (error) {
-      console.error("Error al registrar el abono:", error);
       await Swal.fire({
         icon: "error",
         title: "Error",
@@ -282,7 +286,6 @@ export default function AbonosPage() {
         confirmButtonColor: "#712b39",
       });
     } catch (error) {
-      console.error("Error al actualizar el abono:", error);
       await Swal.fire({
         icon: "error",
         title: "Error",
@@ -305,19 +308,22 @@ export default function AbonosPage() {
 
       const data = await res.json();
 
-      // Asegúrate de tener cliente_venta también:
-      setVentaSeleccionada(venta); // <--- debe venir completo desde el principio
+      setVentaSeleccionada(venta);
       setArticulosVenta(data);
       setMostrarModalVenta(true);
     } catch (error) {
-      console.error("Error al obtener detalle de venta:", error);
+      Swal.fire({
+        icon: "error",
+        title: "Error",
+        text: "Hubo un problema al obtener el detalle de la venta.",
+        confirmButtonColor: "#7d2a3f",
+      });
     }
   };
 
   const combinarVentasYAbonos = () => {
     const abonosPorVenta = {};
 
-    // Sumar los montos abonados por cada venta
     abonos.forEach((abono) => {
       const ventaId = abono.venta?.id;
       if (!ventaId) return;
@@ -329,16 +335,15 @@ export default function AbonosPage() {
       abonosPorVenta[ventaId] += parseFloat(abono.monto || 0);
     });
 
-    // Recorremos todas las ventas y armamos el objeto final
     const resultado = ventas.map((venta) => {
       const abonado = abonosPorVenta[venta.id] || 0;
       const total = parseFloat(venta.total_venta || 0);
       const completado = abonado >= total - 0.0001;
 
       return {
-        id: venta.id, // <-- este sí es un ID numérico válido para tu API
-        venta, // Aquí estás pasando la venta completa ✅
-        cliente: venta.cliente_venta, // <-- asegúrate que `cliente_venta` sea un objeto con `nombre_cliente`
+        id: venta.id,
+        venta,
+        cliente: venta.cliente_venta,
         monto: abonado,
         fecha: venta.fecha_venta,
         metodo_pago: venta.metodo_venta,
@@ -363,7 +368,12 @@ export default function AbonosPage() {
       setHistorialAbonos(data);
       setMostrarHistorialAbonos(true);
     } catch (error) {
-      console.error("Error al abrir historial de abonos:", error);
+      Swal.fire({
+        icon: "error",
+        title: "Error",
+        text: "Hubo un problema al abrir el historial de abonos.",
+        confirmButtonColor: "#7d2a3f",
+      });
     }
   };
 

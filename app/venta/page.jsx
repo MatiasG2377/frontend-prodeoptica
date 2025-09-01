@@ -15,7 +15,7 @@ export default function VentaPage() {
   const router = useRouter();
   const { logout } = useAuth();
   const [menuOpen, setMenuOpen] = useState(false);
-
+  const [discount, setDiscount] = useState(0);
   const {
     cart,
     clienteData,
@@ -53,6 +53,10 @@ export default function VentaPage() {
     return () => window.removeEventListener("keydown", handleKeyDown);
   }, [handleCancel]);
 
+  useEffect(() => {
+    const storedDiscount = localStorage.getItem("discount");
+    setDiscount(Number(storedDiscount) || 0);
+  }, []);
   const enhancedHandleSubmit = async () => {
     if (cart.length === 0) {
       await Swal.fire({
@@ -74,7 +78,32 @@ export default function VentaPage() {
       return;
     }
 
-    await handleSubmit({ abonoInicial, montoAbono, metodoAbono });
+    const total = cart.reduce(
+      (acc, item) => acc + parseFloat(item.pvp_producto) * (item.cantidad || 1),
+      0
+    );
+    const totalConDescuento = total - (Number(discount) || 0);
+
+    // 🚨 VALIDACIÓN DE ABONO INICIAL
+    if (abonoInicial && parseFloat(montoAbono || 0) > totalConDescuento) {
+      await Swal.fire({
+        icon: "error",
+        title: "Abono inválido",
+        text: `El abono inicial no puede ser mayor al total de la venta (${totalConDescuento.toFixed(
+          2
+        )}).`,
+        confirmButtonColor: "#712b39",
+      });
+      return; // Detener la ejecución si el abono es mayor
+    }
+
+    await handleSubmit({
+      abonoInicial,
+      montoAbono,
+      metodoAbono,
+      discount: Number(discount) || 0,
+      total: totalConDescuento,
+    });
   };
 
   return (
@@ -110,6 +139,7 @@ export default function VentaPage() {
       <CartResumenVenta
         cart={cart}
         isSubmitting={isSubmitting}
+        discount={discount}
         handleSubmit={() =>
           enhancedHandleSubmit({
             abonoInicial,

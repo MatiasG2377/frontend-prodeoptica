@@ -1,4 +1,5 @@
 import { useState } from "react";
+import Swal from "sweetalert2";
 import {
   fetchAbonos,
   buscarUsuariosPorNombre,
@@ -19,7 +20,12 @@ export function useAbonos() {
       const data = await fetchAbonos();
       setAbonos(data);
     } catch (error) {
-      console.error("Error al cargar abonos:", error);
+      Swal.fire({
+        icon: "error",
+        title: "Error",
+        text: "Hubo un problema al cargar los abonos.",
+        confirmButtonColor: "#7d2a3f",
+      });
     } finally {
       setLoading(false);
     }
@@ -57,7 +63,12 @@ export function useAbonos() {
 
       setVentas(ventasFiltradas);
     } catch (error) {
-      console.error("Error buscando por nombre:", error);
+      Swal.fire({
+        icon: "error",
+        title: "Error",
+        text: "Hubo un problema al buscar por nombre.",
+        confirmButtonColor: "#7d2a3f",
+      });
     } finally {
       setLoading(false);
     }
@@ -102,7 +113,12 @@ export function useAbonos() {
       setAbonos(abonosData.results || abonosData);
       setVentas(ventasData.results || ventasData);
     } catch (error) {
-      console.error("Error filtrando abonos y ventas:", error);
+      Swal.fire({
+        icon: "error",
+        title: "Error",
+        text: "Hubo un problema al filtrar los abonos y ventas.",
+        confirmButtonColor: "#7d2a3f",
+      });
     } finally {
       setLoading(false);
     }

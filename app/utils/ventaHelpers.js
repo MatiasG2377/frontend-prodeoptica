@@ -9,7 +9,6 @@ export function isValidEmail(email) {
   return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
 }
 export function calculateCartTotal(cart) {
-  console.log("🧮 Calculando total con carrito:", cart);
   return cart.reduce(
     (acc, item) => acc + item.pvp_producto * (item.cantidad || 1),
     0

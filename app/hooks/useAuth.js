@@ -33,7 +33,12 @@ export function useAuth({ redirectToLogin = true } = {}) {
         throw new Error("Datos incompletos");
       }
     } catch (error) {
-      console.error("Error cargando usuario desde localStorage:", error);
+      Swal.fire({
+        icon: "error",
+        title: "Error",
+        text: "Hubo un problema al cargar el usuario desde localStorage.",
+        confirmButtonColor: "#7d2a3f",
+      });
       if (redirectToLogin) router.push("/login");
     }
   }, [accessToken]);
@@ -71,7 +76,6 @@ export function useAuth({ redirectToLogin = true } = {}) {
         Swal.fire("Error", data.detail || "Error al cerrar sesión.", "error");
       }
     } catch (error) {
-      console.error("Error en logout:", error);
       Swal.fire("Error", "No se pudo cerrar sesión.", "error");
     }
   };

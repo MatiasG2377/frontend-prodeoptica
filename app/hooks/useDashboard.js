@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 const BASE_URL = process.env.NEXT_PUBLIC_API_URL;
-
+import Swal from "sweetalert2";
 export default function useDashboard() {
   const [productos, setProductos] = useState([]);
   const [categorias, setCategorias] = useState([]);
@@ -14,7 +14,14 @@ export default function useDashboard() {
     fetch(`${BASE_URL}/categorias/`)
       .then((res) => res.json())
       .then(setCategorias)
-      .catch((err) => console.error("Error al cargar categorías:", err));
+      .catch((err) => {
+        Swal.fire({
+          icon: "error",
+          title: "Error",
+          text: "Hubo un problema al cargar las categorías.",
+          confirmButtonColor: "#7d2a3f",
+        });
+      });
   }, []);
 
   // Cargar productos
@@ -40,7 +47,12 @@ export default function useDashboard() {
         setProductos(Array.isArray(data) ? data : data.results);
       } catch (error) {
         if (error.name !== "AbortError") {
-          console.error("Error al obtener productos:", error);
+          Swal.fire({
+            icon: "error",
+            title: "Error",
+            text: "Hubo un problema al obtener los productos.",
+            confirmButtonColor: "#7d2a3f",
+          });
         }
       } finally {
         setLoading(false);

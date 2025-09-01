@@ -106,12 +106,9 @@ export default function useVenta() {
           await actualizarPaciente(paciente.id, payload);
           return;
         }
-      } catch (err) {
-        console.log("Cliente no encontrado, se creará nuevo.");
-      }
+      } catch (err) {}
 
       // 🧪 Verifica que sí llega el campo
-      console.log("🧪 Enviando payload final:", payload);
 
       await crearClientePaciente(payload);
     };
@@ -164,8 +161,10 @@ export default function useVenta() {
   };
   const handleSubmit = async ({
     abonoInicial = false,
-    montoAbono = "",
+    montoAbono = 0,
     metodoAbono = "Efectivo",
+    discount = 0,
+    total,
   } = {}) => {
     if (!clienteData.nombre_cliente) {
       Swal.fire({
@@ -186,7 +185,6 @@ export default function useVenta() {
       const cliente = resultado.cliente;
       if (!cliente || !cliente.id) throw new Error("Cliente inválido o sin ID");
 
-      const total = calculateCartTotal(cart);
       const venta = await crearVenta({
         cliente_venta: cliente.id,
         usuario_venta: usuarioVenta,
@@ -262,9 +260,6 @@ export default function useVenta() {
               );
             }
           } else {
-            console.log(
-              `🔁 Producto ${producto.nombre_producto} no registra Kardex (controla_stock = ${producto.controla_stock})`
-            );
           }
         })
       );
@@ -303,7 +298,6 @@ export default function useVenta() {
       });
       setProgreso(3);
     } catch (error) {
-      console.error(error);
       Swal.fire({
         icon: "error",
         title: "Error",

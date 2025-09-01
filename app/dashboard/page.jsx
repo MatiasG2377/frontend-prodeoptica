@@ -20,7 +20,8 @@ export default function DashboardPage() {
   const router = useRouter();
   const { cart, addToCart, removeFromCart } = useCart();
   const { logout } = useAuth();
-  const [menuOpen, setMenuOpen] = useState(false); // ✅ Restauramos el estado del menú
+  const [menuOpen, setMenuOpen] = useState(false);
+  const [discount, setDiscount] = useState(0); // ✅ Nuevo estado
 
   const {
     categorias,
@@ -46,8 +47,11 @@ export default function DashboardPage() {
     }
 
     localStorage.setItem("cart", JSON.stringify(cart));
+    localStorage.setItem("discount", discount); // ✅ guardamos el descuento
     router.push("/venta");
   };
+
+  const total = calculateTotal(cart) - (Number(discount) || 0); // ✅ Aplicar descuento
 
   return (
     <ProtectedRoute>
@@ -56,8 +60,8 @@ export default function DashboardPage() {
           title="Ventas"
           search={search}
           setSearch={setSearch}
-          menuOpen={menuOpen} // ✅ funcional
-          setMenuOpen={setMenuOpen} // ✅ funcional
+          menuOpen={menuOpen}
+          setMenuOpen={setMenuOpen}
           handleLogout={logout}
         />
 
@@ -90,7 +94,10 @@ export default function DashboardPage() {
             cart={cart}
             onRemove={removeFromCart}
             onFinalize={handleFinalizeSale}
-            total={calculateTotal(cart)}
+            total={total}
+            // ✅ Pasamos el descuento y su setter al componente
+            discount={discount}
+            setDiscount={setDiscount}
           />
         </div>
 

@@ -177,7 +177,6 @@ export default function FichaMedicaCompleta() {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    console.log("Usuario logueado:", user);
 
     const token = localStorage.getItem("access_token");
 
@@ -235,7 +234,6 @@ export default function FichaMedicaCompleta() {
         informacion_cliente: "",
       });
     } catch (error) {
-      console.error("Error al guardar paciente:", error);
       Swal.fire({
         icon: "error",
         title: "Error",
@@ -309,7 +307,6 @@ export default function FichaMedicaCompleta() {
         confirmButtonColor: "#7d2a3f",
       });
     } catch (error) {
-      console.error("Error inesperado al buscar paciente:", error);
       Swal.fire({
         icon: "error",
         title: "Error inesperado",
@@ -434,11 +431,15 @@ export default function FichaMedicaCompleta() {
           const data = await buscarRes.json();
           if (data.paciente && data.paciente.id) {
             pacienteId = data.paciente.id;
-            console.log("Paciente encontrado:", data.paciente);
           }
         }
       } catch (error) {
-        console.error("Error al buscar paciente:", error);
+        Swal.fire({
+          icon: "error",
+          title: "Error",
+          text: "Hubo un problema al buscar el paciente.",
+          confirmButtonColor: "#7d2a3f",
+        });
       }
 
       // 2. Si no existe, crear nuevo paciente/cliente
@@ -471,13 +472,17 @@ export default function FichaMedicaCompleta() {
 
         if (!res.ok) {
           const errorData = await res.json();
-          console.error("Error al crear paciente:", errorData);
+          Swal.fire({
+            icon: "error",
+            title: "Error",
+            text: "Hubo un problema al crear el paciente.",
+            confirmButtonColor: "#7d2a3f",
+          });
           throw new Error("Error al crear paciente");
         }
 
         const data = await res.json();
         pacienteId = data.paciente.id;
-        console.log("Nuevo paciente creado:", data);
       }
 
       // 3. Preparar y enviar ficha médica
@@ -505,7 +510,12 @@ export default function FichaMedicaCompleta() {
 
       if (!fichaRes.ok) {
         const errorData = await fichaRes.json();
-        console.error("Error al guardar ficha:", errorData);
+        Swal.fire({
+          icon: "error",
+          title: "Error",
+          text: "Hubo un problema al guardar la ficha médica.",
+          confirmButtonColor: "#7d2a3f",
+        });
         throw new Error("Error al guardar ficha médica");
       }
 
@@ -629,7 +639,6 @@ export default function FichaMedicaCompleta() {
         confirmButtonColor: "#7d2a3f",
       });
     } catch (error) {
-      console.error("Error en guardarFichaCompleta:", error);
       Swal.fire({
         icon: "error",
         title: "Error",
@@ -692,7 +701,6 @@ export default function FichaMedicaCompleta() {
         setMostrarModal(true);
       }
     } catch (err) {
-      console.error("Error al buscar por apellido:", err);
       Swal.fire({
         icon: "error",
         title: "Error",

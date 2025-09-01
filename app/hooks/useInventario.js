@@ -37,7 +37,7 @@ export default function useInventario() {
   const [modalVisible, setModalVisible] = useState(false);
   const [loading, setLoading] = useState(false);
 
-  // Debounce
+  // Debounce de búsqueda
   useEffect(() => {
     const timeout = setTimeout(() => {
       setDebouncedSearch(searchTerm.trim());
@@ -64,7 +64,12 @@ export default function useInventario() {
       const data = await fetchProductos();
       setProductos(data);
     } catch (error) {
-      console.error("Error cargando productos:", error);
+      Swal.fire({
+        icon: "error",
+        title: "Error",
+        text: "Hubo un problema al cargar los productos.",
+        confirmButtonColor: "#7d2a3f",
+      });
     } finally {
       setLoading(false);
     }
@@ -76,7 +81,12 @@ export default function useInventario() {
       const data = await fetchProductosBuscados(search);
       setProductos(data);
     } catch (error) {
-      console.error("Error buscando productos:", error);
+      Swal.fire({
+        icon: "error",
+        title: "Error",
+        text: "Hubo un problema al buscar los productos.",
+        confirmButtonColor: "#7d2a3f",
+      });
       setProductos([]);
     } finally {
       setLoading(false);
@@ -88,7 +98,12 @@ export default function useInventario() {
       const data = await fetchCategorias();
       setCategorias(data);
     } catch (error) {
-      console.error("Error cargando categorías:", error);
+      Swal.fire({
+        icon: "error",
+        title: "Error",
+        text: "Hubo un problema al cargar las categorías.",
+        confirmButtonColor: "#7d2a3f",
+      });
     }
   };
 
@@ -97,7 +112,12 @@ export default function useInventario() {
       const data = await fetchProveedores();
       setProveedores(data);
     } catch (error) {
-      console.error("Error cargando proveedores:", error);
+      Swal.fire({
+        icon: "error",
+        title: "Error",
+        text: "Hubo un problema al cargar los proveedores.",
+        confirmButtonColor: "#7d2a3f",
+      });
     }
   };
 
@@ -120,23 +140,6 @@ export default function useInventario() {
     setFile(null);
   };
 
-  const uploadImageToCloudinary = async () => {
-    if (!file) return formData.imagen_producto;
-    const cloudName = process.env.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME;
-    const uploadPreset = process.env.NEXT_PUBLIC_CLOUDINARY_UPLOAD_PRESET;
-
-    const cloudData = new FormData();
-    cloudData.append("file", file);
-    cloudData.append("upload_preset", uploadPreset);
-
-    const res = await fetch(
-      `https://api.cloudinary.com/v1_1/${cloudName}/image/upload`,
-      { method: "POST", body: cloudData }
-    );
-    const data = await res.json();
-    return data.secure_url;
-  };
-
   const handleAddOrUpdateProducto = async () => {
     const nombreValido =
       formData.nombre_producto && formData.nombre_producto.trim() !== "";
@@ -156,7 +159,7 @@ export default function useInventario() {
     }
 
     try {
-      const imageUrl = await uploadImageToCloudinary();
+      // Payload original
       const payload = {
         nombre_producto: formData.nombre_producto,
         codigo_producto: formData.codigo_producto,
@@ -170,11 +173,24 @@ export default function useInventario() {
         maximo_producto: parseInt(formData.maximo_producto),
         controla_stock: !!formData.controla_stock,
         proveedor_producto: parseInt(formData.proveedor_producto) || null,
-        imagen_producto: imageUrl,
+        imagen_producto: formData.imagen_producto, // inicializamos con valor existente
       };
 
+      // Si hay archivo, usamos FormData para enviar imagen
+      let bodyToSend;
+      if (file) {
+        const form = new FormData();
+        Object.entries(payload).forEach(([key, value]) => {
+          if (value !== null && value !== undefined) form.append(key, value);
+        });
+        form.append("imagen", file);
+        bodyToSend = form;
+      } else {
+        bodyToSend = payload;
+      }
+
       if (selectedProducto) {
-        await actualizarProducto(selectedProducto.id, payload);
+        await actualizarProducto(selectedProducto.id, bodyToSend);
         Swal.fire({
           icon: "success",
           title: "Producto actualizado",
@@ -182,7 +198,7 @@ export default function useInventario() {
           timer: 1500,
         });
       } else {
-        await crearProducto(payload);
+        await crearProducto(bodyToSend);
         Swal.fire({
           icon: "success",
           title: "Producto creado",
@@ -196,7 +212,6 @@ export default function useInventario() {
       setSelectedProducto(null);
       resetForm();
     } catch (error) {
-      console.error(error);
       Swal.fire({
         icon: "error",
         title: "Error al guardar",

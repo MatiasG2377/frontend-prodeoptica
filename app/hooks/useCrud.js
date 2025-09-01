@@ -19,7 +19,12 @@ export function useCrud(apiUrl) {
       const json = await getAllItems(apiUrl);
       setData(json);
     } catch (err) {
-      console.error("Error al cargar datos", err);
+      Swal.fire({
+        icon: "error",
+        title: "Error",
+        text: "Hubo un problema al cargar los datos.",
+        confirmButtonColor: "#7d2a3f",
+      });
     } finally {
       setLoading(false);
     }

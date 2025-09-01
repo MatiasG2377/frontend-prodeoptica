@@ -32,7 +32,6 @@ export function useApiFetch() {
 
       return res;
     } catch (error) {
-      console.error("Error en apiFetch:", error);
       Swal.fire("Error", "No se pudo conectar con el servidor.", "error");
       return null;
     }

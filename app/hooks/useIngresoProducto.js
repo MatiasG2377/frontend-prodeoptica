@@ -38,7 +38,12 @@ export default function useIngresoProducto(router) {
       const data = await fetchProveedores();
       setProveedores(data);
     } catch (error) {
-      console.error("Error al cargar proveedores:", error);
+      Swal.fire({
+        icon: "error",
+        title: "Error",
+        text: "Hubo un problema al cargar los proveedores.",
+        confirmButtonColor: "#7d2a3f",
+      });
     }
   };
 
@@ -48,7 +53,12 @@ export default function useIngresoProducto(router) {
       setProductos(data);
       setFilteredProductos(data);
     } catch (error) {
-      console.error("Error al cargar productos:", error);
+      Swal.fire({
+        icon: "error",
+        title: "Error",
+        text: "Hubo un problema al cargar los productos.",
+        confirmButtonColor: "#7d2a3f",
+      });
     }
   };
 
@@ -63,7 +73,12 @@ export default function useIngresoProducto(router) {
       const data = await buscarProductos(term);
       setFilteredProductos(Array.isArray(data) ? data : []);
     } catch (error) {
-      console.error("Error al buscar productos:", error);
+      Swal.fire({
+        icon: "error",
+        title: "Error",
+        text: "Hubo un problema al buscar los productos.",
+        confirmButtonColor: "#7d2a3f",
+      });
       setFilteredProductos([]);
     }
   };
@@ -167,7 +182,6 @@ export default function useIngresoProducto(router) {
       resetFormulario();
       cargarProductos();
     } catch (error) {
-      console.error(error);
       Swal.fire({
         icon: "error",
         title: "Error",

@@ -37,36 +37,32 @@ export default function FormularioProducto({
       return;
     }
 
-    if (!formData.codigo_producto || formData.codigo_producto.trim() === "") {
-      Swal.fire({
-        icon: "warning",
-        title: "Campo requerido",
-        text: "El código del producto es obligatorio.",
-        confirmButtonColor: "#712b39",
-      });
-      return;
-    }
-    
     // Validación obligatoria para control de stock
     if (formData.controla_stock) {
       const faltanDatos = [];
-      
-      if (formData.cantidad_producto === undefined || formData.cantidad_producto === null || formData.cantidad_producto === "") 
+
+      if (
+        formData.cantidad_producto === undefined ||
+        formData.cantidad_producto === null ||
+        formData.cantidad_producto === ""
+      )
         faltanDatos.push("cantidad actual");
       if (!formData.minimo_producto) faltanDatos.push("stock mínimo");
       if (!formData.maximo_producto) faltanDatos.push("stock máximo");
-      
+
       if (faltanDatos.length > 0) {
         Swal.fire({
           title: "Datos obligatorios para control de stock",
-          text: `Para activar el control de stock debe ingresar: ${faltanDatos.join(", ")}`,
+          text: `Para activar el control de stock debe ingresar: ${faltanDatos.join(
+            ", "
+          )}`,
           icon: "warning",
           confirmButtonColor: "#712b39",
         });
         return;
       }
     }
-    
+
     // ✅ Todo validado
     onSubmit();
   };
@@ -121,11 +117,7 @@ export default function FormularioProducto({
           {/* Columna izquierda */}
           <div className="flex flex-col space-y-4">
             <InputField
-              label={
-                <span>
-                  Código del Producto <span className="text-red-500">*</span>
-                </span>
-              }
+              label="Código del Producto"
               name="codigo_producto"
               value={formData.codigo_producto || ""}
               onChange={handleChange}
