@@ -10,7 +10,7 @@ import {
   actualizarProducto,
   eliminarProducto,
 } from "../services/productoService";
-
+const BASE_URL = process.env.NEXT_PUBLIC_API_URL;
 export default function useInventario() {
   const [productos, setProductos] = useState([]);
   const [categorias, setCategorias] = useState([]);
@@ -36,6 +36,8 @@ export default function useInventario() {
   const [debouncedSearch, setDebouncedSearch] = useState("");
   const [modalVisible, setModalVisible] = useState(false);
   const [loading, setLoading] = useState(false);
+  const token =
+    typeof window !== "undefined" ? localStorage.getItem("access_token") : null;
 
   // Debounce de búsqueda
   useEffect(() => {
@@ -62,7 +64,7 @@ export default function useInventario() {
     try {
       setLoading(true);
       const data = await fetchProductos();
-      setProductos(data);
+      setProductos(data.map(normalizarProducto));
     } catch (error) {
       Swal.fire({
         icon: "error",
@@ -74,12 +76,16 @@ export default function useInventario() {
       setLoading(false);
     }
   };
+  const normalizarProducto = (producto) => ({
+    ...producto,
+    imagen_producto: producto.imagen_url || null, // ⚡ usa la URL que ya viene del backend
+  });
 
   const buscarProductos = async (search) => {
     try {
       setLoading(true);
       const data = await fetchProductosBuscados(search);
-      setProductos(data);
+      setProductos(data.map(normalizarProducto));
     } catch (error) {
       Swal.fire({
         icon: "error",
@@ -159,38 +165,30 @@ export default function useInventario() {
     }
 
     try {
-      // Payload original
-      const payload = {
-        nombre_producto: formData.nombre_producto,
-        codigo_producto: formData.codigo_producto,
-        descripcion_producto: formData.descripcion_producto,
-        marca_producto: formData.marca_producto,
-        categoria_producto: parseInt(formData.categoria_producto) || null,
-        pvp_producto: parseFloat(formData.pvp_producto),
-        costo_producto: parseFloat(formData.costo_producto),
-        cantidad_producto: parseInt(formData.cantidad_producto),
-        minimo_producto: parseInt(formData.minimo_producto),
-        maximo_producto: parseInt(formData.maximo_producto),
-        controla_stock: !!formData.controla_stock,
-        proveedor_producto: parseInt(formData.proveedor_producto) || null,
-        imagen_producto: formData.imagen_producto, // inicializamos con valor existente
-      };
+      // Crear un FormData completamente nuevo
+      const form = new FormData();
 
-      // Si hay archivo, usamos FormData para enviar imagen
-      let bodyToSend;
+      // Agregar campos como strings simples
+      form.append("nombre_producto", formData.nombre_producto || "");
+      form.append("codigo_producto", formData.codigo_producto || "");
+      form.append("descripcion_producto", formData.descripcion_producto || "");
+      form.append("marca_producto", formData.marca_producto || "");
+      form.append("categoria_producto", formData.categoria_producto || "");
+      form.append("pvp_producto", formData.pvp_producto || 0);
+      form.append("costo_producto", formData.costo_producto || 0);
+      form.append("cantidad_producto", formData.cantidad_producto || 0);
+      form.append("minimo_producto", formData.minimo_producto || 0);
+      form.append("maximo_producto", formData.maximo_producto || 0);
+      form.append("controla_stock", formData.controla_stock ? "1" : "0");
+      form.append("proveedor_producto", formData.proveedor_producto || "");
+
+      // Agregar la imagen al final si existe
       if (file) {
-        const form = new FormData();
-        Object.entries(payload).forEach(([key, value]) => {
-          if (value !== null && value !== undefined) form.append(key, value);
-        });
         form.append("imagen", file);
-        bodyToSend = form;
-      } else {
-        bodyToSend = payload;
       }
 
       if (selectedProducto) {
-        await actualizarProducto(selectedProducto.id, bodyToSend);
+        await actualizarProducto(selectedProducto.id, form);
         Swal.fire({
           icon: "success",
           title: "Producto actualizado",
@@ -198,7 +196,7 @@ export default function useInventario() {
           timer: 1500,
         });
       } else {
-        await crearProducto(bodyToSend);
+        await crearProducto(form);
         Swal.fire({
           icon: "success",
           title: "Producto creado",

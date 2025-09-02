@@ -10,10 +10,14 @@ export function interceptarFetchConLogout() {
     let [resource, config] = args;
     config = config || {};
 
+    // Verificar si el body es FormData
+    const isFormData = config.body instanceof FormData;
+
     config.headers = {
       ...config.headers,
       Authorization: `Bearer ${token}`,
-      "Content-Type": "application/json",
+      // Solo agregar Content-Type si NO es FormData
+      ...(!isFormData && { "Content-Type": "application/json" }),
     };
 
     const response = await originalFetch(resource, config);

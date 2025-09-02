@@ -1,11 +1,12 @@
 const BASE_URL = process.env.NEXT_PUBLIC_API_URL;
 
-const getAuthHeaders = () => {
+const getAuthHeaders = (isFormData = false) => {
   const token =
     typeof window !== "undefined" ? localStorage.getItem("access_token") : null;
 
   return {
-    "Content-Type": "application/json",
+    // Solo incluir Content-Type si NO es FormData
+    ...(!isFormData && { "Content-Type": "application/json" }),
     ...(token && { Authorization: `Bearer ${token}` }),
   };
 };
@@ -44,8 +45,10 @@ export const fetchProveedores = async () => {
 };
 
 export const crearProducto = async (payload) => {
+  const isFormData = payload instanceof FormData;
   const res = await fetch(`${BASE_URL}/productos/`, {
     method: "POST",
+    headers: getAuthHeaders(isFormData),
     body: payload, // FormData directamente
   });
   if (!res.ok) throw await res.json();
@@ -53,8 +56,10 @@ export const crearProducto = async (payload) => {
 };
 
 export const actualizarProducto = async (id, payload) => {
-  const res = await fetch(`/api/productos/${id}/`, {
+  const isFormData = payload instanceof FormData;
+  const res = await fetch(`${BASE_URL}/productos/${id}/`, {
     method: "PATCH",
+    headers: getAuthHeaders(isFormData),
     body: payload,
   });
   if (!res.ok) throw await res.json();

@@ -1,6 +1,9 @@
+"use client";
 import { useEffect, useState } from "react";
-const BASE_URL = process.env.NEXT_PUBLIC_API_URL;
 import Swal from "sweetalert2";
+
+const BASE_URL = process.env.NEXT_PUBLIC_API_URL;
+
 export default function useDashboard() {
   const [productos, setProductos] = useState([]);
   const [categorias, setCategorias] = useState([]);
@@ -8,6 +11,21 @@ export default function useDashboard() {
   const [search, setSearch] = useState("");
   const [loading, setLoading] = useState(false);
   const [modalImage, setModalImage] = useState(null);
+
+  // Función para normalizar la URL de la imagen
+  const normalizarProducto = (producto) => {
+    let url = producto.imagen_url || producto.imagen || null;
+
+    // Si es relativa, agregamos el backend
+    if (url && url.startsWith("/media")) {
+      url = `${BASE_URL.replace("/api", "")}${url}`;
+    }
+
+    return {
+      ...producto,
+      imagen_producto: url,
+    };
+  };
 
   // Cargar categorías
   useEffect(() => {
@@ -44,7 +62,11 @@ export default function useDashboard() {
 
         const res = await fetch(url, { signal });
         const data = await res.json();
-        setProductos(Array.isArray(data) ? data : data.results);
+
+        const rawProductos = Array.isArray(data) ? data : data.results;
+        const productosNormalizados = rawProductos.map(normalizarProducto);
+
+        setProductos(productosNormalizados);
       } catch (error) {
         if (error.name !== "AbortError") {
           Swal.fire({
@@ -66,6 +88,7 @@ export default function useDashboard() {
     };
   }, [search, selectedCategoria]);
 
+  // Filtrar productos que controlan stock
   const filteredProductos = productos.filter(
     (p) => !p.controla_stock || Number(p.cantidad_producto) > 0
   );
