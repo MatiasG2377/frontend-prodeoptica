@@ -167,8 +167,42 @@ export default function FichaMedicaCompleta() {
   const [resultadosApellido, setResultadosApellido] = useState([]);
   const [mostrarModal, setMostrarModal] = useState(false);
 
+  // Función para validar que solo contenga letras y espacios
+  const validarSoloLetras = (valor) => {
+    return /^[A-Za-zÁÉÍÓÚáéíóúñÑ\s]+$/.test(valor);
+  };
+
+  // Función para validar que solo contenga números enteros positivos
+  const validarSoloNumeros = (valor) => {
+    return /^\d*$/.test(valor);
+  };
+
+  // Función para manejar cambios en el campo de búsqueda por apellido
+  const handleBuscarApellidoChange = (value) => {
+    if (value === '' || validarSoloLetras(value)) {
+      setApellidoBusqueda(value);
+    }
+  };
+
   const handlePacienteChange = (field, value) => {
-    setPaciente((prev) => ({ ...prev, [field]: value }));
+    // Aplicar validaciones según el campo
+    if (['apellidos', 'nombres'].includes(field)) {
+      // Solo permite letras y espacios para apellidos y nombres
+      if (value === '' || validarSoloLetras(value)) {
+        setPaciente(prev => ({ ...prev, [field]: value }));
+      }
+    } else if (field === 'ci_paciente') {
+      // Permite cualquier carácter en la cédula
+      setPaciente(prev => ({ ...prev, [field]: value }));
+    } else if (field === 'telefono_celular') {
+      // Solo permite números en el teléfono
+      if (value === '' || validarSoloNumeros(value)) {
+        setPaciente(prev => ({ ...prev, [field]: value }));
+      }
+    } else {
+      // Para otros campos, actualizar sin validación
+      setPaciente(prev => ({ ...prev, [field]: value }));
+    }
   };
 
   const handleOpticalDataChange = (field, value) => {
@@ -830,8 +864,8 @@ export default function FichaMedicaCompleta() {
                       type="text"
                       id="buscar_apellido"
                       className="border border-gray-300 rounded-md px-3 py-2 w-full focus:outline-none focus:ring-1 focus:ring-[#7d2a3f]"
-                      value={apellidoBusqueda || paciente.apellidos}
-                      onChange={(e) => setApellidoBusqueda(e.target.value)}
+                      value={apellidoBusqueda}
+                      onChange={(e) => handleBuscarApellidoChange(e.target.value)}
                       placeholder="Ej: Gamboa"
                     />
                     <button
