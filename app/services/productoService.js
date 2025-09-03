@@ -1,13 +1,19 @@
 const BASE_URL = process.env.NEXT_PUBLIC_API_URL;
 
 const getAuthHeaders = (isFormData = false) => {
-  const token =
-    typeof window !== "undefined" ? localStorage.getItem("access_token") : null;
+  // Verificar si estamos en el navegador
+  if (typeof window === "undefined") {
+    return !isFormData ? { "Content-Type": "application/json" } : {};
+  }
+
+  const token = localStorage.getItem("access_token");
+  if (!token) {
+    return !isFormData ? { "Content-Type": "application/json" } : {};
+  }
 
   return {
-    // Solo incluir Content-Type si NO es FormData
     ...(!isFormData && { "Content-Type": "application/json" }),
-    ...(token && { Authorization: `Bearer ${token}` }),
+    Authorization: `Bearer ${token}`,
   };
 };
 
@@ -16,6 +22,23 @@ export const fetchProductos = async () => {
     headers: getAuthHeaders(),
   });
   const data = await res.json();
+  if (!res.ok) {
+    if (res.status === 401 || res.status === 403) {
+      if (typeof window !== "undefined") {
+        localStorage.removeItem("access_token");
+      }
+      throw { 
+        response: { 
+          status: res.status, 
+          data: { 
+            detail: 'Su sesión ha expirado. Por favor, inicie sesión nuevamente.',
+            code: 'token_expired'
+          } 
+        } 
+      };
+    }
+    throw data;
+  }
   return data.results || data;
 };
 
@@ -25,6 +48,23 @@ export const fetchProductosBuscados = async (query) => {
     { headers: getAuthHeaders() }
   );
   const data = await res.json();
+  if (!res.ok) {
+    if (res.status === 401 || res.status === 403) {
+      if (typeof window !== "undefined") {
+        localStorage.removeItem("access_token");
+      }
+      throw { 
+        response: { 
+          status: res.status, 
+          data: { 
+            detail: 'Su sesión ha expirado. Por favor, inicie sesión nuevamente.',
+            code: 'token_expired'
+          } 
+        } 
+      };
+    }
+    throw data;
+  }
   return Array.isArray(data) ? data : data.results || [];
 };
 
@@ -33,6 +73,23 @@ export const fetchCategorias = async () => {
     headers: getAuthHeaders(),
   });
   const data = await res.json();
+  if (!res.ok) {
+    if (res.status === 401 || res.status === 403) {
+      if (typeof window !== "undefined") {
+        localStorage.removeItem("access_token");
+      }
+      throw { 
+        response: { 
+          status: res.status, 
+          data: { 
+            detail: 'Su sesión ha expirado. Por favor, inicie sesión nuevamente.',
+            code: 'token_expired'
+          } 
+        } 
+      };
+    }
+    throw data;
+  }
   return data.results || data;
 };
 
@@ -41,6 +98,23 @@ export const fetchProveedores = async () => {
     headers: getAuthHeaders(),
   });
   const data = await res.json();
+  if (!res.ok) {
+    if (res.status === 401 || res.status === 403) {
+      if (typeof window !== "undefined") {
+        localStorage.removeItem("access_token");
+      }
+      throw { 
+        response: { 
+          status: res.status, 
+          data: { 
+            detail: 'Su sesión ha expirada. Por favor, inicie sesión nuevamente.',
+            code: 'token_expired'
+          } 
+        } 
+      };
+    }
+    throw data;
+  }
   return data.results || data;
 };
 
@@ -51,8 +125,26 @@ export const crearProducto = async (payload) => {
     headers: getAuthHeaders(isFormData),
     body: payload, // FormData directamente
   });
-  if (!res.ok) throw await res.json();
-  return res.json();
+  const data = await res.json();
+  if (!res.ok) {
+    if (res.status === 401 || res.status === 403) {
+      // Limpiar el token inválido
+      if (typeof window !== "undefined") {
+        localStorage.removeItem("access_token");
+      }
+      throw { 
+        response: { 
+          status: res.status, 
+          data: { 
+            detail: 'Su sesión ha expirado. Por favor, inicie sesión nuevamente.',
+            code: 'token_expired'
+          } 
+        } 
+      };
+    }
+    throw data;
+  }
+  return data;
 };
 
 export const actualizarProducto = async (id, payload) => {
@@ -62,8 +154,26 @@ export const actualizarProducto = async (id, payload) => {
     headers: getAuthHeaders(isFormData),
     body: payload,
   });
-  if (!res.ok) throw await res.json();
-  return res.json();
+  const data = await res.json();
+  if (!res.ok) {
+    if (res.status === 401 || res.status === 403) {
+      // Limpiar el token inválido
+      if (typeof window !== "undefined") {
+        localStorage.removeItem("access_token");
+      }
+      throw { 
+        response: { 
+          status: res.status, 
+          data: { 
+            detail: 'Su sesión ha expirado. Por favor, inicie sesión nuevamente.',
+            code: 'token_expired'
+          } 
+        } 
+      };
+    }
+    throw data;
+  }
+  return data;
 };
 
 export const eliminarProducto = async (id) => {
@@ -71,5 +181,22 @@ export const eliminarProducto = async (id) => {
     method: "DELETE",
     headers: getAuthHeaders(),
   });
-  if (!res.ok) throw new Error("No se pudo eliminar");
+  const data = await res.json().catch(() => ({}));
+  if (!res.ok) {
+    if (res.status === 401 || res.status === 403) {
+      if (typeof window !== "undefined") {
+        localStorage.removeItem("access_token");
+      }
+      throw { 
+        response: { 
+          status: res.status, 
+          data: { 
+            detail: 'Su sesión ha expirada. Por favor, inicie sesión nuevamente.',
+            code: 'token_expired'
+          } 
+        } 
+      };
+    }
+    throw new Error(data.detail || "No se pudo eliminar el producto");
+  }
 };

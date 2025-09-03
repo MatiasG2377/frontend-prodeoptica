@@ -73,22 +73,44 @@ import {
     setIsLoading(true);
     try {
       const data = await fetchKardexByProducto(productoId);
-      if (!data.length) throw new Error("No hay movimientos");
+      
+      // Si llegamos aquí, la autenticación fue exitosa
+      // Verificar si hay datos para mostrar
+      if (!data || !data.length) {
+        setKardexMovimientos([]);
+        Swal.fire({
+          icon: "info",
+          title: "Información",
+          text: "No hay movimientos registrados para este producto.",
+          confirmButtonColor: "#712b39",
+        });
+        return;
+      }
+      
+      // Si hay datos, mostrarlos
       setKardexMovimientos(data);
       Swal.fire({
         icon: "success",
         title: "Éxito",
         text: "Movimientos del Kardex cargados correctamente.",
-        confirmButtonColor: "#712b39", // color del botón OK
-      });
-    } catch {
-      setKardexMovimientos([]);
-      Swal.fire({
-        icon: "info",
-        title: "Información",
-        text: "No hay movimientos registrados para este producto.",
         confirmButtonColor: "#712b39",
       });
+    } catch (error) {
+      // No hacer nada si es un error de autenticación (el interceptor ya lo maneja)
+      if (error.status === 401 || error.status === 403) {
+        return;
+      }
+      
+      // Mostrar error solo si no es de autenticación y no es un array vacío
+      if (error.message !== 'No hay movimientos registrados') {
+        setKardexMovimientos([]);
+        Swal.fire({
+          icon: "error",
+          title: "Error",
+          text: "Ocurrió un error al cargar los movimientos del kardex.",
+          confirmButtonColor: "#712b39",
+        });
+      }
     } finally {
       setIsLoading(false);
     }

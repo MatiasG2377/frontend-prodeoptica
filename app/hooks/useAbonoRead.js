@@ -20,12 +20,16 @@ export function useAbonos() {
       const data = await fetchAbonos();
       setAbonos(data);
     } catch (error) {
-      Swal.fire({
-        icon: "error",
-        title: "Error",
-        text: "Hubo un problema al cargar los abonos.",
-        confirmButtonColor: "#7d2a3f",
-      });
+      // No mostrar error si es por sesión expirada (el interceptor ya lo maneja)
+      if (error.message !== 'Error al obtener los abonos' || 
+          !error.message.includes('401')) {
+        Swal.fire({
+          icon: "error",
+          title: "Error",
+          text: "Hubo un problema al cargar los abonos.",
+          confirmButtonColor: "#7d2a3f",
+        });
+      }
     } finally {
       setLoading(false);
     }
@@ -35,6 +39,7 @@ export function useAbonos() {
     try {
       setLoading(true);
       const clientes = await buscarUsuariosPorNombre(nombre);
+      if (!clientes) return; // Si hay un error de autenticación, salir silenciosamente
       const clienteIds = clientes.map((c) => c.id);
 
       if (clienteIds.length === 0) {
@@ -43,7 +48,9 @@ export function useAbonos() {
         return;
       }
 
-      const todosLosAbonos = await fetchAbonos();
+      const todosLosAbonos = await fetchAbonos().catch(() => []); // Si falla por sesión expirada, devolver array vacío
+      if (!todosLosAbonos) return; // Si hubo un error de autenticación, salir
+      
       const abonosFiltrados = todosLosAbonos.filter((abono) =>
         clienteIds.includes(abono.cliente?.id || abono.cliente)
       );
@@ -54,13 +61,16 @@ export function useAbonos() {
           Authorization: `Bearer ${localStorage.getItem("access_token")}`,
         },
       });
-
-      const dataVentas = await resVentas.json();
-      const ventasFiltradas = (dataVentas.results || dataVentas).filter(
-        (venta) =>
-          clienteIds.includes(venta.cliente_venta?.id || venta.cliente_venta)
-      );
-
+      
+      if (!resVentas.ok) {
+        if (resVentas.status === 401) return; // Si la sesión expiró, salir silenciosamente
+        throw new Error("Error al cargar las ventas");
+      }
+      
+      const ventas = await resVentas.json();
+      const ventasFiltradas = Array.isArray(ventas) 
+        ? ventas.filter((venta) => clienteIds.includes(venta.cliente_venta?.id || venta.cliente_venta))
+        : [];
       setVentas(ventasFiltradas);
     } catch (error) {
       Swal.fire({

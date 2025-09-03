@@ -12,21 +12,24 @@ export default function ClienteForm({
   progreso,
   onBuscarCliente, // Nueva prop
 }) {
-  const [laboratorios, setLaboratorios] = useState([]);
+  const [laboratorios, setLaboratorios] = useState(null); // Inicializar como null
+  
   useEffect(() => {
-    fetch(`${BASE_URL}/laboratorios/`)
-      .then((res) => res.json())
-      .then((data) => {
-        setLaboratorios(data);
-      })
-      .catch((err) => {
-        Swal.fire({
-          icon: "error",
-          title: "Error",
-          text: "Hubo un problema al cargar los laboratorios.",
-          confirmButtonColor: "#7d2a3f",
-        });
-      });
+    const cargarLaboratorios = async () => {
+      try {
+        const response = await fetch(`${BASE_URL}/laboratorios/`);
+        if (!response.ok) {
+          throw new Error('Error al cargar laboratorios');
+        }
+        const data = await response.json();
+        setLaboratorios(Array.isArray(data) ? data : []);
+      } catch (err) {
+        console.error('Error cargando laboratorios:', err);
+        setLaboratorios([]); // Asegurar que sea un array vacío en caso de error
+      }
+    };
+
+    cargarLaboratorios();
   }, []);
 
   return (
@@ -101,7 +104,7 @@ export default function ClienteForm({
             className="w-full border p-2 rounded"
           >
             <option value="">Seleccionar laboratorio</option>
-            {laboratorios.map((lab) => (
+            {Array.isArray(laboratorios) && laboratorios.map((lab) => (
               <option key={lab.id} value={lab.id}>
                 {lab.nombre_laboratorio}
               </option>

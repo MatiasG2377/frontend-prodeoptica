@@ -1,42 +1,58 @@
 // app/utils/interceptFetch.js
-import Swal from "sweetalert2";
+const isBrowser = typeof window !== 'undefined';
 
 export function interceptarFetchConLogout() {
+  if (!isBrowser) return () => {};
+  
   const originalFetch = window.fetch;
 
   window.fetch = async (...args) => {
-    const token = localStorage.getItem("access_token");
+    if (!window.localStorage) {
+      return originalFetch(...args);
+    }
 
+    const token = localStorage.getItem("access_token");
     let [resource, config] = args;
     config = config || {};
 
-    // Verificar si el body es FormData
-    const isFormData = config.body instanceof FormData;
-
+    // Configurar headers
+    const isFormData = typeof FormData !== 'undefined' && config.body instanceof FormData;
     config.headers = {
       ...config.headers,
-      Authorization: `Bearer ${token}`,
-      // Solo agregar Content-Type si NO es FormData
-      ...(!isFormData && { "Content-Type": "application/json" }),
+      ...(token && { Authorization: `Bearer ${token}` }),
+      ...(!isFormData && !config.headers?.['Content-Type'] && { "Content-Type": "application/json" }),
     };
 
-    const response = await originalFetch(resource, config);
+    try {
+      const response = await originalFetch(resource, config);
 
-    if (response.status === 401 || response.status === 403) {
-      localStorage.removeItem("access_token");
-
-      await Swal.fire({
-        icon: "warning",
-        title: "Sesión expirada",
-        text: "Por favor, vuelve a iniciar sesión.",
-        confirmButtonColor: "#7d2a3f",
-        confirmButtonText: "Ir al login",
-      });
-
-      window.location.href = "/login";
-      return new Response(null, { status: 401 });
+      // Manejar respuesta no autorizada
+      if ((response.status === 401 || response.status === 403) && 
+          !window.location.pathname.includes('/login')) {
+        
+        // Evitar múltiples redirecciones
+        if (window.__isRedirectingToLogin) return response;
+        window.__isRedirectingToLogin = true;
+        
+        // Limpiar token
+        localStorage.removeItem("access_token");
+        
+        // Redirigir directamente sin mostrar mensaje
+        setTimeout(() => {
+          window.location.href = "/login?session_expired=1";
+        }, 100);
+      }
+      
+      return response;
+      
+    } catch (error) {
+      console.error('Error en la petición fetch:', error);
+      throw error;
     }
+  };
 
-    return response;
+  // Función para restaurar fetch original
+  return () => {
+    window.fetch = originalFetch;
   };
 }

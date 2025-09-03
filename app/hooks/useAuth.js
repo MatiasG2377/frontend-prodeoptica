@@ -17,7 +17,10 @@ export function useAuth({ redirectToLogin = true } = {}) {
 
   useEffect(() => {
     if (!accessToken) {
-      if (redirectToLogin) router.push("/login");
+      if (redirectToLogin) {
+        // Usar el interceptor para manejar la redirección
+        window.location.href = "/login?session_expired=1";
+      }
       return;
     }
 
@@ -33,13 +36,10 @@ export function useAuth({ redirectToLogin = true } = {}) {
         throw new Error("Datos incompletos");
       }
     } catch (error) {
-      Swal.fire({
-        icon: "error",
-        title: "Error",
-        text: "Hubo un problema al cargar el usuario desde localStorage.",
-        confirmButtonColor: "#7d2a3f",
-      });
-      if (redirectToLogin) router.push("/login");
+      if (redirectToLogin) {
+        // Usar el interceptor para manejar la redirección
+        window.location.href = "/login?session_expired=1";
+      }
     }
   }, [accessToken]);
 

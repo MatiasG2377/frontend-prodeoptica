@@ -13,7 +13,16 @@ import AbonoInicialForm from "../components/venta/AbonoForm";
 
 export default function VentaPage() {
   const router = useRouter();
-  const { logout } = useAuth();
+  const { logout, user } = useAuth({ redirectToLogin: false });
+  
+  // Verificar autenticación en el cliente
+  useEffect(() => {
+    const token = typeof window !== 'undefined' ? localStorage.getItem('access_token') : null;
+    if (!token) {
+      window.location.href = "/login?session_expired=1";
+      return;
+    }
+  }, []);
   const [menuOpen, setMenuOpen] = useState(false);
   const [discount, setDiscount] = useState(0);
   const {

@@ -45,7 +45,11 @@ export default function useVenta() {
 
   useEffect(() => {
     const token = localStorage.getItem("access_token");
-    if (!token) router.push("/login");
+    if (!token) {
+      // Usar replace en lugar de push para evitar problemas con el historial
+      router.replace("/login?session_expired=1");
+      return;
+    }
     const storedCart = localStorage.getItem("cart");
     if (storedCart) setCart(JSON.parse(storedCart));
   }, [router]);

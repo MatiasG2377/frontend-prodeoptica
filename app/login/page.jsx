@@ -1,5 +1,5 @@
 "use client";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import Swal from "sweetalert2";
 import LoginForm from "../components/login/LoginForm";
@@ -11,6 +11,19 @@ export default function LoginPage() {
 
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
+
+  // Mostrar mensaje de sesión expirada si viene el parámetro
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    if (params.get('session_expired')) {
+      Swal.fire({
+        icon: 'warning',
+        title: 'Sesión expirada',
+        text: 'Tu sesión ha expirado. Por favor inicia sesión nuevamente.',
+        confirmButtonColor: '#712b39',
+      });
+    }
+  }, []);
 
   const redirectToAdminLogin = () => {
     // Este sí queda en localhost porque solo lo usarías en local para Django admin
@@ -32,7 +45,9 @@ export default function LoginPage() {
       const data = await res.json();
 
       if (!res.ok) {
-        throw new Error(data.detail || "Credenciales incorrectas");
+        // Para el endpoint de login, siempre mostramos credenciales incorrectas
+        // independientemente del código de estado del error
+        throw new Error("Usuario o contraseña incorrectos");
       }
 
       // ✅ Guardar tokens y datos del usuario
