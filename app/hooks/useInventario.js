@@ -228,8 +228,8 @@ export default function useInventario() {
       }
 
       const loadingSwal = Swal.fire({
-        title: 'Eliminando...',
-        text: 'Por favor espera mientras eliminamos el producto.',
+        title: 'Guardando...',
+        text: 'Por favor espera mientras guardamos el producto.',
         allowOutsideClick: false,
         didOpen: () => {
           Swal.showLoading();
@@ -237,12 +237,21 @@ export default function useInventario() {
       });
 
       try {
-        await eliminarProducto(id);
+        if (formData.id) {
+          // Actualizar producto existente
+          await actualizarProducto(formData.id, form);
+        } else {
+          // Crear nuevo producto
+          await crearProducto(form);
+        }
+        
         await loadingSwal.close();
         await cargarProductos();
+        setModalVisible(false);
+        
         await Swal.fire({
-          title: "¡Eliminado!",
-          text: "El producto ha sido eliminado correctamente.",
+          title: formData.id ? "¡Actualizado!" : "¡Creado!",
+          text: `El producto ha sido ${formData.id ? 'actualizado' : 'creado'} correctamente.`,
           icon: "success",
           confirmButtonColor: "#712b39",
           timer: 2000,
