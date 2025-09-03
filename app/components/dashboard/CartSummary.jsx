@@ -23,7 +23,11 @@ export default function CartSummary({
     if (value === "") {
       setDiscount("");
     } else {
-      setDiscount(Number(value));
+      const numValue = Number(value);
+      // Solo actualizamos si el valor es 0 o positivo
+      if (numValue >= 0) {
+        setDiscount(numValue);
+      }
     }
   };
 
@@ -60,7 +64,7 @@ export default function CartSummary({
       {/* Descuento y total */}
       <div className="mt-4">
         <label className="block text-sm font-medium text-gray-700 mb-1">
-          Valor del descuento:
+          Descuento:
         </label>
         <input
           type="number"
