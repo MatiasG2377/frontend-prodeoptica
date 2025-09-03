@@ -24,8 +24,10 @@ export default function CardProducto({
   ).toFixed(0);
 
   return (
-    <div className="bg-white shadow-md p-4 rounded-lg text-center hover:shadow-lg transition-shadow">
-      <h3 className="font-bold">{producto.nombre_producto}</h3>
+    <div className="bg-white shadow-md p-4 rounded-lg text-center hover:shadow-lg transition-shadow flex flex-col h-full">
+      <h3 className="font-bold text-gray-800 text-lg mb-1 break-words" title={producto.nombre_producto}>
+        {producto.nombre_producto}
+      </h3>
       <p className="text-sm">
         {categoria?.nombre_categoria || "Sin Categoría"}
       </p>
