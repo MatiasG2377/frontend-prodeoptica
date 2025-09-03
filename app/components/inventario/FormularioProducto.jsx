@@ -27,11 +27,23 @@ export default function FormularioProducto({
   };
 
   const handleSubmit = () => {
-    if (!formData.nombre_producto || formData.nombre_producto.trim() === "") {
+    const nombre = formData.nombre_producto ? formData.nombre_producto.trim() : "";
+    
+    if (!nombre) {
       Swal.fire({
         icon: "warning",
         title: "Campo requerido",
         text: "El nombre del producto es obligatorio.",
+        confirmButtonColor: "#712b39",
+      });
+      return;
+    }
+
+    if (nombre.length > 60) {
+      Swal.fire({
+        icon: "warning",
+        title: "Nombre muy largo",
+        text: "El nombre del producto no puede exceder los 60 caracteres.",
         confirmButtonColor: "#712b39",
       });
       return;
@@ -89,16 +101,22 @@ export default function FormularioProducto({
 
         {/* Sección de campos obligatorios */}
         <div className="grid grid-cols-2 gap-6 mb-8">
-          <InputField
-            label={
-              <span>
-                Nombre del Producto <span className="text-red-500">*</span>
-              </span>
-            }
-            name="nombre_producto"
-            value={formData.nombre_producto || ""}
-            onChange={handleChange}
-          />
+          <div className="relative">
+            <InputField
+              label={
+                <span>
+                  Nombre del Producto <span className="text-red-500">*</span>
+                </span>
+              }
+              name="nombre_producto"
+              value={formData.nombre_producto || ""}
+              onChange={handleChange}
+              maxLength={60}
+            />
+            <div className="absolute bottom-1 right-0 text-xs text-gray-500">
+              {formData.nombre_producto?.length || 0}/60
+            </div>
+          </div>
           <InputField
             label={
               <span>
@@ -116,12 +134,18 @@ export default function FormularioProducto({
         <div className="grid grid-cols-2 gap-6">
           {/* Columna izquierda */}
           <div className="flex flex-col space-y-4">
-            <InputField
-              label="Código del Producto"
-              name="codigo_producto"
-              value={formData.codigo_producto || ""}
-              onChange={handleChange}
-            />
+            <div className="relative">
+              <InputField
+                label="Código del Producto"
+                name="codigo_producto"
+                value={formData.codigo_producto || ""}
+                onChange={handleChange}
+                maxLength={20}
+              />
+              <div className="absolute bottom-1 right-0 text-xs text-gray-500">
+                {formData.codigo_producto?.length || 0}/20
+              </div>
+            </div>
 
             <TextareaField
               label="Descripción del Producto"
