@@ -7,13 +7,103 @@ export function CrudTable({ tableName, data, columns, onAdd, onEdit, onDelete, o
   const [isDialogOpen, setIsDialogOpen] = useState(false)
   const [editingItem, setEditingItem] = useState(null)
   const [formData, setFormData] = useState({})
+  const [errors, setErrors] = useState({})
+  
+  // Configuration for field validations
+  const fieldValidations = {
+    nombre_proveedor: {
+      maxLength: 60,
+      required: true,
+      errorMessages: {
+        required: 'El nombre del proveedor es obligatorio',
+        maxLength: 'El nombre no puede tener más de 60 caracteres'
+      }
+    },
+    correo_proveedor: {
+      pattern: /^[^\s@]+@[^\s@]+\.[^\s@]+$/,
+      errorMessages: {
+        pattern: 'Ingrese un correo electrónico válido'
+      }
+    },
+    telefono_proveedor: {
+      pattern: /^\+?[0-9\s\-()]{6,20}$/,
+      required: false,
+      errorMessages: {
+        pattern: 'Ingrese un número de teléfono válido (solo números, espacios, guiones y paréntesis)'
+      }
+    },
+    telefono_laboratorio: {
+      pattern: /^\+?[0-9\s\-()]{6,20}$/,
+      required: false,
+      errorMessages: {
+        pattern: 'Ingrese un número de teléfono válido (solo números, espacios, guiones y paréntesis)'
+      }
+    },
+    nombre_laboratorio: {
+      maxLength: 60,
+      required: true,
+      errorMessages: {
+        required: 'El nombre del laboratorio es obligatorio',
+        maxLength: 'El nombre no puede tener más de 60 caracteres'
+      }
+    }
+  }
 
   const filteredData = data.filter((item) =>
     Object.values(item).some((value) => String(value).toLowerCase().includes(searchTerm.toLowerCase())),
   )
 
+  const validateField = (field, value) => {
+    const validation = fieldValidations[field]
+    if (!validation) return ''
+    
+    // Si el campo está vacío y no es requerido, no hay error
+    if (!value?.trim() && !validation.required) {
+      return ''
+    }
+    
+    if (validation.required && !value?.trim()) {
+      return validation.errorMessages.required || 'Este campo es obligatorio'
+    }
+    
+    if (validation.maxLength && value?.length > validation.maxLength) {
+      return validation.errorMessages.maxLength || `Máximo ${validation.maxLength} caracteres`
+    }
+    
+    if (validation.pattern && value?.trim() && !validation.pattern.test(value)) {
+      return validation.errorMessages.pattern || 'Formato inválido'
+    }
+    
+    return ''
+  }
+  
+  const validateForm = () => {
+    const newErrors = {}
+    let isValid = true
+    
+    // Solo validar los campos que están en las columnas del formulario actual
+    columns.forEach(column => {
+      const field = column.key
+      if (fieldValidations[field]) {
+        const error = validateField(field, formData[field] || '')
+        if (error) {
+          newErrors[field] = error
+          isValid = false
+        }
+      }
+    })
+    
+    setErrors(newErrors)
+    return isValid
+  }
+  
   const handleSubmit = (e) => {
     e.preventDefault()
+    
+    if (!validateForm()) {
+      return
+    }
+    
     if (editingItem) {
       onEdit(editingItem.id, formData)
     } else {
@@ -22,6 +112,7 @@ export function CrudTable({ tableName, data, columns, onAdd, onEdit, onDelete, o
     setIsDialogOpen(false)
     setEditingItem(null)
     setFormData({})
+    setErrors({})
   }
 
   const openDialog = (item) => {
@@ -41,44 +132,99 @@ export function CrudTable({ tableName, data, columns, onAdd, onEdit, onDelete, o
     setFormData({})
   }
 
+  const handleInputChange = (key, value) => {
+    // Si es un campo de teléfono, solo permitir números, +, -, espacios y paréntesis
+    if (key === 'telefono_proveedor' || key === 'telefono_laboratorio') {
+      // No permitir caracteres no válidos
+      const cleanedValue = value.replace(/[^0-9+\-\s()]/g, '');
+      // Si el valor limpio es diferente al valor original, no actualizar
+      if (cleanedValue !== value) {
+        return; // No actualizar el estado con caracteres inválidos
+      }
+      value = cleanedValue;
+    }
+    
+    // If field has validation and maxLength is defined, trim the value
+    if (fieldValidations[key]?.maxLength) {
+      value = value.slice(0, fieldValidations[key].maxLength)
+    }
+    
+    setFormData(prev => ({
+      ...prev,
+      [key]: value
+    }))
+    
+    // Clear error when user types
+    if (errors[key]) {
+      setErrors(prev => ({
+        ...prev,
+        [key]: ''
+      }))
+    }
+  }
+
   const renderFormField = (column) => {
     const { key, label, type } = column
+    const error = errors[key]
+    const validation = fieldValidations[key]
+    
+    const inputProps = {
+      className: `w-full px-3 py-2 border ${error ? 'border-red-500' : 'border-gray-300'} rounded-md focus:outline-none focus:ring-2 focus:ring-[#8B4B5C] focus:border-transparent`,
+      value: formData[key] || "",
+      onChange: (e) => handleInputChange(key, e.target.value),
+      placeholder: `Ingrese ${label.toLowerCase()}`,
+      maxLength: validation?.maxLength || undefined
+    }
 
     if (type === "textarea") {
       return (
-        <textarea
-          className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#8B4B5C] focus:border-transparent resize-none"
-          rows="3"
-          value={formData[key] || ""}
-          onChange={(e) => setFormData({ ...formData, [key]: e.target.value })}
-          placeholder={`Ingrese ${label.toLowerCase()}`}
-        />
+        <div>
+          <textarea
+            {...inputProps}
+            className={`${inputProps.className} resize-none`}
+            rows="3"
+          />
+          {validation?.maxLength && (
+            <div className="text-xs text-gray-500 text-right mt-1">
+              {formData[key]?.length || 0}/{validation.maxLength} caracteres
+            </div>
+          )}
+          {error && <p className="mt-1 text-sm text-red-600">{error}</p>}
+        </div>
       )
     }
 
     if (type === "select") {
       return (
-        <select
-          className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#8B4B5C] focus:border-transparent"
-          value={formData[key] || ""}
-          onChange={(e) => setFormData({ ...formData, [key]: e.target.value })}
-        >
-          <option value="">Seleccione {label.toLowerCase()}</option>
-          <option value="opcion1">Opción 1</option>
-          <option value="opcion2">Opción 2</option>
-          <option value="opcion3">Opción 3</option>
-        </select>
+        <div>
+          <select
+            className={`w-full px-3 py-2 border ${error ? 'border-red-500' : 'border-gray-300'} rounded-md focus:outline-none focus:ring-2 focus:ring-[#8B4B5C] focus:border-transparent`}
+            value={formData[key] || ""}
+            onChange={(e) => handleInputChange(key, e.target.value)}
+          >
+            <option value="">Seleccione {label.toLowerCase()}</option>
+            <option value="opcion1">Opción 1</option>
+            <option value="opcion2">Opción 2</option>
+            <option value="opcion3">Opción 3</option>
+          </select>
+          {error && <p className="mt-1 text-sm text-red-600">{error}</p>}
+        </div>
       )
     }
 
     return (
-      <input
-        type={type === "number" ? "number" : "text"}
-        className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#8B4B5C] focus:border-transparent"
-        value={formData[key] || ""}
-        onChange={(e) => setFormData({ ...formData, [key]: e.target.value })}
-        placeholder={`Ingrese ${label.toLowerCase()}`}
-      />
+      <div>
+        <input
+          type={type === "number" ? "number" : "text"}
+          {...inputProps}
+        />
+        {validation?.maxLength && (
+          <div className="text-xs text-gray-500 text-right mt-1">
+            {formData[key]?.length || 0}/{validation.maxLength} caracteres
+          </div>
+        )}
+        {error && <p className="mt-1 text-sm text-red-600">{error}</p>}
+      </div>
     )
   }
 
