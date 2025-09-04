@@ -31,7 +31,7 @@ export default function useIngresoProducto(router) {
       return;
     }
     cargarProveedores();
-  }, []);
+  }, [router]);
 
   const cargarProveedores = async () => {
     try {

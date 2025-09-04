@@ -41,7 +41,7 @@ export function useAuth({ redirectToLogin = true } = {}) {
         window.location.href = "/login?session_expired=1";
       }
     }
-  }, [accessToken]);
+  }, [accessToken, redirectToLogin]);
 
   const logout = async () => {
     if (!refreshToken) {

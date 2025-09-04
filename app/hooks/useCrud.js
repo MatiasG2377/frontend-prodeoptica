@@ -1,5 +1,5 @@
 import Swal from "sweetalert2";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import {
   getAllItems,
   createItem,
@@ -12,7 +12,7 @@ export function useCrud(apiUrl) {
   const [data, setData] = useState([]);
   const [loading, setLoading] = useState(false);
 
-  const fetchData = async () => {
+  const fetchData = useCallback(async () => {
     if (!apiUrl) return;
     try {
       setLoading(true);
@@ -28,11 +28,11 @@ export function useCrud(apiUrl) {
     } finally {
       setLoading(false);
     }
-  };
+  }, [apiUrl]); // <-- apiUrl como dependencia
 
   useEffect(() => {
     fetchData();
-  }, [apiUrl]);
+  }, [apiUrl, fetchData]);
 
   const validate = (item) => {
     if (apiUrl.includes("proveedores")) {

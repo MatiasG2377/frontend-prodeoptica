@@ -1,5 +1,5 @@
 "use client";
-import { useEffect, useState } from "react";
+import { use, useCallback, useEffect, useState } from "react";
 import Swal from "sweetalert2";
 import {
   fetchProductos,
@@ -10,6 +10,7 @@ import {
   actualizarProducto,
   eliminarProducto,
 } from "../services/productoService";
+
 const BASE_URL = process.env.NEXT_PUBLIC_API_URL;
 export default function useInventario() {
   const [productos, setProductos] = useState([]);
@@ -53,28 +54,28 @@ export default function useInventario() {
     } else {
       buscarProductos(debouncedSearch);
     }
-  }, [debouncedSearch]);
+  }, [debouncedSearch, cargarProductos, buscarProductos]);
 
   useEffect(() => {
     cargarCategorias();
     cargarProveedores();
-  }, []);
+  }, [cargarCategorias, cargarProveedores]);
 
   const handleSessionExpired = () => {
     if (window.__isRedirectingToLogin) return true;
     window.__isRedirectingToLogin = true;
-    
+
     // Limpiar token
-    if (typeof window !== 'undefined' && window.localStorage) {
+    if (typeof window !== "undefined" && window.localStorage) {
       localStorage.removeItem("access_token");
     }
-    
+
     // Redirigir al login
     window.location.href = "/login?session_expired=1";
     return true;
   };
 
-  const cargarProductos = async () => {
+  const cargarProductos = useCallback(async () => {
     try {
       setLoading(true);
       const data = await fetchProductos();
@@ -84,8 +85,8 @@ export default function useInventario() {
         handleSessionExpired();
         return;
       }
-      
-      console.error('Error cargando productos:', error);
+
+      console.error("Error cargando productos:", error);
       await Swal.fire({
         icon: "error",
         title: "Error",
@@ -95,13 +96,13 @@ export default function useInventario() {
     } finally {
       setLoading(false);
     }
-  };
+  }, []);
   const normalizarProducto = (producto) => ({
     ...producto,
     imagen_producto: producto.imagen_url || null, // ⚡ usa la URL que ya viene del backend
   });
 
-  const buscarProductos = async (search) => {
+  const buscarProductos = useCallback(async (search) => {
     try {
       setLoading(true);
       const data = await fetchProductosBuscados(search);
@@ -111,8 +112,8 @@ export default function useInventario() {
         handleSessionExpired();
         return;
       }
-      
-      console.error('Error buscando productos:', error);
+
+      console.error("Error buscando productos:", error);
       await Swal.fire({
         icon: "error",
         title: "Error",
@@ -123,20 +124,20 @@ export default function useInventario() {
     } finally {
       setLoading(false);
     }
-  };
+  }, []);
 
-  const cargarCategorias = async () => {
+  const cargarCategorias = useCallback(async () => {
     try {
       const data = await fetchCategorias();
       setCategorias(data);
     } catch (error) {
-      console.error('Error al cargar categorías:', error);
-      
+      console.error("Error al cargar categorías:", error);
+
       if (error.response?.status === 401 || error.response?.status === 403) {
         handleSessionExpired();
         return;
       }
-      
+
       await Swal.fire({
         icon: "error",
         title: "Error",
@@ -144,20 +145,20 @@ export default function useInventario() {
         confirmButtonColor: "#7d2a3f",
       });
     }
-  };
+  }, []);
 
-  const cargarProveedores = async () => {
+  const cargarProveedores = useCallback(async () => {
     try {
       const data = await fetchProveedores();
       setProveedores(data);
     } catch (error) {
-      console.error('Error al cargar proveedores:', error);
-      
+      console.error("Error al cargar proveedores:", error);
+
       if (error.response?.status === 401 || error.response?.status === 403) {
         handleSessionExpired();
         return;
       }
-      
+
       await Swal.fire({
         icon: "error",
         title: "Error",
@@ -165,7 +166,7 @@ export default function useInventario() {
         confirmButtonColor: "#7d2a3f",
       });
     }
-  };
+  }, []);
 
   const resetForm = () => {
     setFormData({
@@ -228,12 +229,12 @@ export default function useInventario() {
       }
 
       const loadingSwal = Swal.fire({
-        title: 'Guardando...',
-        text: 'Por favor espera mientras guardamos el producto.',
+        title: "Guardando...",
+        text: "Por favor espera mientras guardamos el producto.",
         allowOutsideClick: false,
         didOpen: () => {
           Swal.showLoading();
-        }
+        },
       });
 
       try {
@@ -244,14 +245,16 @@ export default function useInventario() {
           // Crear nuevo producto
           await crearProducto(form);
         }
-        
+
         await loadingSwal.close();
         await cargarProductos();
         setModalVisible(false);
-        
+
         await Swal.fire({
           title: formData.id ? "¡Actualizado!" : "¡Creado!",
-          text: `El producto ha sido ${formData.id ? 'actualizado' : 'creado'} correctamente.`,
+          text: `El producto ha sido ${
+            formData.id ? "actualizado" : "creado"
+          } correctamente.`,
           icon: "success",
           confirmButtonColor: "#712b39",
           timer: 2000,
@@ -265,11 +268,12 @@ export default function useInventario() {
       if (error.response?.status === 401 || error.response?.status === 403) {
         return handleSessionExpired();
       }
-      
-      const errorMessage = error.response?.data?.detail || 
-                         error.message || 
-                         "No se pudo eliminar el producto. Por favor, inténtalo de nuevo.";
-      
+
+      const errorMessage =
+        error.response?.data?.detail ||
+        error.message ||
+        "No se pudo eliminar el producto. Por favor, inténtalo de nuevo.";
+
       await Swal.fire({
         title: "Error",
         text: errorMessage,
@@ -308,12 +312,12 @@ export default function useInventario() {
       try {
         // Mostrar loader mientras se elimina
         const loadingSwal = Swal.fire({
-          title: 'Eliminando...',
-          text: 'Por favor espera mientras eliminamos el producto.',
+          title: "Eliminando...",
+          text: "Por favor espera mientras eliminamos el producto.",
           allowOutsideClick: false,
           didOpen: () => {
             Swal.showLoading();
-          }
+          },
         });
 
         try {
@@ -336,11 +340,12 @@ export default function useInventario() {
         if (error.response?.status === 401 || error.response?.status === 403) {
           return handleSessionExpired();
         }
-        
-        const errorMessage = error.response?.data?.detail || 
-                           error.message || 
-                           "No se pudo eliminar el producto. Por favor, inténtalo de nuevo.";
-        
+
+        const errorMessage =
+          error.response?.data?.detail ||
+          error.message ||
+          "No se pudo eliminar el producto. Por favor, inténtalo de nuevo.";
+
         await Swal.fire({
           title: "Error",
           text: errorMessage,

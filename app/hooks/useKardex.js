@@ -57,7 +57,7 @@ import {
           "error"
         )
       );
-  }, []);
+  }, [router]);
 
   const handleSearch = (term) => {
     const value = term.toLowerCase();
@@ -73,7 +73,7 @@ import {
     setIsLoading(true);
     try {
       const data = await fetchKardexByProducto(productoId);
-      
+
       // Si llegamos aquí, la autenticación fue exitosa
       // Verificar si hay datos para mostrar
       if (!data || !data.length) {
@@ -86,7 +86,7 @@ import {
         });
         return;
       }
-      
+
       // Si hay datos, mostrarlos
       setKardexMovimientos(data);
       Swal.fire({
@@ -100,9 +100,9 @@ import {
       if (error.status === 401 || error.status === 403) {
         return;
       }
-      
+
       // Mostrar error solo si no es de autenticación y no es un array vacío
-      if (error.message !== 'No hay movimientos registrados') {
+      if (error.message !== "No hay movimientos registrados") {
         setKardexMovimientos([]);
         Swal.fire({
           icon: "error",
