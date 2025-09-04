@@ -4,8 +4,8 @@ export default function ModalDetalleVenta({ visible, onClose, venta, articulos }
   if (!visible || !venta) return null;
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-40 flex justify-center items-center z-50">
-      <div className="bg-white rounded-xl p-6 max-w-2xl w-full shadow-lg relative">
+    <div className="fixed inset-0 bg-black bg-opacity-40 flex justify-center items-center z-50 p-4">
+      <div className="bg-white rounded-xl p-6 w-full max-w-4xl max-h-[90vh] overflow-y-auto shadow-lg relative">
         <h2 className="text-2xl font-bold mb-4 text-[#712b39]">Venta #{venta.id}</h2>
         <p className="mb-1 text-sm">
   Cliente: <strong>{venta.cliente_venta?.nombre_cliente || "No disponible"}</strong>
@@ -24,7 +24,7 @@ export default function ModalDetalleVenta({ visible, onClose, venta, articulos }
           <tbody>
             {articulos.map((item) => (
               <tr key={item.id}>
-<td className="p-2 border">
+<td className="p-2 border max-w-xs overflow-hidden overflow-ellipsis whitespace-nowrap" title={item.nombre_producto || ""}>
   {item.nombre_producto || "—"}
 </td>
 
