@@ -170,7 +170,25 @@ export default function AbonosPage() {
       cancelButtonColor: "#D1D5DB",
       confirmButtonText: "Registrar abono",
       cancelButtonText: "Cancelar",
+      didOpen: () => {
+        const input = Swal.getInput();
+    
+        // Bloquea el signo "-" en el teclado
+        input.addEventListener("keypress", (e) => {
+          if (e.key === "-" || e.key === "+") {
+            e.preventDefault();
+          }
+        });
+    
+        // Evita que se pegue un valor negativo
+        input.addEventListener("input", () => {
+          if (parseFloat(input.value) < 0) {
+            input.value = input.value.replace("-", "");
+          }
+        });
+      },
     });
+    
 
     if (!cantidad) return;
 
