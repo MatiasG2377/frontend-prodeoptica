@@ -7,8 +7,12 @@
  */
 export default function ProductCard({ producto, onAddToCart, onImageClick }) {
   return (
-    <div className="bg-white shadow-md p-3 rounded-lg text-center hover:shadow-lg transition-shadow w-full max-w-xs mx-auto">
-      <h3 className="font-bold">{producto.nombre_producto}</h3>
+    <div className="bg-white shadow-md p-3 rounded-lg text-center hover:shadow-lg transition-shadow w-full max-w-xs mx-auto flex flex-col">
+      <div className="h-12 flex items-center justify-center">
+        <h3 className="font-bold break-words line-clamp-2 px-1">
+          {producto.nombre_producto}
+        </h3>
+      </div>
       <p className="text-sm">{producto.categoria_nombre || "Sin Categoría"}</p>
       <p className="text-lg">${producto.pvp_producto}</p>
       {producto.imagen_producto && (
@@ -17,7 +21,7 @@ export default function ProductCard({ producto, onAddToCart, onImageClick }) {
           alt={producto.nombre_producto}
           className="mx-auto my-2 rounded-md cursor-pointer"
           style={{ width: "90px", height: "90px", objectFit: "cover" }}
-          onClick={() => setModalImage(producto.imagen_producto)}
+          onClick={() => onImageClick(producto.imagen_producto)}
         />
       )}
 
