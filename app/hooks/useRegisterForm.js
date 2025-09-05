@@ -110,7 +110,7 @@ export function useRegisterForm() {
         email_usuario: formData.email,
         telefono_usuario: formData.telefono,
         rol_usuario: formData.rol,
-        sucursal_usuario: formData.sucursal,
+        sucursal: formData.sucursal,
         activo_usuario: true,
       });
 
@@ -153,24 +153,31 @@ export function useRegisterForm() {
     } catch (error) {
       // Cerrar loader si está abierto
       Swal.close();
+      setIsSubmitting(false);
       
       // Determinar el mensaje de error
       let errorMessage = "Ocurrió un error al procesar el registro. Por favor, inténtalo de nuevo.";
       
-      if (error.response) {
-        // Error de respuesta del servidor
-        const { data } = error.response;
-        errorMessage = 
-          data?.username?.[0] ||
-          data?.email?.[0] ||
-          data?.username_usuario?.[0] ||
-          data?.email_usuario?.[0] ||
-          data?.detail ||
-          JSON.stringify(data) ||
-          errorMessage;
-      } else if (error.request) {
-        // Error de red
-        errorMessage = "No se pudo conectar con el servidor. Verifica tu conexión a internet.";
+      if (error && typeof error === 'object' && !Array.isArray(error)) {
+        const rawErrorMessage =
+          error.username?.[0] ||
+          error.email?.[0] ||
+          error.username_usuario?.[0] ||
+          error.email_usuario?.[0] ||
+          error.sucursal_usuario?.[0] ||
+          error.detail ||
+          JSON.stringify(error);
+
+        if (rawErrorMessage === 'Enter a valid email address.') {
+            errorMessage = 'Ingresa un correo electrónico válido.';
+        } else if (rawErrorMessage.includes("already exists")) {
+            errorMessage = 'Un usuario con este correo o nombre de usuario ya existe.';
+        } else {
+            errorMessage = rawErrorMessage;
+        }
+
+      } else if (error instanceof Error) {
+        errorMessage = error.message;
       }
 
       // Mostrar error

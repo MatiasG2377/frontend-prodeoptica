@@ -31,31 +31,9 @@ export async function createUsuario(data) {
 }
 
 export async function getSucursales() {
-  try {
-    const res = await fetch(`${BASE_URL}/sucursales/`, {
-      headers: getAuthHeaders(),
-    });
-    
-    if (!res.ok) {
-      const error = await res.json().catch(() => ({}));
-      throw new Error(error.detail || 'Error al cargar las sucursales');
-    }
-    
-    const data = await res.json();
-    
-    // Handle different possible response formats
-    if (Array.isArray(data)) {
-      return data;
-    } else if (data && Array.isArray(data.results)) {
-      return data.results;
-    } else if (data && data.data && Array.isArray(data.data)) {
-      return data.data;
-    }
-    
-    console.warn('Unexpected response format from /sucursales/', data);
-    return [];
-  } catch (error) {
-    console.error('Error in getSucursales:', error);
-    throw error;
-  }
+  const res = await fetch(`${BASE_URL}/sucursales/`, {
+    headers: getAuthHeaders(),
+  });
+  const data = await res.json();
+  return Array.isArray(data) ? data : data.results ?? [];
 }
