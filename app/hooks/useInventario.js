@@ -40,28 +40,7 @@ export default function useInventario() {
   const token =
     typeof window !== "undefined" ? localStorage.getItem("access_token") : null;
 
-  // Debounce de búsqueda
-  useEffect(() => {
-    const timeout = setTimeout(() => {
-      setDebouncedSearch(searchTerm.trim());
-    }, 400);
-    return () => clearTimeout(timeout);
-  }, [searchTerm]);
-
-  useEffect(() => {
-    if (debouncedSearch === "") {
-      cargarProductos();
-    } else {
-      buscarProductos(debouncedSearch);
-    }
-  }, [debouncedSearch, cargarProductos, buscarProductos]);
-
-  useEffect(() => {
-    cargarCategorias();
-    cargarProveedores();
-  }, [cargarCategorias, cargarProveedores]);
-
-  const handleSessionExpired = () => {
+  const handleSessionExpired = useCallback(() => {
     if (window.__isRedirectingToLogin) return true;
     window.__isRedirectingToLogin = true;
 
@@ -73,7 +52,7 @@ export default function useInventario() {
     // Redirigir al login
     window.location.href = "/login?session_expired=1";
     return true;
-  };
+  }, []);
 
   const cargarProductos = useCallback(async () => {
     try {
@@ -97,6 +76,35 @@ export default function useInventario() {
       setLoading(false);
     }
   }, []);
+  // Debounce de búsqueda
+  useEffect(() => {
+    const timeout = setTimeout(() => {
+      setDebouncedSearch(searchTerm.trim());
+    }, 400);
+    return () => clearTimeout(timeout);
+  }, [searchTerm]);
+
+  // Cargar datos iniciales
+  useEffect(() => {
+    const cargarDatos = async () => {
+      await cargarProductos();
+      await cargarCategorias();
+      await cargarProveedores();
+    };
+    cargarDatos();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  // Efecto para búsqueda
+  useEffect(() => {
+    if (debouncedSearch === "") {
+      cargarProductos();
+    } else {
+      buscarProductos(debouncedSearch);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [debouncedSearch]);
+
   const normalizarProducto = (producto) => ({
     ...producto,
     imagen_producto: producto.imagen_url || null, // ⚡ usa la URL que ya viene del backend

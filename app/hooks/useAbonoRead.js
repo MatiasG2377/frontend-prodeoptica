@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useCallback } from "react";
 import Swal from "sweetalert2";
 import {
   fetchAbonos,
@@ -14,7 +14,7 @@ export function useAbonos() {
   const [abonos, setAbonos] = useState([]);
   const [loading, setLoading] = useState(false);
 
-  const cargarAbonos = async () => {
+  const cargarAbonos = useCallback(async () => {
     try {
       setLoading(true);
       const data = await fetchAbonos();
@@ -33,9 +33,9 @@ export function useAbonos() {
     } finally {
       setLoading(false);
     }
-  };
+  }, []);
 
-  const buscarPorNombre = async (nombre, setVentas) => {
+  const buscarPorNombre = useCallback(async (nombre, setVentas) => {
     try {
       setLoading(true);
       const clientes = await buscarUsuariosPorNombre(nombre);
@@ -82,9 +82,9 @@ export function useAbonos() {
     } finally {
       setLoading(false);
     }
-  };
+  }, []);
 
-  const filtrarPorFecha = async (fechaInicio, fechaFin, setVentas) => {
+  const filtrarPorFecha = useCallback(async (fechaInicio, fechaFin, setVentas) => {
     if (!fechaInicio && !fechaFin) {
       cargarAbonos();
       return;
@@ -132,15 +132,15 @@ export function useAbonos() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [cargarAbonos]);
 
-  const obtenerAbonoPorVenta = async (ventaId) => {
+  const obtenerAbonoPorVenta = useCallback(async (ventaId) => {
     return await fetchAbonoPorVenta(ventaId);
-  };
+  }, []);
 
-  const actualizar = async (abonoId, payload) => {
+  const actualizar = useCallback(async (abonoId, payload) => {
     return await actualizarAbono(abonoId, payload);
-  };
+  }, []);
 
   return {
     abonos,

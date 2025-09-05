@@ -94,11 +94,6 @@ export default function AbonosPage() {
     buscarPorNombre(debouncedBusqueda, setVentas);
   }, [debouncedBusqueda, cargarAbonos, fetchVentas, buscarPorNombre]);
 
-  useEffect(() => {
-    cargarAbonos();
-    fetchVentas();
-  }, [cargarAbonos, fetchVentas]);
-
   const filtrarPorFechas = async () => {
     if (!fechaInicio && !fechaFin) {
       cargarAbonos();
