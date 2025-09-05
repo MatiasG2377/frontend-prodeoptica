@@ -42,13 +42,13 @@ export async function updateProducto(id, productoActualizado) {
       formData.append(key, value.id);
     } else if (typeof value === "boolean") {
       formData.append(key, value ? "true" : "false");
-    } else if (key !== "imagen_url" && key !== "imagen_producto") {
+    } else if (key !== "imagen_url") {
       formData.append(key, value);
     }
   }
 
   const res = await fetch(`${BASE_URL}/productos/${id}/`, {
-    method: "PUT",
+    method: "PATCH",
     headers: getAuthHeaders(true), // Indicar que es FormData
     body: formData,
   });
