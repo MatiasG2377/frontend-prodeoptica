@@ -1,13 +1,18 @@
 const BASE_URL = process.env.NEXT_PUBLIC_API_URL;
 
-const getAuthHeaders = () => {
+const getAuthHeaders = (isFormData = false) => {
   const token =
     typeof window !== "undefined" ? localStorage.getItem("access_token") : null;
 
-  return {
-    "Content-Type": "application/json",
+  const headers = {
     ...(token && { Authorization: `Bearer ${token}` }),
   };
+
+  if (!isFormData) {
+    headers["Content-Type"] = "application/json";
+  }
+
+  return headers;
 };
 
 // Buscar cliente y paciente por CI (valida que haya CI)
@@ -87,12 +92,23 @@ export const crearArticuloVenta = async (data) => {
 
 // Actualizar stock de producto
 export const actualizarStockProducto = async (id, data) => {
+  const formData = new FormData();
+  for (const [key, value] of Object.entries(data)) {
+    formData.append(key, value);
+  }
+
   const res = await fetch(`${BASE_URL}/productos/${id}/`, {
     method: "PATCH",
-    headers: getAuthHeaders(),
-    body: JSON.stringify(data),
+    headers: getAuthHeaders(true), // Indicar que es FormData
+    body: formData,
   });
-  if (!res.ok) throw await res.json();
+
+  if (!res.ok) {
+    const errorData = await res.json().catch(() => ({}));
+    console.error("Error al actualizar el stock:", errorData);
+    throw new Error(`Error ${res.status}: ${errorData.detail || res.statusText}`);
+  }
+
   return await res.json();
 };
 

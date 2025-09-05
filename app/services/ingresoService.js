@@ -1,13 +1,18 @@
 const BASE_URL = process.env.NEXT_PUBLIC_API_URL;
 
-const getAuthHeaders = () => {
+const getAuthHeaders = (isFormData = false) => {
   const token =
     typeof window !== "undefined" ? localStorage.getItem("access_token") : null;
 
-  return {
-    "Content-Type": "application/json",
+  const headers = {
     ...(token && { Authorization: `Bearer ${token}` }),
   };
+
+  if (!isFormData) {
+    headers["Content-Type"] = "application/json";
+  }
+
+  return headers;
 };
 
 export async function fetchProductos() {
@@ -26,11 +31,37 @@ export async function fetchProveedores() {
 }
 
 export async function updateProducto(id, productoActualizado) {
-  return await fetch(`${BASE_URL}/productos/${id}/`, {
+  const formData = new FormData();
+
+  for (const [key, value] of Object.entries(productoActualizado)) {
+    if (value === null || value === undefined) {
+      continue; // No agregar valores nulos o indefinidos
+    }
+
+    if (typeof value === "object" && value.id) {
+      formData.append(key, value.id);
+    } else if (typeof value === "boolean") {
+      formData.append(key, value ? "true" : "false");
+    } else if (key !== "imagen_url" && key !== "imagen_producto") {
+      formData.append(key, value);
+    }
+  }
+
+  const res = await fetch(`${BASE_URL}/productos/${id}/`, {
     method: "PUT",
-    headers: getAuthHeaders(),
-    body: JSON.stringify(productoActualizado),
+    headers: getAuthHeaders(true), // Indicar que es FormData
+    body: formData,
   });
+
+  if (!res.ok) {
+    const errorData = await res.json().catch(() => ({})); // Intenta parsear el error
+    console.error("Error al actualizar el producto:", errorData);
+    throw new Error(
+      `Error ${res.status}: ${errorData.detail || res.statusText}`
+    );
+  }
+
+  return await res.json();
 }
 
 export async function registrarMovimiento(data) {

@@ -213,66 +213,59 @@ export default function useInventario() {
       return;
     }
 
+    const loadingSwal = Swal.fire({
+      title: "Guardando...",
+      text: "Por favor espera mientras guardamos el producto.",
+      allowOutsideClick: false,
+      didOpen: () => {
+        Swal.showLoading();
+      },
+    });
+
     try {
-      // Crear un FormData completamente nuevo
-      const form = new FormData();
+      const dataToSend = new FormData();
 
-      // Agregar campos como strings simples
-      form.append("nombre_producto", formData.nombre_producto || "");
-      form.append("codigo_producto", formData.codigo_producto || "");
-      form.append("descripcion_producto", formData.descripcion_producto || "");
-      form.append("marca_producto", formData.marca_producto || "");
-      form.append("categoria_producto", formData.categoria_producto || "");
-      form.append("pvp_producto", formData.pvp_producto || 0);
-      form.append("costo_producto", formData.costo_producto || 0);
-      form.append("cantidad_producto", formData.cantidad_producto || 0);
-      form.append("minimo_producto", formData.minimo_producto || 0);
-      form.append("maximo_producto", formData.maximo_producto || 0);
-      form.append("controla_stock", formData.controla_stock ? "1" : "0");
-      form.append("proveedor_producto", formData.proveedor_producto || "");
-
-      // Agregar la imagen al final si existe
-      if (file) {
-        form.append("imagen", file);
-      }
-
-      const loadingSwal = Swal.fire({
-        title: "Guardando...",
-        text: "Por favor espera mientras guardamos el producto.",
-        allowOutsideClick: false,
-        didOpen: () => {
-          Swal.showLoading();
-        },
-      });
-
-      try {
-        if (formData.id) {
-          // Actualizar producto existente
-          await actualizarProducto(formData.id, form);
-        } else {
-          // Crear nuevo producto
-          await crearProducto(form);
+      for (const [key, value] of Object.entries(formData)) {
+        if (key === "id" || key === "imagen_producto" || value === null || value === undefined) {
+          continue;
         }
 
-        await loadingSwal.close();
-        await cargarProductos();
-        setModalVisible(false);
-
-        await Swal.fire({
-          title: formData.id ? "¡Actualizado!" : "¡Creado!",
-          text: `El producto ha sido ${
-            formData.id ? "actualizado" : "creado"
-          } correctamente.`,
-          icon: "success",
-          confirmButtonColor: "#712b39",
-          timer: 2000,
-          timerProgressBar: true,
-        });
-      } catch (error) {
-        await loadingSwal.close();
-        throw error; // Re-lanzar el error para manejarlo en el catch externo
+        if (typeof value === 'object' && value.id) {
+          dataToSend.append(key, value.id);
+        } else if (typeof value === 'boolean') {
+          dataToSend.append(key, value ? '1' : '0');
+        } else {
+          dataToSend.append(key, value);
+        }
       }
+
+      if (file) {
+        dataToSend.append("imagen", file);
+      }
+
+      if (formData.id) {
+        await actualizarProducto(formData.id, dataToSend);
+      } else {
+        await crearProducto(dataToSend);
+      }
+
+      await loadingSwal.close();
+      await cargarProductos();
+      setModalVisible(false);
+
+      await Swal.fire({
+        title: formData.id ? "¡Actualizado!" : "¡Creado!",
+        text: `El producto ha sido ${
+          formData.id ? "actualizado" : "creado"
+        } correctamente.`,
+        icon: "success",
+        confirmButtonColor: "#712b39",
+        timer: 2000,
+        timerProgressBar: true,
+      });
+
     } catch (error) {
+      await loadingSwal.close();
       if (error.response?.status === 401 || error.response?.status === 403) {
         return handleSessionExpired();
       }
@@ -280,7 +273,7 @@ export default function useInventario() {
       const errorMessage =
         error.response?.data?.detail ||
         error.message ||
-        "No se pudo eliminar el producto. Por favor, inténtalo de nuevo.";
+        "No se pudo guardar el producto. Por favor, inténtalo de nuevo.";
 
       await Swal.fire({
         title: "Error",
