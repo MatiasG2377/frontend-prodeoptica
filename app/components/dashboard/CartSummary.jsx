@@ -19,13 +19,16 @@ export default function CartSummary({
 }) {
   const handleDiscountChange = (e) => {
     const value = e.target.value;
-    // ✅ permitimos vacío, pero guardamos 0 si está vacío
+    // Si el valor está vacío, lo guardamos como string vacío
     if (value === "") {
       setDiscount("");
+    } else if (value === "0") {
+      // Permitir solo 0
+      setDiscount(0);
     } else {
+      // Convertir a número y verificar que sea positivo
       const numValue = Number(value);
-      // Solo actualizamos si el valor es 0 o positivo
-      if (numValue >= 0) {
+      if (!isNaN(numValue) && numValue > 0) {
         setDiscount(numValue);
       }
     }
@@ -70,6 +73,13 @@ export default function CartSummary({
           type="number"
           value={discount}
           onChange={handleDiscountChange}
+          onKeyPress={(e) => {
+            // Prevenir la entrada del signo negativo
+            if (e.key === '-' || e.key === 'e' || e.key === 'E') {
+              e.preventDefault();
+            }
+          }}
+          min="0"
           placeholder="0"
           className="w-full border rounded p-2 mb-3"
         />
