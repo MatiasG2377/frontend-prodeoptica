@@ -16,6 +16,7 @@ export default function CartSummary({
   discount,
   setDiscount,
   total,
+  canFinalize = true,
 }) {
   const handleDiscountChange = (e) => {
     const value = e.target.value;
@@ -89,7 +90,8 @@ export default function CartSummary({
 
         <button
           onClick={onFinalize}
-          className="mt-3 w-full bg-[#712b39] text-white py-2 rounded-lg hover:bg-[#5e242e] transition-colors"
+          disabled={!canFinalize}
+          className="mt-3 w-full bg-[#712b39] text-white py-2 rounded-lg hover:bg-[#5e242e] transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
         >
           Finalizar venta
         </button>
