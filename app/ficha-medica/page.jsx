@@ -1139,9 +1139,11 @@ export default function FichaMedicaCompleta() {
 
             {/* Ficha Médica */}
             {activeTab === "ficha" && (
-              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 min-w-0">
                 {/* RX ANTERIOR */}
-                <table className="w-full border-collapse mt-4">
+                <div className="overflow-x-auto overflow-y-hidden overscroll-x-contain min-w-0 w-full max-w-[100vw] md:max-w-full mt-4 -mx-6 px-6 md:mx-0 md:px-0 touch-pan-x pb-2" style={{ WebkitOverflowScrolling: 'touch' }}>
+                  <div className="min-w-[720px] block">
+                <table className="w-max max-w-none border-collapse">
                   <thead>
                     <tr>
                       <th
@@ -1374,6 +1376,8 @@ export default function FichaMedicaCompleta() {
                     </tr>
                   </tbody>
                 </table>
+                  </div>
+                </div>
 
                 {/* EXAMÉN COMPUTARIZADA */}
                 <div className="overflow-x-auto mt-4">

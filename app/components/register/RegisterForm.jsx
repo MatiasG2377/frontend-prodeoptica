@@ -257,24 +257,21 @@ export default function RegisterForm({
 
         <div>
           <label
-            htmlFor="rolUsuario"
+            htmlFor="rol"
             className="block text-sm font-medium"
             style={{ color: "#712b39" }}
           >
             Rol de Usuario
           </label>
-          <select
+          <input
+            type="hidden"
             id="rol"
-            value={rolUsuario}
-            onChange={(e) => setRolUsuario(e.target.value)}
-            onBlur={handleBlur('rol')}
-            className="w-full mt-1 px-4 py-2 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-[#712b39]"
-            disabled={isSubmitting}
-          >
-            <option value="Usuario">Usuario</option>
-            <option value="Administrador">Administrador</option>
-            <option value="Gerente">Gerente</option>
-          </select>
+            value="Usuario"
+            onChange={(e) => setRolUsuario("Usuario")}
+          />
+          <div className="w-full mt-1 px-4 py-2 border border-gray-300 bg-gray-50 rounded-lg shadow-sm text-gray-700">
+            Usuario
+          </div>
         </div>
 
         <div>
@@ -285,47 +282,15 @@ export default function RegisterForm({
           >
             Sucursal
           </label>
-          {isLoadingSucursales ? (
-            <div className="animate-pulse flex space-x-4">
-              <div className="flex-1 space-y-4 py-1">
-                <div className="h-10 bg-gray-200 rounded w-full"></div>
-              </div>
-            </div>
-          ) : (
-            <>
-              <select
-                id="sucursal"
-                value={sucursalUsuario}
-                onChange={(e) => setSucursalUsuario(e.target.value)}
-                onBlur={() => onFieldBlur("sucursal")}
-                className={`w-full p-2 border rounded-md focus:ring-2 focus:ring-[#712b39] focus:border-[#712b39] outline-none ${
-                  errors.sucursal && touched.sucursal
-                    ? "border-red-500"
-                    : "border-gray-300"
-                } ${isSubmitting ? 'opacity-70 cursor-not-allowed' : ''}`}
-                disabled={isSubmitting || isLoadingSucursales || sucursales.length === 0}
-              >
-                <option value="">
-                  {sucursales.length === 0 && !isLoadingSucursales 
-                    ? 'No hay sucursales disponibles' 
-                    : 'Selecciona una sucursal'}
-                </option>
-                {sucursales.map((sucursal) => (
-                  <option key={sucursal.id} value={sucursal.id}>
-                    {sucursal.nombre || `Sucursal ${sucursal.id}`}
-                  </option>
-                ))}
-              </select>
-              {errors.sucursal && touched.sucursal && (
-                <p className="mt-1 text-sm text-red-600">{errors.sucursal}</p>
-              )}
-              {sucursales.length === 0 && !isLoadingSucursales && (
-                <p className="mt-1 text-sm text-yellow-600">
-                  No se encontraron sucursales. Por favor, intente recargar la página o contacte al administrador.
-                </p>
-              )}
-            </>
-          )}
+          <input
+            type="hidden"
+            id="sucursal"
+            value="Quito"
+            onChange={(e) => setSucursalUsuario("Quito")}
+          />
+          <div className="w-full mt-1 px-4 py-2 border border-gray-300 bg-gray-50 rounded-lg shadow-sm text-gray-700">
+            Quito
+          </div>
         </div>
       </div>
 

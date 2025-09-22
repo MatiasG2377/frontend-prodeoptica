@@ -36,17 +36,16 @@ export default function CartSummary({
 
   return (
     <div
-      className="w-1/4 bg-white p-4 flex flex-col justify-between shadow-lg rounded-l-lg h-full"
-      style={{ minWidth: "250px" }}
+      className="w-1/4 md:w-1/5 lg:w-1/4 min-w-[200px] md:min-w-[220px] lg:min-w-[250px] bg-white p-3 lg:p-4 flex flex-col justify-between shadow-lg rounded-l-lg h-full"
     >
-      <h2 className="text-xl font-bold my-2">Carrito</h2>
+      <h2 className="text-lg lg:text-xl font-bold my-2">Carrito</h2>
 
       {/* Lista de productos */}
       <div className="flex-1 overflow-auto bg-gray-50 p-2 rounded-md shadow-inner">
         {cart.map((item, index) => (
           <div
             key={index}
-            className="flex justify-between items-center mb-2 p-2 bg-gray-100 rounded-lg"
+            className="flex justify-between items-center mb-2 p-2 lg:p-3 bg-gray-100 rounded-lg"
           >
             <div>
               <p className="font-bold">
@@ -81,10 +80,10 @@ export default function CartSummary({
           }}
           min="0"
           placeholder="0"
-          className="w-full border rounded p-2 mb-3"
+          className="w-full border rounded p-2 lg:p-3 mb-3"
         />
 
-        <h3 className="text-lg font-bold">
+        <h3 className="text-base lg:text-lg font-bold">
           Total: ${(total < 0 ? 0 : total).toFixed(2)}
         </h3>
 

@@ -254,26 +254,26 @@ export function CrudTable({ tableName, data, columns, onAdd, onEdit, onDelete, o
 
 
 
-        <div className="p-4 border-b flex justify-between items-center">
+        <div className="p-4 border-b flex justify-between items-center flex-wrap md:flex-nowrap gap-2">
           <div className="flex items-center space-x-4">
-            <div className="relative">
-              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
+            <div className="relative min-w-0">
+              <Search className="absolute left-2 md:left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
               <input
                 type="text"
                 placeholder="Buscar..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
-                className="pl-10 w-64 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#8B4B5C] focus:border-transparent"
+                className="pl-8 md:pl-10 w-40 sm:w-52 md:w-64 max-w-full px-3 py-1.5 md:py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#8B4B5C] focus:border-transparent"
               />
             </div>
           </div>
 
           <button
             onClick={() => openDialog()}
-            className="bg-[#8B4B5C] hover:bg-[#A0566B] text-white px-4 py-2 rounded-md flex items-center space-x-2 transition-colors"
+            className="bg-[#8B4B5C] hover:bg-[#A0566B] text-white px-3 py-1.5 sm:px-4 sm:py-2 rounded-md flex items-center space-x-2 transition-colors"
           >
             <Plus className="h-4 w-4" />
-            <span>Agregar</span>
+            <span className="hidden sm:inline">Agregar</span>
           </button>
         </div>
 

@@ -12,32 +12,34 @@ export default function ModalDetalleVenta({ visible, onClose, venta, articulos }
 </p>
         <p className="mb-4 text-sm">Total: <strong>${parseFloat(venta.total_venta || 0).toFixed(2)}</strong></p>
 
-        <table className="w-full text-sm text-left border">
-          <thead className="bg-gray-100">
-            <tr>
-              <th className="p-2 border">Producto</th>
-              <th className="p-2 border">Cantidad</th>
-              <th className="p-2 border">PVP</th>
-              <th className="p-2 border">Subtotal</th>
-            </tr>
-          </thead>
-          <tbody>
-            {articulos.map((item) => (
-              <tr key={item.id}>
+        <div className="overflow-x-auto">
+          <table className="w-full min-w-[560px] text-sm text-left border">
+            <thead className="bg-gray-100">
+              <tr>
+                <th className="p-2 border">Producto</th>
+                <th className="p-2 border">Cantidad</th>
+                <th className="p-2 border">PVP</th>
+                <th className="p-2 border">Subtotal</th>
+              </tr>
+            </thead>
+            <tbody>
+              {articulos.map((item) => (
+                <tr key={item.id}>
 <td className="p-2 border max-w-xs overflow-hidden overflow-ellipsis whitespace-nowrap" title={item.nombre_producto || ""}>
   {item.nombre_producto || "—"}
 </td>
 
 
-                <td className="p-2 border">{item.cantidad_articuloVenta}</td>
-                <td className="p-2 border">${parseFloat(item.pvp_articuloVenta).toFixed(2)}</td>
-                <td className="p-2 border">
-                  ${(item.cantidad_articuloVenta * parseFloat(item.pvp_articuloVenta)).toFixed(2)}
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
+                  <td className="p-2 border">{item.cantidad_articuloVenta}</td>
+                  <td className="p-2 border">${parseFloat(item.pvp_articuloVenta).toFixed(2)}</td>
+                  <td className="p-2 border">
+                    ${(item.cantidad_articuloVenta * parseFloat(item.pvp_articuloVenta)).toFixed(2)}
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
 
         <button
           className="absolute top-2 right-2 text-gray-600 hover:text-black"
