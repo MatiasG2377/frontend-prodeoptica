@@ -59,8 +59,16 @@ export default function FormularioIngreso({
             className="w-full p-3 border rounded-lg mb-4"
             placeholder="Buscar producto..."
             value={searchProducto}
-            onChange={(e) => setSearchProducto(e.target.value)}
+            onChange={(e) => {
+              if (e.target.value.length <= 60) {
+                setSearchProducto(e.target.value);
+              }
+            }}
+            maxLength={60}
           />
+          <div className="text-xs text-gray-500 text-right">
+            {searchProducto?.length || 0}/60 caracteres
+          </div>
           {filteredProductos.length > 0 && (
             <ul className="max-h-40 overflow-y-auto border rounded-lg shadow-md">
               {filteredProductos.map((producto) => (
@@ -115,7 +123,18 @@ export default function FormularioIngreso({
             className="w-full p-3 border rounded-lg"
             placeholder="Cantidad a ingresar"
             value={cantidadIngreso}
-            onChange={(e) => setCantidadIngreso(e.target.value)}
+            onChange={(e) => {
+              const value = e.target.value;
+              if (value === '' || (parseInt(value) >= 0 && value >= 0)) {
+                setCantidadIngreso(value);
+              }
+            }}
+            min="0"
+            onKeyDown={(e) => {
+              if (e.key === '-' || e.key === 'e' || e.key === 'E') {
+                e.preventDefault();
+              }
+            }}
           />
         </div>
         <div className="col-span-1">
@@ -127,7 +146,19 @@ export default function FormularioIngreso({
             className="w-full p-3 border rounded-lg"
             placeholder="Costo unitario"
             value={costoUnitario}
-            onChange={(e) => setCostoUnitario(e.target.value)}
+            onChange={(e) => {
+              const value = e.target.value;
+              if (value === '' || (parseFloat(value) >= 0 && value >= 0)) {
+                setCostoUnitario(value);
+              }
+            }}
+            min="0"
+            step="0.01"
+            onKeyDown={(e) => {
+              if (e.key === '-' || e.key === 'e' || e.key === 'E') {
+                e.preventDefault();
+              }
+            }}
           />
         </div>
 

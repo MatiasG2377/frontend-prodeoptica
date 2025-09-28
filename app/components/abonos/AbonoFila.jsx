@@ -9,7 +9,6 @@ import {
 export default function AbonoFila({
   abono,
   onAbonar,
-  onEditar,
   onVerVenta,
   onVerHistorialAbonos,
   loading,
@@ -68,29 +67,17 @@ export default function AbonoFila({
       <td className="p-3">{abono.metodo_pago}</td>
       <td className="p-3 text-center space-x-2">
         {abono.tieneAbono && !abono.completado && (
-          <>
-            <button
-              onClick={(e) => {
-                e.stopPropagation(); // Evita que el clic suba al <tr>
-                onAbonar(abono);
-              }}
-              className="text-yellow-600 hover:text-yellow-800 transition"
-              disabled={loading}
-            >
-              <MinusCircle className="w-5 h-5 mx-auto" />
-            </button>
-
-            <button
-              onClick={(e) => {
-                e.stopPropagation(); // Evita que el clic suba al <tr>
-                onEditar(abono);
-              }}
-              className="text-blue-600 hover:text-blue-800 transition"
-              disabled={loading}
-            >
-              <Info className="w-5 h-5 mx-auto" />
-            </button>
-          </>
+          <button
+            onClick={(e) => {
+              e.stopPropagation(); // Evita que el clic suba al <tr>
+              onAbonar(abono);
+            }}
+            className="text-yellow-600 hover:text-yellow-800 transition"
+            disabled={loading}
+            title="Reducir abono"
+          >
+            <MinusCircle className="w-5 h-5 mx-auto" />
+          </button>
         )}
         {abono.completado && (
           <span className="text-green-600 font-semibold">Completado</span>

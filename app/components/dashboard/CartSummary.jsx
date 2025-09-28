@@ -16,30 +16,37 @@ export default function CartSummary({
   discount,
   setDiscount,
   total,
+  canFinalize = true,
 }) {
   const handleDiscountChange = (e) => {
     const value = e.target.value;
-    // ✅ permitimos vacío, pero guardamos 0 si está vacío
+    // Si el valor está vacío, lo guardamos como string vacío
     if (value === "") {
       setDiscount("");
+    } else if (value === "0") {
+      // Permitir solo 0
+      setDiscount(0);
     } else {
-      setDiscount(Number(value));
+      // Convertir a número y verificar que sea positivo
+      const numValue = Number(value);
+      if (!isNaN(numValue) && numValue > 0) {
+        setDiscount(numValue);
+      }
     }
   };
 
   return (
     <div
-      className="w-1/4 bg-white p-4 flex flex-col justify-between shadow-lg rounded-l-lg h-full"
-      style={{ minWidth: "250px" }}
+      className="w-1/4 md:w-1/5 lg:w-1/4 min-w-[200px] md:min-w-[220px] lg:min-w-[250px] bg-white p-3 lg:p-4 flex flex-col justify-between shadow-lg rounded-l-lg h-full"
     >
-      <h2 className="text-xl font-bold my-2">Carrito</h2>
+      <h2 className="text-lg lg:text-xl font-bold my-2">Carrito</h2>
 
       {/* Lista de productos */}
       <div className="flex-1 overflow-auto bg-gray-50 p-2 rounded-md shadow-inner">
         {cart.map((item, index) => (
           <div
             key={index}
-            className="flex justify-between items-center mb-2 p-2 bg-gray-100 rounded-lg"
+            className="flex justify-between items-center mb-2 p-2 lg:p-3 bg-gray-100 rounded-lg"
           >
             <div>
               <p className="font-bold">
@@ -60,23 +67,31 @@ export default function CartSummary({
       {/* Descuento y total */}
       <div className="mt-4">
         <label className="block text-sm font-medium text-gray-700 mb-1">
-          Valor del descuento:
+          Descuento:
         </label>
         <input
           type="number"
           value={discount}
           onChange={handleDiscountChange}
+          onKeyPress={(e) => {
+            // Prevenir la entrada del signo negativo
+            if (e.key === '-' || e.key === 'e' || e.key === 'E') {
+              e.preventDefault();
+            }
+          }}
+          min="0"
           placeholder="0"
-          className="w-full border rounded p-2 mb-3"
+          className="w-full border rounded p-2 lg:p-3 mb-3"
         />
 
-        <h3 className="text-lg font-bold">
+        <h3 className="text-base lg:text-lg font-bold">
           Total: ${(total < 0 ? 0 : total).toFixed(2)}
         </h3>
 
         <button
           onClick={onFinalize}
-          className="mt-3 w-full bg-[#712b39] text-white py-2 rounded-lg hover:bg-[#5e242e] transition-colors"
+          disabled={!canFinalize}
+          className="mt-3 w-full bg-[#712b39] text-white py-2 rounded-lg hover:bg-[#5e242e] transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
         >
           Finalizar venta
         </button>

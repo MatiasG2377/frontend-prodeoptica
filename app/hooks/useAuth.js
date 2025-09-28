@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useMemo } from "react";
 import { useRouter } from "next/navigation";
 import Swal from "sweetalert2";
 
@@ -8,12 +8,11 @@ export function useAuth({ redirectToLogin = true } = {}) {
   const router = useRouter();
   const [user, setUser] = useState(null);
 
-  const accessToken =
-    typeof window !== "undefined" ? localStorage.getItem("access_token") : null;
-  const refreshToken =
-    typeof window !== "undefined"
-      ? localStorage.getItem("refresh_token")
-      : null;
+  // Memoize the tokens to prevent them from changing between renders
+  const { accessToken, refreshToken } = useMemo(() => ({
+    accessToken: typeof window !== "undefined" ? localStorage.getItem("access_token") : null,
+    refreshToken: typeof window !== "undefined" ? localStorage.getItem("refresh_token") : null
+  }), []); // Empty dependency array means these values are computed once on mount
 
   useEffect(() => {
     if (!accessToken) {
@@ -41,7 +40,7 @@ export function useAuth({ redirectToLogin = true } = {}) {
         window.location.href = "/login?session_expired=1";
       }
     }
-  }, [accessToken]);
+  }, [accessToken, redirectToLogin]);
 
   const logout = async () => {
     if (!refreshToken) {

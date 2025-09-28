@@ -15,26 +15,28 @@ export default function HistorialAbonosModal({ visible, onClose, abonos }) {
             No hay abonos registrados para esta venta.
           </p>
         ) : (
-          <table className="w-full border text-left">
-            <thead className="bg-gray-100">
-              <tr>
-                <th className="p-2 border-b">Fecha</th>
-                <th className="p-2 border-b">Monto</th>
-              </tr>
-            </thead>
-            <tbody>
-              {abonos.map((abono) => (
-                <tr key={abono.id}>
-                  <td className="p-2 border-b">
-                    {format(new Date(abono.fecha), "dd/MM/yyyy HH:mm")}
-                  </td>
-                  <td className="p-2 border-b">
-                    ${parseFloat(abono.monto).toFixed(2)}
-                  </td>
+          <div className="overflow-x-auto">
+            <table className="w-full min-w-[420px] border text-left">
+              <thead className="bg-gray-100">
+                <tr>
+                  <th className="p-2 border-b">Fecha</th>
+                  <th className="p-2 border-b">Monto</th>
                 </tr>
-              ))}
-            </tbody>
-          </table>
+              </thead>
+              <tbody>
+                {abonos.map((abono) => (
+                  <tr key={abono.id}>
+                    <td className="p-2 border-b">
+                      {format(new Date(abono.fecha), "dd/MM/yyyy HH:mm")}
+                    </td>
+                    <td className="p-2 border-b">
+                      ${parseFloat(abono.monto).toFixed(2)}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
         )}
 
         <button

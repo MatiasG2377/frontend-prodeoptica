@@ -34,8 +34,15 @@ export default function AbonoForm({
             </label>
             <input
               type="number"
+              min="0"
               value={montoAbono}
-              onChange={(e) => setMontoAbono(e.target.value)}
+              onChange={(e) => {
+                const value = e.target.value;
+                // Only update if the value is empty or a non-negative number
+                if (value === '' || parseFloat(value) >= 0) {
+                  setMontoAbono(value);
+                }
+              }}
               className="block w-full px-4 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-[#712b39] focus:border-[#712b39]"
             />
           </div>

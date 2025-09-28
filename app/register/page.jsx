@@ -23,6 +23,7 @@ export default function RegisterPage() {
   const { logout } = useAuth();
 
   const {
+    // Form data
     username,
     setUsername,
     email,
@@ -39,8 +40,17 @@ export default function RegisterPage() {
     setRolUsuario,
     sucursalUsuario,
     setSucursalUsuario,
+    
+    // Form state
     sucursales,
+    errors,
+    isSubmitting,
+    touched,
+    
+    // Handlers
     handleSubmit,
+    onFieldBlur,
+    validateField
   } = useRegisterForm(router);
 
   return (
@@ -64,6 +74,7 @@ export default function RegisterPage() {
             </h1>
 
             <RegisterForm
+              // Form data
               username={username}
               setUsername={setUsername}
               email={email}
@@ -81,7 +92,14 @@ export default function RegisterPage() {
               sucursalUsuario={sucursalUsuario}
               setSucursalUsuario={setSucursalUsuario}
               sucursales={sucursales}
+              
+              // Form state
               handleSubmit={handleSubmit}
+              errors={errors}
+              isSubmitting={isSubmitting}
+              onFieldBlur={onFieldBlur}
+              validateField={validateField}
+              touched={touched}
             />
           </div>
         </div>

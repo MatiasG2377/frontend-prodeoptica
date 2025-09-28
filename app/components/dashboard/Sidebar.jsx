@@ -13,7 +13,7 @@ export default function Sidebar({
 }) {
   return (
     <div
-      className="w-1/5 bg-[#712b39] text-white flex flex-col border-r border-black h-full"
+      className="hidden md:flex md:w-1/5 bg-[#712b39] text-white flex-col border-r border-black h-full"
       style={{ minWidth: "200px" }}
     >
       <div className="flex-1 flex items-center">

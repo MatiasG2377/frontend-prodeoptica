@@ -31,7 +31,7 @@ export default function useIngresoProducto(router) {
       return;
     }
     cargarProveedores();
-  }, []);
+  }, [router]);
 
   const cargarProveedores = async () => {
     try {
@@ -149,6 +149,9 @@ export default function useIngresoProducto(router) {
         marca_producto: marca || selectedProducto.marca_producto,
         metodo_valoracion: metodoValoracion,
       };
+      delete productoActualizado.imagen_producto;
+      delete productoActualizado.imagen_url;
+      delete productoActualizado.imagen;
 
       await updateProducto(selectedProducto.id, productoActualizado);
 

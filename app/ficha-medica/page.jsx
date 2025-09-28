@@ -78,9 +78,25 @@ export default function FichaMedicaCompleta() {
     direccion: "",
     telefono_celular: "",
     antecedentes: "",
-    correo_cliente: "", // <-- NUEVO
-    informacion_cliente: "", // <-- NUEVO
+    correo_cliente: "",
+    informacion_cliente: "",
   });
+
+  const [errors, setErrors] = useState({
+    telefono_celular: '',
+    correo_cliente: ''
+  });
+  
+  const validateEmail = (email) => {
+    const re = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    return re.test(String(email).toLowerCase());
+  };
+  
+  const validatePhone = (phone) => {
+    // Permite números, +, -, espacios y paréntesis
+    const re = /^[0-9+\-\s()]*$/;
+    return re.test(phone);
+  };
 
   const printRef = useRef();
 
@@ -167,8 +183,63 @@ export default function FichaMedicaCompleta() {
   const [resultadosApellido, setResultadosApellido] = useState([]);
   const [mostrarModal, setMostrarModal] = useState(false);
 
+  // Función para validar que solo contenga letras y espacios
+  const validarSoloLetras = (valor) => {
+    return /^[A-Za-zÁÉÍÓÚáéíóúñÑ\s]+$/.test(valor);
+  };
+
+  // Función para validar que solo contenga números enteros positivos
+  const validarSoloNumeros = (valor) => {
+    return /^\d*$/.test(valor);
+  };
+
+  // Función para manejar cambios en el campo de búsqueda por apellido
+  const handleBuscarApellidoChange = (value) => {
+    if (value === '' || validarSoloLetras(value)) {
+      setApellidoBusqueda(value);
+    }
+  };
+
   const handlePacienteChange = (field, value) => {
-    setPaciente((prev) => ({ ...prev, [field]: value }));
+    // Aplicar validaciones según el campo
+    if (['apellidos', 'nombres'].includes(field)) {
+      // Solo permite letras y espacios para apellidos y nombres
+      if (value === '' || validarSoloLetras(value)) {
+        setPaciente(prev => ({ ...prev, [field]: value }));
+      }
+    } else if (field === 'ci_paciente') {
+      // Permite cualquier carácter en la cédula
+      setPaciente(prev => ({ ...prev, [field]: value }));
+    } else if (field === 'telefono_celular') {
+      // Validar teléfono
+      setErrors(prev => ({
+        ...prev,
+        telefono_celular: value ? (validatePhone(value) ? '' : 'Ingrese un número de teléfono válido') : ''
+      }));
+      if (value === '' || validatePhone(value)) {
+        setPaciente(prev => ({ ...prev, [field]: value }));
+      }
+    } else if (field === 'correo_cliente') {
+      // Actualizar el valor primero
+      setPaciente(prev => ({ ...prev, [field]: value }));
+      
+      // Validar solo si hay contenido
+      if (value && value.trim() !== '') {
+        setErrors(prev => ({
+          ...prev,
+          correo_cliente: validateEmail(value) ? '' : 'Ingrese un correo electrónico válido'
+        }));
+      } else {
+        // Limpiar el error si el campo está vacío
+        setErrors(prev => ({
+          ...prev,
+          correo_cliente: ''
+        }));
+      }
+    } else {
+      // Para otros campos, actualizar sin validación
+      setPaciente(prev => ({ ...prev, [field]: value }));
+    }
   };
 
   const handleOpticalDataChange = (field, value) => {
@@ -177,6 +248,25 @@ export default function FichaMedicaCompleta() {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    
+    // Validar campos antes de enviar
+    const newErrors = {
+      telefono_celular: paciente.telefono_celular ? (validatePhone(paciente.telefono_celular) ? '' : 'Ingrese un número de teléfono válido') : ''
+    };
+    
+    // Solo validar correo si tiene contenido
+    if (paciente.correo_cliente && paciente.correo_cliente.trim() !== '') {
+      newErrors.correo_cliente = validateEmail(paciente.correo_cliente) ? '' : 'Ingrese un correo electrónico válido';
+    } else {
+      newErrors.correo_cliente = '';
+    }
+    
+    setErrors(newErrors);
+    
+    // Verificar si hay errores
+    if (Object.values(newErrors).some(error => error)) {
+      return; // Detener el envío si hay errores
+    }
 
     const token = localStorage.getItem("access_token");
 
@@ -830,8 +920,8 @@ export default function FichaMedicaCompleta() {
                       type="text"
                       id="buscar_apellido"
                       className="border border-gray-300 rounded-md px-3 py-2 w-full focus:outline-none focus:ring-1 focus:ring-[#7d2a3f]"
-                      value={apellidoBusqueda || paciente.apellidos}
-                      onChange={(e) => setApellidoBusqueda(e.target.value)}
+                      value={apellidoBusqueda}
+                      onChange={(e) => handleBuscarApellidoChange(e.target.value)}
                       placeholder="Ej: Gamboa"
                     />
                     <button
@@ -933,17 +1023,23 @@ export default function FichaMedicaCompleta() {
                   >
                     Teléfono Celular
                   </label>
-                  <input
-                    type="tel"
-                    id="telefono_celular"
-                    className="border border-gray-300 rounded-md px-3 py-2 w-full focus:outline-none focus:ring-1 focus:ring-[#7d2a3f]"
-                    value={paciente.telefono_celular}
-                    onChange={(e) =>
-                      handlePacienteChange("telefono_celular", e.target.value)
-                    }
-                    placeholder="Ej: 099-123-4567"
-                  />
+                  <div>
+                    <input
+                      type="text"
+                      id="telefono_celular"
+                      className={`border ${errors.telefono_celular ? 'border-red-500' : 'border-gray-300'} rounded-md px-3 py-2 w-full focus:outline-none focus:ring-1 focus:ring-[#7d2a3f]`}
+                      value={paciente.telefono_celular || ""}
+                      onChange={(e) =>
+                        handlePacienteChange("telefono_celular", e.target.value)
+                      }
+                      placeholder="Ej: +56 9 1234 5678"
+                    />
+                    {errors.telefono_celular && (
+                      <p className="mt-1 text-sm text-red-600">{errors.telefono_celular}</p>
+                    )}
+                  </div>
                 </div>
+
                 {/* Correo Electrónico */}
                 <div className="form-group">
                   <label
@@ -952,17 +1048,23 @@ export default function FichaMedicaCompleta() {
                   >
                     Correo Electrónico
                   </label>
-                  <input
-                    type="email"
-                    id="correo_cliente"
-                    className="border border-gray-300 rounded-md px-3 py-2 w-full focus:outline-none focus:ring-1 focus:ring-[#7d2a3f]"
-                    value={paciente.correo_cliente || ""}
-                    onChange={(e) =>
-                      handlePacienteChange("correo_cliente", e.target.value)
-                    }
-                    placeholder="Ej: ejemplo@email.com"
-                  />
+                  <div>
+                    <input
+                      type="email"
+                      id="correo_cliente"
+                      className={`border ${errors.correo_cliente ? 'border-red-500' : 'border-gray-300'} rounded-md px-3 py-2 w-full focus:outline-none focus:ring-1 focus:ring-[#7d2a3f]`}
+                      value={paciente.correo_cliente || ""}
+                      onChange={(e) =>
+                        handlePacienteChange("correo_cliente", e.target.value)
+                      }
+                      placeholder="ejemplo@correo.com"
+                    />
+                    {errors.correo_cliente && (
+                      <p className="mt-1 text-sm text-red-600">{errors.correo_cliente}</p>
+                    )}
+                  </div>
                 </div>
+
                 {/* Dirección */}
                 <div className="form-group md:col-span-2">
                   <label
@@ -1037,9 +1139,11 @@ export default function FichaMedicaCompleta() {
 
             {/* Ficha Médica */}
             {activeTab === "ficha" && (
-              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 min-w-0">
                 {/* RX ANTERIOR */}
-                <table className="w-full border-collapse mt-4">
+                <div className="overflow-x-auto overflow-y-hidden overscroll-x-contain min-w-0 w-full max-w-[100vw] md:max-w-full mt-4 -mx-6 px-6 md:mx-0 md:px-0 touch-pan-x pb-2" style={{ WebkitOverflowScrolling: 'touch' }}>
+                  <div className="min-w-[720px] block">
+                <table className="w-max max-w-none border-collapse">
                   <thead>
                     <tr>
                       <th
@@ -1272,6 +1376,8 @@ export default function FichaMedicaCompleta() {
                     </tr>
                   </tbody>
                 </table>
+                  </div>
+                </div>
 
                 {/* EXAMÉN COMPUTARIZADA */}
                 <div className="overflow-x-auto mt-4">

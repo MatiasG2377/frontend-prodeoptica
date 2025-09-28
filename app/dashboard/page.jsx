@@ -46,12 +46,26 @@ export default function DashboardPage() {
       return;
     }
 
+    // Bloquear si el descuento supera el subtotal
+    if ((Number(discount) || 0) > subtotal) {
+      Swal.fire({
+        title: "Descuento inválido",
+        text: "El descuento no puede ser mayor al valor total de la compra.",
+        icon: "error",
+        confirmButtonColor: "#712b39",
+      });
+      return;
+    }
+
     localStorage.setItem("cart", JSON.stringify(cart));
-    localStorage.setItem("discount", discount); // ✅ guardamos el descuento
+    localStorage.setItem("discount", appliedDiscount); // ✅ guardar descuento limitado al subtotal
     router.push("/venta");
   };
 
-  const total = calculateTotal(cart) - (Number(discount) || 0); // ✅ Aplicar descuento
+  const subtotal = calculateTotal(cart);
+  const appliedDiscount = Math.min(Number(discount) || 0, subtotal); // ✅ No permitir descuento mayor al subtotal
+  const total = subtotal - appliedDiscount; // ✅ Aplicar descuento limitado
+  const canFinalize = (Number(discount) || 0) <= subtotal; // ✅ Habilitar botón solo si el descuento es válido
 
   return (
     <ProtectedRoute>
@@ -98,6 +112,7 @@ export default function DashboardPage() {
             // ✅ Pasamos el descuento y su setter al componente
             discount={discount}
             setDiscount={setDiscount}
+            canFinalize={canFinalize}
           />
         </div>
 

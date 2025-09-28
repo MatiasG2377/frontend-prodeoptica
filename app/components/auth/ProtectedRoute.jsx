@@ -16,7 +16,7 @@ export default function ProtectedRoute({ children }) {
     if (hasMounted && !isAuthenticated) {
       router.push("/login");
     }
-  }, [hasMounted, isAuthenticated]);
+  }, [hasMounted, isAuthenticated, router]); // <-- agrega router aquí
 
   if (!hasMounted || !isAuthenticated) return null;
 

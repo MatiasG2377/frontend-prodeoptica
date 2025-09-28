@@ -22,7 +22,7 @@ import AbonoModal from "../components/abonos/AbonoModal";
 import { useAbonos } from "../hooks/useAbonoRead";
 import ModalDetalleVenta from "../components/abonos/ModalDetalleVenta";
 import { useAuth } from "../hooks/useAuth";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import ProtectedRoute from "../components/auth/ProtectedRoute";
 import Swal from "sweetalert2";
 import HistorialAbonosModal from "../components/abonos/HistorialAbonosModal";
@@ -61,6 +61,21 @@ export default function AbonosPage() {
     });
   };
 
+  const fetchVentas = useCallback(async () => {
+    try {
+      const res = await fetch(`${BASE_URL}/ventas/`, {
+        headers: {
+          Authorization: `Bearer ${localStorage.getItem("access_token")}`,
+        },
+      });
+
+      if (!res.ok) throw new Error("Error al cargar ventas");
+
+      const data = await res.json();
+      setVentas(data.results || data);
+    } catch (error) {}
+  }, []);
+
   useEffect(() => {
     const timer = setTimeout(() => {
       setDebouncedBusqueda(busqueda);
@@ -77,27 +92,7 @@ export default function AbonosPage() {
     }
 
     buscarPorNombre(debouncedBusqueda, setVentas);
-  }, [debouncedBusqueda]);
-
-  const fetchVentas = async () => {
-    try {
-      const res = await fetch(`${BASE_URL}/ventas/`, {
-        headers: {
-          Authorization: `Bearer ${localStorage.getItem("access_token")}`,
-        },
-      });
-
-      if (!res.ok) throw new Error("Error al cargar ventas");
-
-      const data = await res.json();
-      setVentas(data.results || data);
-    } catch (error) {}
-  };
-
-  useEffect(() => {
-    cargarAbonos();
-    fetchVentas();
-  }, []);
+  }, [debouncedBusqueda, cargarAbonos, fetchVentas, buscarPorNombre]);
 
   const filtrarPorFechas = async () => {
     if (!fechaInicio && !fechaFin) {
@@ -170,6 +165,23 @@ export default function AbonosPage() {
       cancelButtonColor: "#D1D5DB",
       confirmButtonText: "Registrar abono",
       cancelButtonText: "Cancelar",
+      didOpen: () => {
+        const input = Swal.getInput();
+
+        // Bloquea el signo "-" en el teclado
+        input.addEventListener("keypress", (e) => {
+          if (e.key === "-" || e.key === "+") {
+            e.preventDefault();
+          }
+        });
+
+        // Evita que se pegue un valor negativo
+        input.addEventListener("input", () => {
+          if (parseFloat(input.value) < 0) {
+            input.value = input.value.replace("-", "");
+          }
+        });
+      },
     });
 
     if (!cantidad) return;

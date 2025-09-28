@@ -38,3 +38,47 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# Entornos virtuales de Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+
+# Entornos virtuales comunes
+venv/
+env/
+ENV/
+.venv/
+.env/
+.venv*
+.env*
+
+# Entorno virtual específico de Python (venv)
+venv/
+
+# Entorno virtual específico de Python (pipenv)
+.Python
+pip-log.txt
+pip-delete-this-directory.txt
+
+# Variables de entorno
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
