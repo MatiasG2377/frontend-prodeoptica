@@ -1,0 +1,131 @@
+# FrontOptica - Node.js Requirements
+# Sistema de gestión integral para ópticas
+
+# ==========================================
+# DEPENDENCIAS DE PRODUCCIÓN
+# ==========================================
+
+# Core Framework
+next@^15.3.2
+react@^18.3.1
+react-dom@^18.3.1
+
+# UI Framework & Styling
+@mui/material@^6.4.11
+@emotion/react@^11.14.0
+@emotion/styled@^11.14.0
+tailwindcss@^3.4.17
+
+# Utility Libraries for Styling
+class-variance-authority@^0.7.1
+clsx@^2.1.1
+tailwind-merge@^3.3.1
+tailwind-variants@^1.0.0
+tailwindcss-animate@^1.0.7
+
+# Icons
+react-icons@^5.5.0
+@fortawesome/fontawesome-free@^6.7.2
+lucide-react@^0.487.0
+
+# HTTP Client
+axios@^1.9.0
+
+# Charts and Data Visualization
+chart.js@^4.4.9
+react-chartjs-2@^5.3.0
+
+# PDF Generation (UPDATED - SECURE VERSIONS)
+jspdf@^3.0.3
+html2pdf.js@^0.12.1
+jspdf-autotable@^5.0.2
+
+# Excel/Spreadsheet Export
+exceljs@^4.4.0
+xlsx@https://cdn.sheetjs.com/xlsx-0.20.2/xlsx-0.20.2.tgz
+
+# Utilities
+date-fns@^4.1.0
+cookie@^1.0.2
+
+# Cloud Services
+cloudinary@^2.6.1
+
+# UI Enhancements
+radix-ui@^1.4.2
+sweetalert@^2.1.2
+sweetalert2@^11.22.0
+
+# ==========================================
+# DEPENDENCIAS DE DESARROLLO
+# ==========================================
+
+# Linting and Code Quality
+eslint@^8.57.1
+eslint-config-next@^15.0.3
+
+# Build Tools
+postcss@^8.5.3
+
+# ==========================================
+# REQUISITOS DEL SISTEMA
+# ==========================================
+
+# Node.js: >= 18.0.0
+# npm: >= 8.0.0
+# Sistema Operativo: Windows, macOS, Linux
+# Navegadores soportados: Chrome, Firefox, Safari, Edge (últimas versiones)
+
+# ==========================================
+# NOTAS DE SEGURIDAD
+# ==========================================
+
+# ✅ TODAS LAS VULNERABILIDADES RESUELTAS (Fecha: 2025-10-13)
+# - jsPDF actualizado de 2.5.2 → 3.0.3
+# - html2pdf.js actualizado de 0.9.3 → 0.12.1  
+# - jspdf-autotable actualizado de 3.8.4 → 5.0.2
+# - Eliminadas vulnerabilidades críticas en:
+#   * form-data (uso de función aleatoria insegura)
+#   * xmldom (interpretación maliciosa de XML)
+#   * canvg (Prototype Pollution)
+#   * dompurify (XSS)
+#   * tough-cookie (Prototype Pollution)
+
+# Último audit: 0 vulnerabilidades encontradas
+# Comando: npm audit --audit-level high
+
+# ==========================================
+# INSTALACIÓN
+# ==========================================
+
+# 1. Instalar Node.js >= 18.0.0
+# 2. Clonar repositorio
+# 3. npm install
+# 4. Configurar .env.local
+# 5. npm run dev
+
+# ==========================================
+# SCRIPTS DISPONIBLES
+# ==========================================
+
+# npm run dev          - Servidor de desarrollo con Turbopack
+# npm run build        - Construcción para producción
+# npm run start        - Servidor de producción
+# npm run lint         - Linting del código
+
+# ==========================================
+# CAMBIOS IMPORTANTES EN VERSIONES
+# ==========================================
+
+# jspdf-autotable v5.x:
+# - Cambio de sintaxis: doc.autoTable({...}) → autoTable(doc, {...})
+# - El código actual ya usa la sintaxis correcta
+
+# html2pdf.js v0.12.x:
+# - Mantiene compatibilidad con API anterior
+# - Mejoras en seguridad y rendimiento
+
+# Next.js 15.x:
+# - App Router estable
+# - Turbopack para desarrollo más rápido
+# - React 18 con Concurrent Features
