@@ -82,16 +82,21 @@ export default function FichaMedicaCompleta() {
     informacion_cliente: "",
   });
 
+  // Id del paciente seleccionado/encontrado para evitar duplicados
+  const [pacienteSeleccionadoId, setPacienteSeleccionadoId] = useState(null);
+
   const [errors, setErrors] = useState({
-    telefono_celular: '',
-    correo_cliente: ''
+    telefono_celular: "",
+    correo_cliente: "",
+    nombres: "",
+    apellidos: "",
   });
-  
+
   const validateEmail = (email) => {
     const re = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     return re.test(String(email).toLowerCase());
   };
-  
+
   const validatePhone = (phone) => {
     // Permite números, +, -, espacios y paréntesis
     const re = /^[0-9+\-\s()]*$/;
@@ -195,50 +200,61 @@ export default function FichaMedicaCompleta() {
 
   // Función para manejar cambios en el campo de búsqueda por apellido
   const handleBuscarApellidoChange = (value) => {
-    if (value === '' || validarSoloLetras(value)) {
+    if (value === "" || validarSoloLetras(value)) {
       setApellidoBusqueda(value);
     }
   };
 
   const handlePacienteChange = (field, value) => {
     // Aplicar validaciones según el campo
-    if (['apellidos', 'nombres'].includes(field)) {
+    if (["apellidos", "nombres"].includes(field)) {
       // Solo permite letras y espacios para apellidos y nombres
-      if (value === '' || validarSoloLetras(value)) {
-        setPaciente(prev => ({ ...prev, [field]: value }));
-      }
-    } else if (field === 'ci_paciente') {
-      // Permite cualquier carácter en la cédula
-      setPaciente(prev => ({ ...prev, [field]: value }));
-    } else if (field === 'telefono_celular') {
-      // Validar teléfono
-      setErrors(prev => ({
-        ...prev,
-        telefono_celular: value ? (validatePhone(value) ? '' : 'Ingrese un número de teléfono válido') : ''
-      }));
-      if (value === '' || validatePhone(value)) {
-        setPaciente(prev => ({ ...prev, [field]: value }));
-      }
-    } else if (field === 'correo_cliente') {
-      // Actualizar el valor primero
-      setPaciente(prev => ({ ...prev, [field]: value }));
-      
-      // Validar solo si hay contenido
-      if (value && value.trim() !== '') {
-        setErrors(prev => ({
+      if (value === "" || validarSoloLetras(value)) {
+        setPaciente((prev) => ({ ...prev, [field]: value }));
+        // Validación requerida inline
+        setErrors((prev) => ({
           ...prev,
-          correo_cliente: validateEmail(value) ? '' : 'Ingrese un correo electrónico válido'
+          [field]: value.trim() === "" ? "Campo obligatorio" : "",
+        }));
+      }
+    } else if (field === "ci_paciente") {
+      // Permite cualquier carácter en la cédula
+      setPaciente((prev) => ({ ...prev, [field]: value }));
+    } else if (field === "telefono_celular") {
+      // Validar teléfono
+      setErrors((prev) => ({
+        ...prev,
+        telefono_celular: value
+          ? validatePhone(value)
+            ? ""
+            : "Ingrese un número de teléfono válido"
+          : "",
+      }));
+      if (value === "" || validatePhone(value)) {
+        setPaciente((prev) => ({ ...prev, [field]: value }));
+      }
+    } else if (field === "correo_cliente") {
+      // Actualizar el valor primero
+      setPaciente((prev) => ({ ...prev, [field]: value }));
+
+      // Validar solo si hay contenido
+      if (value && value.trim() !== "") {
+        setErrors((prev) => ({
+          ...prev,
+          correo_cliente: validateEmail(value)
+            ? ""
+            : "Ingrese un correo electrónico válido",
         }));
       } else {
         // Limpiar el error si el campo está vacío
-        setErrors(prev => ({
+        setErrors((prev) => ({
           ...prev,
-          correo_cliente: ''
+          correo_cliente: "",
         }));
       }
     } else {
       // Para otros campos, actualizar sin validación
-      setPaciente(prev => ({ ...prev, [field]: value }));
+      setPaciente((prev) => ({ ...prev, [field]: value }));
     }
   };
 
@@ -248,28 +264,223 @@ export default function FichaMedicaCompleta() {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    
+
     // Validar campos antes de enviar
     const newErrors = {
-      telefono_celular: paciente.telefono_celular ? (validatePhone(paciente.telefono_celular) ? '' : 'Ingrese un número de teléfono válido') : ''
+      telefono_celular: paciente.telefono_celular
+        ? validatePhone(paciente.telefono_celular)
+          ? ""
+          : "Ingrese un número de teléfono válido"
+        : "",
     };
-    
+
     // Solo validar correo si tiene contenido
-    if (paciente.correo_cliente && paciente.correo_cliente.trim() !== '') {
-      newErrors.correo_cliente = validateEmail(paciente.correo_cliente) ? '' : 'Ingrese un correo electrónico válido';
+    if (paciente.correo_cliente && paciente.correo_cliente.trim() !== "") {
+      newErrors.correo_cliente = validateEmail(paciente.correo_cliente)
+        ? ""
+        : "Ingrese un correo electrónico válido";
     } else {
-      newErrors.correo_cliente = '';
+      newErrors.correo_cliente = "";
     }
-    
+
     setErrors(newErrors);
-    
+
     // Verificar si hay errores
-    if (Object.values(newErrors).some(error => error)) {
+    if (Object.values(newErrors).some((error) => error)) {
       return; // Detener el envío si hay errores
+    }
+
+    // Validación: nombres y apellidos obligatorios
+    if (!paciente.nombres?.trim() || !paciente.apellidos?.trim()) {
+      Swal.fire({
+        icon: "warning",
+        title: "Datos obligatorios",
+        text: "Nombres y Apellidos son obligatorios.",
+        confirmButtonColor: "#7d2a3f",
+      });
+      return;
     }
 
     const token = localStorage.getItem("access_token");
 
+    // 0) Si ya hay un paciente seleccionado, ACTUALIZAR en lugar de crear
+    if (pacienteSeleccionadoId) {
+      // Actualizar entidad Paciente (endpoint de detalle existente en rutas)
+      const updatePayload = {
+        ci_paciente: paciente.ci_paciente || null,
+        nombres_paciente: paciente.nombres || "",
+        apellidos_paciente: paciente.apellidos || "",
+        fecha_nacimiento: paciente.fecha_nacimiento || null,
+        ocupacion_paciente: paciente.ocupacion || "",
+        direccion_paciente: paciente.direccion || "",
+        telefono_paciente: paciente.telefono_celular || "",
+        antecedentes_paciente: paciente.antecedentes || "",
+      };
+
+      try {
+        const resUp = await fetch(`${BASE_URL}/pacientes/${pacienteSeleccionadoId}/`, {
+          method: "PATCH",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
+          body: JSON.stringify(updatePayload),
+        });
+
+        if (!resUp.ok) {
+          const t = await resUp.text();
+          throw new Error(t || "No se pudo actualizar el paciente");
+        }
+
+        Swal.fire({
+          icon: "success",
+          title: "Paciente actualizado",
+          text: "Los datos del paciente se actualizaron correctamente.",
+          confirmButtonColor: "#7d2a3f",
+        });
+
+        setPaciente({
+          ci_paciente: "",
+          apellidos: "",
+          nombres: "",
+          fecha_nacimiento: "",
+          ocupacion: "",
+          direccion: "",
+          telefono_celular: "",
+          antecedentes: "",
+          correo_cliente: "",
+          informacion_cliente: "",
+        });
+        setPacienteSeleccionadoId(null);
+      } catch (err) {
+        Swal.fire({
+          icon: "error",
+          title: "Error",
+          text: `Error actualizando paciente: ${err.message}`,
+          confirmButtonColor: "#7d2a3f",
+        });
+      }
+      return;
+    }
+
+    // 1) Intentar resolver paciente existente antes de crear
+    try {
+      let encontradoId = null;
+      // A: por CI
+      if (paciente.ci_paciente && paciente.ci_paciente.trim() !== "") {
+        const urlCI = `${BASE_URL}/cliente-paciente/buscar/?ci=${encodeURIComponent(
+          paciente.ci_paciente.trim()
+        )}`;
+        const resCI = await fetch(urlCI, {
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
+        });
+        if (resCI.ok) {
+          const dataCI = await resCI.json();
+          if (dataCI.paciente?.id) {
+            encontradoId = dataCI.paciente.id;
+          }
+        }
+      }
+
+      // B: por nombres+apellidos (+fecha) si no encontrado por CI
+      if (!encontradoId && paciente.nombres && paciente.apellidos) {
+        const params = new URLSearchParams();
+        params.append("nombres", (paciente.nombres || "").trim());
+        params.append("apellidos", (paciente.apellidos || "").trim());
+        if (paciente.fecha_nacimiento) {
+          params.append("fecha_nacimiento", paciente.fecha_nacimiento);
+        }
+        const urlNA = `${BASE_URL}/cliente-paciente/buscar/?${params.toString()}`;
+        const resNA = await fetch(urlNA, {
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
+        });
+        if (resNA.ok) {
+          const dataNA = await resNA.json();
+          if (dataNA.paciente?.id) {
+            encontradoId = dataNA.paciente.id;
+          } else if (Array.isArray(dataNA.pacientes)) {
+            if (dataNA.pacientes.length === 1 && dataNA.pacientes[0]?.id) {
+              encontradoId = dataNA.pacientes[0].id;
+            } else if (dataNA.pacientes.length > 1) {
+              Swal.fire({
+                icon: "info",
+                title: "Varios pacientes encontrados",
+                text: "Refina la búsqueda (agrega CI o fecha de nacimiento) o usa 'Buscar por Apellido' para seleccionar uno.",
+                confirmButtonColor: "#7d2a3f",
+              });
+              return;
+            }
+          }
+        }
+      }
+
+      if (encontradoId) {
+        // Actualizar directamente el paciente encontrado (entidad Paciente)
+        const updatePayload = {
+          ci_paciente: paciente.ci_paciente || null,
+          nombres_paciente: paciente.nombres || "",
+          apellidos_paciente: paciente.apellidos || "",
+          fecha_nacimiento: paciente.fecha_nacimiento || null,
+          ocupacion_paciente: paciente.ocupacion || "",
+          direccion_paciente: paciente.direccion || "",
+          telefono_paciente: paciente.telefono_celular || "",
+          antecedentes_paciente: paciente.antecedentes || "",
+        };
+
+        const resUp = await fetch(`${BASE_URL}/pacientes/${encontradoId}/`, {
+          method: "PATCH",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
+          body: JSON.stringify(updatePayload),
+        });
+
+        if (!resUp.ok) {
+          const t = await resUp.text();
+          throw new Error(t || "No se pudo actualizar el paciente");
+        }
+
+        setPacienteSeleccionadoId(encontradoId);
+        Swal.fire({
+          icon: "success",
+          title: "Paciente actualizado",
+          text: "Se actualizó el paciente existente. No se creó uno nuevo.",
+          confirmButtonColor: "#7d2a3f",
+        });
+
+        setPaciente({
+          ci_paciente: "",
+          apellidos: "",
+          nombres: "",
+          fecha_nacimiento: "",
+          ocupacion: "",
+          direccion: "",
+          telefono_celular: "",
+          antecedentes: "",
+          correo_cliente: "",
+          informacion_cliente: "",
+        });
+        setPacienteSeleccionadoId(null);
+        return;
+      }
+    } catch (err) {
+      Swal.fire({
+        icon: "error",
+        title: "Error",
+        text: "Hubo un problema al buscar el paciente.",
+        confirmButtonColor: "#7d2a3f",
+      });
+      return;
+    }
+
+    // 2) Si no existe, crear nuevo paciente
     const payload = {
       ci: paciente.ci_paciente,
       nombre_cliente: paciente.nombres,
@@ -280,7 +491,7 @@ export default function FichaMedicaCompleta() {
       informacion_cliente: paciente.informacion_cliente,
       nombres_paciente: paciente.nombres,
       apellidos_paciente: paciente.apellidos,
-      fecha_nacimiento: paciente.fecha_nacimiento,
+      fecha_nacimiento: paciente.fecha_nacimiento || null,
       ocupacion_paciente: paciente.ocupacion,
       direccion_paciente: paciente.direccion,
       telefono_paciente: paciente.telefono_celular,
@@ -302,7 +513,7 @@ export default function FichaMedicaCompleta() {
         throw new Error("Error al guardar paciente: " + errorText);
       }
 
-      await res.json(); // puedes usarlo si necesitas los datos
+      await res.json();
 
       Swal.fire({
         icon: "success",
@@ -323,6 +534,8 @@ export default function FichaMedicaCompleta() {
         correo_cliente: "",
         informacion_cliente: "",
       });
+
+      setPacienteSeleccionadoId(null);
     } catch (error) {
       Swal.fire({
         icon: "error",
@@ -491,36 +704,76 @@ export default function FichaMedicaCompleta() {
   };
   const guardarFichaCompleta = async () => {
     try {
-      // Validación básica
-      if (!paciente.nombres || !paciente.apellidos) {
+      // Validación: Nombres y Apellidos obligatorios (fecha de nacimiento sigue siendo opcional)
+      if (!paciente.nombres?.trim() || !paciente.apellidos?.trim()) {
         Swal.fire({
           icon: "warning",
-          title: "Datos incompletos",
-          text: "Por favor completa cédula, nombres y apellidos del paciente.",
+          title: "Datos obligatorios",
+          text: "Nombres y Apellidos son obligatorios para continuar.",
           confirmButtonColor: "#7d2a3f",
         });
         return;
       }
 
       const token = localStorage.getItem("access_token");
-      let pacienteId = null;
+      // Si ya hay un paciente seleccionado (por búsqueda previa o desde modal), usarlo
+      let pacienteId = pacienteSeleccionadoId || null;
 
-      // 1. Verificar si el paciente ya existe
+      // 1. Resolver paciente existente con el nuevo endpoint de búsqueda
       try {
-        const buscarRes = await fetch(
-          `${BASE_URL}/cliente-paciente/buscar/?ci=${paciente.ci_paciente}`,
-          {
+        // Intento A: buscar por CI si está presente
+        if (paciente.ci_paciente && paciente.ci_paciente.trim() !== "") {
+          const urlCI = `${BASE_URL}/cliente-paciente/buscar/?ci=${encodeURIComponent(
+            paciente.ci_paciente.trim()
+          )}`;
+          const resCI = await fetch(urlCI, {
             headers: {
               "Content-Type": "application/json",
               Authorization: `Bearer ${token}`,
             },
-          }
-        );
+          });
 
-        if (buscarRes.ok) {
-          const data = await buscarRes.json();
-          if (data.paciente && data.paciente.id) {
-            pacienteId = data.paciente.id;
+          if (resCI.ok) {
+            const dataCI = await resCI.json();
+            if (dataCI.paciente?.id) {
+              pacienteId = dataCI.paciente.id;
+            }
+          }
+        }
+
+        // Intento B (fallback): si no se encontró por CI, buscar por nombres+apellidos (+fecha)
+        if (!pacienteId && paciente.nombres && paciente.apellidos) {
+          const paramsNA = new URLSearchParams();
+          paramsNA.append("nombres", (paciente.nombres || "").trim());
+          paramsNA.append("apellidos", (paciente.apellidos || "").trim());
+          if (paciente.fecha_nacimiento) {
+            paramsNA.append("fecha_nacimiento", paciente.fecha_nacimiento);
+          }
+          const urlNA = `${BASE_URL}/cliente-paciente/buscar/?${paramsNA.toString()}`;
+          const resNA = await fetch(urlNA, {
+            headers: {
+              "Content-Type": "application/json",
+              Authorization: `Bearer ${token}`,
+            },
+          });
+
+          if (resNA.ok) {
+            const dataNA = await resNA.json();
+            if (dataNA.paciente?.id) {
+              pacienteId = dataNA.paciente.id;
+            } else if (Array.isArray(dataNA.pacientes)) {
+              if (dataNA.pacientes.length === 1 && dataNA.pacientes[0]?.id) {
+                pacienteId = dataNA.pacientes[0].id;
+              } else if (dataNA.pacientes.length > 1) {
+                Swal.fire({
+                  icon: "info",
+                  title: "Varios pacientes encontrados",
+                  text: "Refine la búsqueda (agregue CI o fecha de nacimiento) o seleccione desde 'Buscar por Apellido'.",
+                  confirmButtonColor: "#7d2a3f",
+                });
+                return; // Evitar duplicados; forzar al usuario a precisar/seleccionar
+              }
+            }
           }
         }
       } catch (error) {
@@ -530,6 +783,7 @@ export default function FichaMedicaCompleta() {
           text: "Hubo un problema al buscar el paciente.",
           confirmButtonColor: "#7d2a3f",
         });
+        return;
       }
 
       // 2. Si no existe, crear nuevo paciente/cliente
@@ -544,7 +798,7 @@ export default function FichaMedicaCompleta() {
           informacion_cliente: paciente.informacion_cliente,
           nombres_paciente: paciente.nombres,
           apellidos_paciente: paciente.apellidos,
-          fecha_nacimiento: paciente.fecha_nacimiento,
+          fecha_nacimiento: paciente.fecha_nacimiento || null,
           ocupacion_paciente: paciente.ocupacion,
           direccion_paciente: paciente.direccion,
           telefono_paciente: paciente.telefono_celular,
@@ -561,7 +815,7 @@ export default function FichaMedicaCompleta() {
         });
 
         if (!res.ok) {
-          const errorData = await res.json();
+          await res.text();
           Swal.fire({
             icon: "error",
             title: "Error",
@@ -572,7 +826,8 @@ export default function FichaMedicaCompleta() {
         }
 
         const data = await res.json();
-        pacienteId = data.paciente.id;
+        pacienteId = data.paciente?.id || data.id; // tolerante a distintas respuestas
+        setPacienteSeleccionadoId(pacienteId);
       }
 
       // 3. Preparar y enviar ficha médica
@@ -752,6 +1007,11 @@ export default function FichaMedicaCompleta() {
       apellido_cliente: entry.cliente?.apellido_cliente || "",
     });
 
+    // Fijar el id del paciente seleccionado para usarlo al crear la ficha
+    if (entry.paciente?.id) {
+      setPacienteSeleccionadoId(entry.paciente.id);
+    }
+
     setFichasPasadas(entry.historial_fichas || []);
     setMostrarModal(false);
   };
@@ -921,7 +1181,9 @@ export default function FichaMedicaCompleta() {
                       id="buscar_apellido"
                       className="border border-gray-300 rounded-md px-3 py-2 w-full focus:outline-none focus:ring-1 focus:ring-[#7d2a3f]"
                       value={apellidoBusqueda}
-                      onChange={(e) => handleBuscarApellidoChange(e.target.value)}
+                      onChange={(e) =>
+                        handleBuscarApellidoChange(e.target.value)
+                      }
                       placeholder="Ej: Gamboa"
                     />
                     <button
@@ -952,6 +1214,9 @@ export default function FichaMedicaCompleta() {
                     }
                     required
                   />
+                  {errors.nombres ? (
+                    <p className="text-sm text-red-600 mt-1">{errors.nombres}</p>
+                  ) : null}
                 </div>
 
                 {/* Apellidos - NUEVO CAMPO */}
@@ -972,6 +1237,9 @@ export default function FichaMedicaCompleta() {
                     }
                     required
                   />
+                  {errors.apellidos ? (
+                    <p className="text-sm text-red-600 mt-1">{errors.apellidos}</p>
+                  ) : null}
                 </div>
 
                 {/* Fecha de Nacimiento */}
@@ -1027,7 +1295,11 @@ export default function FichaMedicaCompleta() {
                     <input
                       type="text"
                       id="telefono_celular"
-                      className={`border ${errors.telefono_celular ? 'border-red-500' : 'border-gray-300'} rounded-md px-3 py-2 w-full focus:outline-none focus:ring-1 focus:ring-[#7d2a3f]`}
+                      className={`border ${
+                        errors.telefono_celular
+                          ? "border-red-500"
+                          : "border-gray-300"
+                      } rounded-md px-3 py-2 w-full focus:outline-none focus:ring-1 focus:ring-[#7d2a3f]`}
                       value={paciente.telefono_celular || ""}
                       onChange={(e) =>
                         handlePacienteChange("telefono_celular", e.target.value)
@@ -1035,7 +1307,9 @@ export default function FichaMedicaCompleta() {
                       placeholder="Ej: +56 9 1234 5678"
                     />
                     {errors.telefono_celular && (
-                      <p className="mt-1 text-sm text-red-600">{errors.telefono_celular}</p>
+                      <p className="mt-1 text-sm text-red-600">
+                        {errors.telefono_celular}
+                      </p>
                     )}
                   </div>
                 </div>
@@ -1052,7 +1326,11 @@ export default function FichaMedicaCompleta() {
                     <input
                       type="email"
                       id="correo_cliente"
-                      className={`border ${errors.correo_cliente ? 'border-red-500' : 'border-gray-300'} rounded-md px-3 py-2 w-full focus:outline-none focus:ring-1 focus:ring-[#7d2a3f]`}
+                      className={`border ${
+                        errors.correo_cliente
+                          ? "border-red-500"
+                          : "border-gray-300"
+                      } rounded-md px-3 py-2 w-full focus:outline-none focus:ring-1 focus:ring-[#7d2a3f]`}
                       value={paciente.correo_cliente || ""}
                       onChange={(e) =>
                         handlePacienteChange("correo_cliente", e.target.value)
@@ -1060,7 +1338,9 @@ export default function FichaMedicaCompleta() {
                       placeholder="ejemplo@correo.com"
                     />
                     {errors.correo_cliente && (
-                      <p className="mt-1 text-sm text-red-600">{errors.correo_cliente}</p>
+                      <p className="mt-1 text-sm text-red-600">
+                        {errors.correo_cliente}
+                      </p>
                     )}
                   </div>
                 </div>
@@ -1141,242 +1421,248 @@ export default function FichaMedicaCompleta() {
             {activeTab === "ficha" && (
               <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 min-w-0">
                 {/* RX ANTERIOR */}
-                <div className="overflow-x-auto overflow-y-hidden overscroll-x-contain min-w-0 w-full max-w-[100vw] md:max-w-full mt-4 -mx-6 px-6 md:mx-0 md:px-0 touch-pan-x pb-2" style={{ WebkitOverflowScrolling: 'touch' }}>
-                  <div className="min-w-[720px] block">
-                <table className="w-max max-w-none border-collapse">
-                  <thead>
-                    <tr>
-                      <th
-                        colSpan={6}
-                        className="p-2 border border-gray-300 bg-[#7d2a3f] text-white text-left"
-                      >
-                        RX ANTERIOR
-                      </th>
-                    </tr>
-                    <tr className="bg-gray-100">
-                      <th className="p-2 border border-gray-300">Ojo</th>
-                      <th className="p-2 border border-gray-300">AV SC</th>
-                      <th className="p-2 border border-gray-300">Esfera</th>
-                      <th className="p-2 border border-gray-300">Cilindro</th>
-                      <th className="p-2 border border-gray-300">
-                        Eje(grados)
-                      </th>
-                      <th className="p-2 border border-gray-300">AV CC</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {/* OD */}
-                    <tr>
-                      <td className="p-2 border border-gray-300 bg-gray-100 font-medium">
-                        O.D.
-                      </td>
-                      <td className="p-2 border border-gray-300">
-                        <input
-                          type="text"
-                          className="w-full p-1 border border-gray-300 rounded"
-                          value={opticalData.rx_anterior_od_avsc || ""}
-                          onChange={(e) =>
-                            handleOpticalDataChange(
-                              "rx_anterior_od_avsc",
-                              e.target.value
-                            )
-                          }
-                        />
-                      </td>
-                      <td className="p-2 border border-gray-300">
-                        <input
-                          type="text"
-                          className="w-full p-1 border border-gray-300 rounded"
-                          value={opticalData.rs_od_esfera || ""}
-                          onChange={(e) =>
-                            handleOpticalDataChange(
-                              "rs_od_esfera",
-                              e.target.value
-                            )
-                          }
-                        />
-                      </td>
-                      <td className="p-2 border border-gray-300">
-                        <input
-                          type="text"
-                          className="w-full p-1 border border-gray-300 rounded"
-                          value={opticalData.rs_od_cilindro || ""}
-                          onChange={(e) =>
-                            handleOpticalDataChange(
-                              "rs_od_cilindro",
-                              e.target.value
-                            )
-                          }
-                        />
-                      </td>
-                      <td className="p-2 border border-gray-300">
-                        <input
-                          type="text"
-                          className="w-full p-1 border border-gray-300 rounded"
-                          value={opticalData.rs_od_eje || ""}
-                          onChange={(e) =>
-                            handleOpticalDataChange("rs_od_eje", e.target.value)
-                          }
-                        />
-                      </td>
-                      <td className="p-2 border border-gray-300">
-                        <input
-                          type="text"
-                          className="w-full p-1 border border-gray-300 rounded"
-                          value={opticalData.rs_od_correccion || ""}
-                          onChange={(e) =>
-                            handleOpticalDataChange(
-                              "rs_od_correccion",
-                              e.target.value
-                            )
-                          }
-                        />
-                      </td>
-                    </tr>
+                <div className="mt-4">
+                  <table className="w-full border-collapse">
+                      <thead>
+                        <tr>
+                          <th
+                            colSpan={6}
+                            className="p-3 border border-gray-300 bg-[#7d2a3f] text-white text-left"
+                          >
+                            RX ANTERIOR
+                          </th>
+                        </tr>
+                        <tr className="bg-gray-100">
+                          <th className="p-3 border border-gray-300">Ojo</th>
+                          <th className="p-3 border border-gray-300">AV SC</th>
+                          <th className="p-3 border border-gray-300">Esfera</th>
+                          <th className="p-3 border border-gray-300">
+                            Cilindro
+                          </th>
+                          <th className="p-3 border border-gray-300">
+                            Eje(grados)
+                          </th>
+                          <th className="p-3 border border-gray-300">AV CC</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {/* OD */}
+                        <tr>
+                          <td className="p-3 border border-gray-300 bg-gray-100 font-medium">
+                            O.D.
+                          </td>
+                          <td className="p-3 border border-gray-300">
+                            <input
+                              type="text"
+                              className="w-full p-2 border border-gray-300 rounded"
+                              value={opticalData.rx_anterior_od_avsc || ""}
+                              onChange={(e) =>
+                                handleOpticalDataChange(
+                                  "rx_anterior_od_avsc",
+                                  e.target.value
+                                )
+                              }
+                            />
+                          </td>
+                          <td className="p-3 border border-gray-300">
+                            <input
+                              type="text"
+                              className="w-full p-2 border border-gray-300 rounded"
+                              value={opticalData.rs_od_esfera || ""}
+                              onChange={(e) =>
+                                handleOpticalDataChange(
+                                  "rs_od_esfera",
+                                  e.target.value
+                                )
+                              }
+                            />
+                          </td>
+                          <td className="p-3 border border-gray-300">
+                            <input
+                              type="text"
+                              className="w-full p-2 border border-gray-300 rounded"
+                              value={opticalData.rs_od_cilindro || ""}
+                              onChange={(e) =>
+                                handleOpticalDataChange(
+                                  "rs_od_cilindro",
+                                  e.target.value
+                                )
+                              }
+                            />
+                          </td>
+                          <td className="p-3 border border-gray-300">
+                            <input
+                              type="text"
+                              className="w-full p-2 border border-gray-300 rounded"
+                              value={opticalData.rs_od_eje || ""}
+                              onChange={(e) =>
+                                handleOpticalDataChange(
+                                  "rs_od_eje",
+                                  e.target.value
+                                )
+                              }
+                            />
+                          </td>
+                          <td className="p-3 border border-gray-300">
+                            <input
+                              type="text"
+                              className="w-full p-2 border border-gray-300 rounded"
+                              value={opticalData.rs_od_correccion || ""}
+                              onChange={(e) =>
+                                handleOpticalDataChange(
+                                  "rs_od_correccion",
+                                  e.target.value
+                                )
+                              }
+                            />
+                          </td>
+                        </tr>
 
-                    {/* OI */}
-                    <tr>
-                      <td className="p-2 border border-gray-300 bg-gray-100 font-medium">
-                        O.I.
-                      </td>
-                      <td className="p-2 border border-gray-300">
-                        <input
-                          type="text"
-                          className="w-full p-1 border border-gray-300 rounded"
-                          value={opticalData.rx_anterior_oi_avsc || ""}
-                          onChange={(e) =>
-                            handleOpticalDataChange(
-                              "rx_anterior_oi_avsc",
-                              e.target.value
-                            )
-                          }
-                        />
-                      </td>
-                      <td className="p-2 border border-gray-300">
-                        <input
-                          type="text"
-                          className="w-full p-1 border border-gray-300 rounded"
-                          value={opticalData.rs_oi_esfera || ""}
-                          onChange={(e) =>
-                            handleOpticalDataChange(
-                              "rs_oi_esfera",
-                              e.target.value
-                            )
-                          }
-                        />
-                      </td>
-                      <td className="p-2 border border-gray-300">
-                        <input
-                          type="text"
-                          className="w-full p-1 border border-gray-300 rounded"
-                          value={opticalData.rs_oi_cilindro || ""}
-                          onChange={(e) =>
-                            handleOpticalDataChange(
-                              "rs_oi_cilindro",
-                              e.target.value
-                            )
-                          }
-                        />
-                      </td>
-                      <td className="p-2 border border-gray-300">
-                        <input
-                          type="text"
-                          className="w-full p-1 border border-gray-300 rounded"
-                          value={opticalData.rs_oi_eje || ""}
-                          onChange={(e) =>
-                            handleOpticalDataChange("rs_oi_eje", e.target.value)
-                          }
-                        />
-                      </td>
-                      <td className="p-2 border border-gray-300">
-                        <input
-                          type="text"
-                          className="w-full p-1 border border-gray-300 rounded"
-                          value={opticalData.rs_oi_correccion || ""}
-                          onChange={(e) =>
-                            handleOpticalDataChange(
-                              "rs_oi_correccion",
-                              e.target.value
-                            )
-                          }
-                        />
-                      </td>
-                    </tr>
+                        {/* OI */}
+                        <tr>
+                          <td className="p-3 border border-gray-300 bg-gray-100 font-medium">
+                            O.I.
+                          </td>
+                          <td className="p-3 border border-gray-300">
+                            <input
+                              type="text"
+                              className="w-full p-2 border border-gray-300 rounded"
+                              value={opticalData.rx_anterior_oi_avsc || ""}
+                              onChange={(e) =>
+                                handleOpticalDataChange(
+                                  "rx_anterior_oi_avsc",
+                                  e.target.value
+                                )
+                              }
+                            />
+                          </td>
+                          <td className="p-3 border border-gray-300">
+                            <input
+                              type="text"
+                              className="w-full p-2 border border-gray-300 rounded"
+                              value={opticalData.rs_oi_esfera || ""}
+                              onChange={(e) =>
+                                handleOpticalDataChange(
+                                  "rs_oi_esfera",
+                                  e.target.value
+                                )
+                              }
+                            />
+                          </td>
+                          <td className="p-3 border border-gray-300">
+                            <input
+                              type="text"
+                              className="w-full p-2 border border-gray-300 rounded"
+                              value={opticalData.rs_oi_cilindro || ""}
+                              onChange={(e) =>
+                                handleOpticalDataChange(
+                                  "rs_oi_cilindro",
+                                  e.target.value
+                                )
+                              }
+                            />
+                          </td>
+                          <td className="p-3 border border-gray-300">
+                            <input
+                              type="text"
+                              className="w-full p-2 border border-gray-300 rounded"
+                              value={opticalData.rs_oi_eje || ""}
+                              onChange={(e) =>
+                                handleOpticalDataChange(
+                                  "rs_oi_eje",
+                                  e.target.value
+                                )
+                              }
+                            />
+                          </td>
+                          <td className="p-3 border border-gray-300">
+                            <input
+                              type="text"
+                              className="w-full p-2 border border-gray-300 rounded"
+                              value={opticalData.rs_oi_correccion || ""}
+                              onChange={(e) =>
+                                handleOpticalDataChange(
+                                  "rs_oi_correccion",
+                                  e.target.value
+                                )
+                              }
+                            />
+                          </td>
+                        </tr>
 
-                    {/* ADD */}
-                    <tr>
-                      <td className="p-2 border border-gray-300 bg-gray-100 font-medium">
-                        A.D.D
-                      </td>
-                      <td className="p-2 border border-gray-300">
-                        <input
-                          type="text"
-                          className="w-full p-1 border border-gray-300 rounded"
-                          value={opticalData.rx_anterior_add_avsc || ""}
-                          onChange={(e) =>
-                            handleOpticalDataChange(
-                              "rx_anterior_add_avsc",
-                              e.target.value
-                            )
-                          }
-                        />
-                      </td>
-                      <td className="p-2 border border-gray-300">
-                        <input
-                          type="text"
-                          className="w-full p-1 border border-gray-300 rounded"
-                          value={opticalData.rs_add_esfera || ""}
-                          onChange={(e) =>
-                            handleOpticalDataChange(
-                              "rs_add_esfera",
-                              e.target.value
-                            )
-                          }
-                        />
-                      </td>
-                      <td className="p-2 border border-gray-300">
-                        <input
-                          type="text"
-                          className="w-full p-1 border border-gray-300 rounded"
-                          value={opticalData.rs_add_cilindro || ""}
-                          onChange={(e) =>
-                            handleOpticalDataChange(
-                              "rs_add_cilindro",
-                              e.target.value
-                            )
-                          }
-                        />
-                      </td>
-                      <td className="p-2 border border-gray-300">
-                        <input
-                          type="text"
-                          className="w-full p-1 border border-gray-300 rounded"
-                          value={opticalData.rs_add_eje || ""}
-                          onChange={(e) =>
-                            handleOpticalDataChange(
-                              "rs_add_eje",
-                              e.target.value
-                            )
-                          }
-                        />
-                      </td>
-                      <td className="p-2 border border-gray-300">
-                        <input
-                          type="text"
-                          className="w-full p-1 border border-gray-300 rounded"
-                          value={opticalData.rs_add_correccion || ""}
-                          onChange={(e) =>
-                            handleOpticalDataChange(
-                              "rs_add_correccion",
-                              e.target.value
-                            )
-                          }
-                        />
-                      </td>
-                    </tr>
-                  </tbody>
-                </table>
-                  </div>
+                        {/* ADD */}
+                        <tr>
+                          <td className="p-3 border border-gray-300 bg-gray-100 font-medium">
+                            A.D.D
+                          </td>
+                          <td className="p-3 border border-gray-300">
+                            <input
+                              type="text"
+                              className="w-full p-2 border border-gray-300 rounded"
+                              value={opticalData.rx_anterior_add_avsc || ""}
+                              onChange={(e) =>
+                                handleOpticalDataChange(
+                                  "rx_anterior_add_avsc",
+                                  e.target.value
+                                )
+                              }
+                            />
+                          </td>
+                          <td className="p-3 border border-gray-300">
+                            <input
+                              type="text"
+                              className="w-full p-2 border border-gray-300 rounded"
+                              value={opticalData.rs_add_esfera || ""}
+                              onChange={(e) =>
+                                handleOpticalDataChange(
+                                  "rs_add_esfera",
+                                  e.target.value
+                                )
+                              }
+                            />
+                          </td>
+                          <td className="p-3 border border-gray-300">
+                            <input
+                              type="text"
+                              className="w-full p-2 border border-gray-300 rounded"
+                              value={opticalData.rs_add_cilindro || ""}
+                              onChange={(e) =>
+                                handleOpticalDataChange(
+                                  "rs_add_cilindro",
+                                  e.target.value
+                                )
+                              }
+                            />
+                          </td>
+                          <td className="p-3 border border-gray-300">
+                            <input
+                              type="text"
+                              className="w-full p-2 border border-gray-300 rounded"
+                              value={opticalData.rs_add_eje || ""}
+                              onChange={(e) =>
+                                handleOpticalDataChange(
+                                  "rs_add_eje",
+                                  e.target.value
+                                )
+                              }
+                            />
+                          </td>
+                          <td className="p-3 border border-gray-300">
+                            <input
+                              type="text"
+                              className="w-full p-2 border border-gray-300 rounded"
+                              value={opticalData.rs_add_correccion || ""}
+                              onChange={(e) =>
+                                handleOpticalDataChange(
+                                  "rs_add_correccion",
+                                  e.target.value
+                                )
+                              }
+                            />
+                          </td>
+                        </tr>
+                      </tbody>
+                  </table>
                 </div>
 
                 {/* EXAMÉN COMPUTARIZADA */}
