@@ -1,0 +1,66 @@
+[lun 13/10/2025 16:08:18,72] Iniciando frontend... 
+
+> frontoptica@0.1.0 start
+> next start
+
+   ▲ Next.js 15.5.4
+   - Local:        http://localhost:3000
+   - Network:      http://192.168.100.5:3000
+
+ ✓ Starting...
+ ✓ Ready in 1420ms
+[lun 13/10/2025 16:13:36,01] Iniciando frontend... 
+
+> frontoptica@0.1.0 start
+> next start
+
+   ▲ Next.js 15.5.4
+   - Local:        http://localhost:3000
+   - Network:      http://192.168.100.5:3000
+
+ ✓ Starting...
+ ✓ Ready in 1193ms
+[lun 13/10/2025 16:18:04,46] Iniciando frontend... 
+
+> frontoptica@0.1.0 start
+> next start
+
+   ▲ Next.js 15.5.4
+   - Local:        http://localhost:3000
+   - Network:      http://192.168.100.5:3000
+
+ ✓ Starting...
+ ✓ Ready in 988ms
+[lun 13/10/2025 16:20:09,94] Iniciando frontend... 
+
+> frontoptica@0.1.0 start
+> next start
+
+   ▲ Next.js 15.5.4
+   - Local:        http://localhost:3000
+   - Network:      http://192.168.100.5:3000
+
+ ✓ Starting...
+ ✓ Ready in 1330ms
+[lun 13/10/2025 16:24:07,16] Iniciando frontend... 
+
+> frontoptica@0.1.0 start
+> next start
+
+   ▲ Next.js 15.5.4
+   - Local:        http://localhost:3000
+   - Network:      http://192.168.100.5:3000
+
+ ✓ Starting...
+ ✓ Ready in 1833ms
+^C^C[lun 13/10/2025 16:32:02,15] Iniciando frontend... 
+
+> frontoptica@0.1.0 start
+> next start
+
+   ▲ Next.js 15.5.4
+   - Local:        http://localhost:3000
+   - Network:      http://192.168.100.5:3000
+
+ ✓ Starting...
+ ✓ Ready in 1991ms
