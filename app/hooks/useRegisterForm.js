@@ -2,7 +2,11 @@ import { useState, useEffect, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import Swal from "sweetalert2";
 import { validarCamposRegistro, sanitizeInput } from "../utils/validaciones";
-import { registerAccount, createUsuario, getSucursales } from "../services/registerService";
+import {
+  registerAccount,
+  createUsuario,
+  getSucursales,
+} from "../services/registerService";
 
 export function useRegisterForm() {
   const router = useRouter();
@@ -15,7 +19,7 @@ export function useRegisterForm() {
     apellido: "",
     telefono: "",
     rol: "Usuario",
-    sucursal: ""
+    sucursal: "Quito",
   });
   const [errors, setErrors] = useState({});
   const [touched, setTouched] = useState({});
@@ -46,60 +50,73 @@ export function useRegisterForm() {
   }, []);
 
   // Validate a single field
-  const validateField = useCallback((field, value) => {
-    const fieldErrors = validarCamposRegistro({ ...formData, [field]: value });
-    const error = fieldErrors ? fieldErrors[field] : null;
-    
-    setErrors(prev => ({
-      ...prev,
-      [field]: error
-    }));
+  const validateField = useCallback(
+    (field, value) => {
+      const fieldErrors = validarCamposRegistro({
+        ...formData,
+        [field]: value,
+      });
+      const error = fieldErrors ? fieldErrors[field] : null;
 
-    return !error;
-  }, [formData]);
+      setErrors((prev) => ({
+        ...prev,
+        [field]: error,
+      }));
+
+      return !error;
+    },
+    [formData]
+  );
 
   // Handle field blur
-  const handleFieldBlur = useCallback((field) => {
-    setTouched(prev => ({ ...prev, [field]: true }));
-    validateField(field, formData[field]);
-  }, [formData, validateField]);
+  const handleFieldBlur = useCallback(
+    (field) => {
+      setTouched((prev) => ({ ...prev, [field]: true }));
+      validateField(field, formData[field]);
+    },
+    [formData, validateField]
+  );
 
   // Handle form submission
   const handleSubmit = async (e) => {
     e.preventDefault();
+    console.log("Submitting form...");
     setIsSubmitting(true);
 
     // Mark all fields as touched to show all errors
     const allTouched = {};
-    Object.keys(formData).forEach(field => {
+    Object.keys(formData).forEach((field) => {
       allTouched[field] = true;
     });
     setTouched(allTouched);
 
     // Validate all fields
+    console.log("Validating form data:", formData);
     const validationErrors = validarCamposRegistro(formData);
     if (validationErrors) {
+      console.log("Validation errors:", validationErrors);
       setErrors(validationErrors);
       setIsSubmitting(false);
       return;
     }
+    console.log("Validation successful.");
 
     try {
       // Mostrar loader mientras se procesa el registro
       const loadingSwal = Swal.fire({
-        title: 'Procesando registro...',
-        html: 'Por favor espera mientras creamos tu cuenta.',
+        title: "Procesando registro...",
+        html: "Por favor espera mientras creamos tu cuenta.",
         allowOutsideClick: false,
         didOpen: () => {
           Swal.showLoading();
-        }
+        },
       });
 
       // 1. Registrar la cuenta
       await registerAccount({
         username: formData.username,
         email: formData.email,
-        password: formData.password
+        password: formData.password,
       });
 
       // 2. Crear el perfil de usuario
@@ -127,10 +144,10 @@ export function useRegisterForm() {
         timerProgressBar: true,
         allowOutsideClick: false,
         showConfirmButton: true,
-        confirmButtonText: 'Ir al login ahora',
+        confirmButtonText: "Ir al login ahora",
         confirmButtonColor: "#712b39",
         didOpen: () => {
-          const timer = Swal.getHtmlContainer().querySelector('b');
+          const timer = Swal.getHtmlContainer().querySelector("b");
           let timeLeft = 5;
           timerInterval = setInterval(() => {
             timeLeft--;
@@ -142,7 +159,7 @@ export function useRegisterForm() {
         willClose: () => {
           clearInterval(timerInterval);
           router.push("/login");
-        }
+        },
       }).then((result) => {
         if (result.dismiss === Swal.DismissReason.timer) {
           router.push("/login");
@@ -154,11 +171,13 @@ export function useRegisterForm() {
       // Cerrar loader si está abierto
       Swal.close();
       setIsSubmitting(false);
-      
+      console.error("Registration error:", error);
+
       // Determinar el mensaje de error
-      let errorMessage = "Ocurrió un error al procesar el registro. Por favor, inténtalo de nuevo.";
-      
-      if (error && typeof error === 'object' && !Array.isArray(error)) {
+      let errorMessage =
+        "Ocurrió un error al procesar el registro. Por favor, inténtalo de nuevo.";
+
+      if (error && typeof error === "object" && !Array.isArray(error)) {
         const rawErrorMessage =
           error.username?.[0] ||
           error.email?.[0] ||
@@ -168,14 +187,14 @@ export function useRegisterForm() {
           error.detail ||
           JSON.stringify(error);
 
-        if (rawErrorMessage === 'Enter a valid email address.') {
-            errorMessage = 'Ingresa un correo electrónico válido.';
+        if (rawErrorMessage === "Enter a valid email address.") {
+          errorMessage = "Ingresa un correo electrónico válido.";
         } else if (rawErrorMessage.includes("already exists")) {
-            errorMessage = 'Un usuario con este correo o nombre de usuario ya existe.';
+          errorMessage =
+            "Un usuario con este correo o nombre de usuario ya existe.";
         } else {
-            errorMessage = rawErrorMessage;
+          errorMessage = rawErrorMessage;
         }
-
       } else if (error instanceof Error) {
         errorMessage = error.message;
       }
@@ -191,18 +210,21 @@ export function useRegisterForm() {
   };
 
   // Handle field changes with sanitization
-  const handleChange = useCallback((field, value) => {
-    const sanitizedValue = sanitizeInput(field, value);
-    setFormData(prev => ({
-      ...prev,
-      [field]: sanitizedValue
-    }));
+  const handleChange = useCallback(
+    (field, value) => {
+      const sanitizedValue = sanitizeInput(field, value);
+      setFormData((prev) => ({
+        ...prev,
+        [field]: sanitizedValue,
+      }));
 
-    // Validate field in real-time if it's been touched
-    if (touched[field]) {
-      validateField(field, sanitizedValue);
-    }
-  }, [touched, validateField]);
+      // Validate field in real-time if it's been touched
+      if (touched[field]) {
+        validateField(field, sanitizedValue);
+      }
+    },
+    [touched, validateField]
+  );
 
   return {
     // Form data bindings
@@ -222,17 +244,17 @@ export function useRegisterForm() {
     setRolUsuario: (value) => handleChange("rol", value),
     sucursalUsuario: formData.sucursal,
     setSucursalUsuario: (value) => handleChange("sucursal", value),
-    
+
     // Form state
     sucursales,
     errors,
     isSubmitting,
     isLoadingSucursales,
     touched,
-    
+
     // Handlers
     handleSubmit,
     onFieldBlur: handleFieldBlur,
-    validateField
+    validateField,
   };
 }
