@@ -98,11 +98,11 @@ export default function FichaVisual({ data }) {
                   <tr className="bg-gray-100">
                     <th className="p-2 border border-gray-300 w-1/6">Ojo</th>
                     <th className="p-2 border border-gray-300 w-1/6">AV SC</th>
-                    <th className="p-2 border border-gray-300 w-1/6">Esfera</th>
+                    <th className="p-2 border border-gray-300 w-1/5">Esfera</th>
                     <th className="p-2 border border-gray-300 w-1/6">
                       Cilindro
                     </th>
-                    <th className="p-2 border border-gray-300 w-1/6">
+                    <th className="p-2 border border-gray-300 w-1/12">
                       Eje (grados)
                     </th>
                     <th className="p-2 border border-gray-300 w-1/6">AV CC</th>

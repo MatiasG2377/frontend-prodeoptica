@@ -40,6 +40,8 @@ export default function useVenta() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [metodoVenta, setMetodoVenta] = useState("Efectivo");
   const [progreso, setProgreso] = useState(1);
+  const [ordenLaboratorio, setOrdenLaboratorio] = useState('');
+  const [ordenTrabajo, setOrdenTrabajo] = useState('');
   const usuarioVenta = 1;
   const sucursalVenta = 1;
 
@@ -189,7 +191,7 @@ export default function useVenta() {
       const cliente = resultado.cliente;
       if (!cliente || !cliente.id) throw new Error("Cliente inválido o sin ID");
 
-      const venta = await crearVenta({
+      const ventaData = {
         cliente_venta: cliente.id,
         usuario_venta: usuarioVenta,
         sucursal_venta: sucursalVenta,
@@ -197,7 +199,11 @@ export default function useVenta() {
         estado_venta: "F",
         metodo_venta: metodoVenta,
         laboratorio_venta: laboratorioVenta ? parseInt(laboratorioVenta) : null,
-      });
+        orden_laboratorio: ordenLaboratorio,
+        orden_trabajo: ordenTrabajo,
+      };
+
+      const venta = await crearVenta(ventaData);
 
       await Promise.all(
         cart.map(async (producto) => {
@@ -344,5 +350,9 @@ export default function useVenta() {
     progreso,
     laboratorioVenta,
     setLaboratorioVenta,
+    ordenLaboratorio,
+    setOrdenLaboratorio,
+    ordenTrabajo,
+    setOrdenTrabajo,
   };
 }
