@@ -10,7 +10,11 @@ export default function ClienteForm({
   laboratorioVenta,
   setLaboratorioVenta,
   progreso,
-  onBuscarCliente, // Nueva prop
+  onBuscarCliente,
+  ordenLaboratorio,
+  setOrdenLaboratorio,
+  ordenTrabajo,
+  setOrdenTrabajo
 }) {
   const [laboratorios, setLaboratorios] = useState(null); // Inicializar como null
   
@@ -83,6 +87,28 @@ export default function ClienteForm({
             <option value="Transferencia">Transferencia</option>
             <option value="Crédito-empresarial">Crédito empresarial</option>
           </select>
+        </div>
+
+        <div>
+          <label className="block font-bold">Orden de Laboratorio:</label>
+          <input
+            type="text"
+            value={ordenLaboratorio}
+            onChange={(e) => setOrdenLaboratorio(e.target.value)}
+            className="w-full border p-2 rounded"
+            placeholder="N° de orden de laboratorio"
+          />
+        </div>
+        
+        <div>
+          <label className="block font-bold">Orden de Trabajo:</label>
+          <input
+            type="text"
+            value={ordenTrabajo}
+            onChange={(e) => setOrdenTrabajo(e.target.value)}
+            className="w-full border p-2 rounded"
+            placeholder="N° de orden de trabajo"
+          />
         </div>
 
         <div>

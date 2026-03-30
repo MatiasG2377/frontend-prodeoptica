@@ -266,8 +266,6 @@ export default function RegisterForm({
           <input
             type="hidden"
             id="rol"
-            value="Usuario"
-            onChange={(e) => setRolUsuario("Usuario")}
           />
           <div className="w-full mt-1 px-4 py-2 border border-gray-300 bg-gray-50 rounded-lg shadow-sm text-gray-700">
             Usuario
@@ -285,8 +283,6 @@ export default function RegisterForm({
           <input
             type="hidden"
             id="sucursal"
-            value="Quito"
-            onChange={(e) => setSucursalUsuario("Quito")}
           />
           <div className="w-full mt-1 px-4 py-2 border border-gray-300 bg-gray-50 rounded-lg shadow-sm text-gray-700">
             Quito
