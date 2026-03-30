@@ -18,10 +18,9 @@ import { calculateTotal } from "../utils/cartHelpers";
 
 export default function DashboardPage() {
   const router = useRouter();
-  const { cart, addToCart, removeFromCart } = useCart();
+  const { cart, addToCart, removeFromCart, updateCartItem } = useCart();
   const { logout } = useAuth();
   const [menuOpen, setMenuOpen] = useState(false);
-  const [discount, setDiscount] = useState(0); // ✅ Nuevo estado
 
   const {
     categorias,
@@ -46,11 +45,16 @@ export default function DashboardPage() {
       return;
     }
 
-    // Bloquear si el descuento supera el subtotal
-    if ((Number(discount) || 0) > subtotal) {
+    // Check if any individual discount exceeds its unit gross
+    const hasInvalidDiscount = cart.some(item => {
+      const gross = item.pvp_producto * item.cantidad;
+      return (Number(item.descuento) || 0) > gross;
+    });
+
+    if (hasInvalidDiscount) {
       Swal.fire({
         title: "Descuento inválido",
-        text: "El descuento no puede ser mayor al valor total de la compra.",
+        text: "Uno de los descuentos aplicados supera el valor del producto.",
         icon: "error",
         confirmButtonColor: "#712b39",
       });
@@ -58,14 +62,13 @@ export default function DashboardPage() {
     }
 
     localStorage.setItem("cart", JSON.stringify(cart));
-    localStorage.setItem("discount", appliedDiscount); // ✅ guardar descuento limitado al subtotal
+    localStorage.removeItem("discount"); // removing outdated global discount
     router.push("/venta");
   };
 
-  const subtotal = calculateTotal(cart);
-  const appliedDiscount = Math.min(Number(discount) || 0, subtotal); // ✅ No permitir descuento mayor al subtotal
-  const total = subtotal - appliedDiscount; // ✅ Aplicar descuento limitado
-  const canFinalize = (Number(discount) || 0) <= subtotal; // ✅ Habilitar botón solo si el descuento es válido
+  const subtotal = Number(calculateTotal(cart));
+  const total = subtotal; // cartHelpers calculateTotal already subtracts unit discounts
+  const canFinalize = cart.every(item => (Number(item.descuento) || 0) <= (item.pvp_producto * item.cantidad));
 
   return (
     <ProtectedRoute>
@@ -107,11 +110,9 @@ export default function DashboardPage() {
           <CartSummary
             cart={cart}
             onRemove={removeFromCart}
+            onUpdateItem={updateCartItem}
             onFinalize={handleFinalizeSale}
             total={total}
-            // ✅ Pasamos el descuento y su setter al componente
-            discount={discount}
-            setDiscount={setDiscount}
             canFinalize={canFinalize}
           />
         </div>

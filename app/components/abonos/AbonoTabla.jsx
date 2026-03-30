@@ -21,8 +21,8 @@ export default function AbonoTabla({
             <th className="p-3">Cliente</th>
             <th className="p-3">Venta</th>
             <th className="p-3">Total Venta</th>
-            <th className="p-3">Restante</th>
             <th className="p-3">Monto Abonado</th>
+            <th className="p-3">Restante</th>
             <th className="p-3">Fecha</th>
             <th className="p-3">Método de Pago</th>
             <th className="p-3 text-center">Acciones</th>

@@ -168,12 +168,6 @@ export default function FichaMedicaCompleta() {
     observaciones: "",
     altura: "",
     material: "",
-    esq_od_esfera_computarizado: "",
-    esq_od_cilindro_computarizado: "",
-    esq_od_eje_computarizado: "",
-    esq_oi_esfera_computarizado: "",
-    esq_oi_cilindro_computarizado: "",
-    esq_oi_eje_computarizado: "",
     armazon: "",
     rx_anterior_od_avsc: "",
     rx_anterior_oi_avsc: "",
@@ -430,8 +424,6 @@ export default function FichaMedicaCompleta() {
       "rs_add_eje",
       "av_od_eje",
       "av_oi_eje",
-      "esq_od_eje_computarizado",
-      "esq_oi_eje_computarizado",
     ];
 
     const decimalFields = [
@@ -472,10 +464,6 @@ export default function FichaMedicaCompleta() {
       "av_od_cilindro",
       "av_oi_esfera",
       "av_oi_cilindro",
-      "esq_od_esfera_computarizado",
-      "esq_od_cilindro_computarizado",
-      "esq_oi_esfera_computarizado",
-      "esq_oi_cilindro_computarizado",
     ];
 
     const parsed = { ...data };
@@ -1141,9 +1129,8 @@ export default function FichaMedicaCompleta() {
             {activeTab === "ficha" && (
               <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 min-w-0">
                 {/* RX ANTERIOR */}
-                <div className="overflow-x-auto overflow-y-hidden overscroll-x-contain min-w-0 w-full max-w-[100vw] md:max-w-full mt-4 -mx-6 px-6 md:mx-0 md:px-0 touch-pan-x pb-2" style={{ WebkitOverflowScrolling: 'touch' }}>
-                  <div className="min-w-[720px] block">
-                <table className="w-max max-w-none border-collapse">
+                <div className="overflow-x-auto mt-4">
+                  <table className="w-full border-collapse border border-gray-300 text-sm">
                   <thead>
                     <tr>
                       <th
@@ -1375,131 +1362,10 @@ export default function FichaMedicaCompleta() {
                       </td>
                     </tr>
                   </tbody>
-                </table>
-                  </div>
+                 </table>
                 </div>
 
-                {/* EXAMÉN COMPUTARIZADA */}
-                <div className="overflow-x-auto mt-4">
-                  <table className="w-full border-collapse">
-                    <thead>
-                      <tr>
-                        <th
-                          colSpan={4}
-                          className="bg-[#7d2a3f] text-white text-left p-2 font-bold border border-gray-300"
-                        >
-                          EXAMÉN COMPUTARIZADO
-                        </th>
-                      </tr>
-                      <tr className="bg-gray-100">
-                        <th className="p-2 border border-gray-300">Ojo</th>
-                        <th className="p-2 border border-gray-300">Esfera</th>
-                        <th className="p-2 border border-gray-300">Cilindro</th>
-                        <th className="p-2 border border-gray-300">
-                          Eje (grados)
-                        </th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      <tr>
-                        <td className="p-2 border border-gray-300 bg-gray-100 font-medium">
-                          OD
-                        </td>
-                        <td className="p-2 border border-gray-300">
-                          <input
-                            type="text"
-                            className="w-full p-1 border border-gray-300 rounded"
-                            value={
-                              opticalData.esq_od_esfera_computarizado || ""
-                            }
-                            onChange={(e) =>
-                              handleOpticalDataChange(
-                                "esq_od_esfera_computarizado",
-                                e.target.value
-                              )
-                            }
-                          />
-                        </td>
-                        <td className="p-2 border border-gray-300">
-                          <input
-                            type="text"
-                            className="w-full p-1 border border-gray-300 rounded"
-                            value={
-                              opticalData.esq_od_cilindro_computarizado || ""
-                            }
-                            onChange={(e) =>
-                              handleOpticalDataChange(
-                                "esq_od_cilindro_computarizado",
-                                e.target.value
-                              )
-                            }
-                          />
-                        </td>
-                        <td className="p-2 border border-gray-300">
-                          <input
-                            type="text"
-                            className="w-full p-1 border border-gray-300 rounded"
-                            value={opticalData.esq_od_eje_computarizado || ""}
-                            onChange={(e) =>
-                              handleOpticalDataChange(
-                                "esq_od_eje_computarizado",
-                                e.target.value
-                              )
-                            }
-                          />
-                        </td>
-                      </tr>
-                      <tr>
-                        <td className="p-2 border border-gray-300 bg-gray-100 font-medium">
-                          OI
-                        </td>
-                        <td className="p-2 border border-gray-300">
-                          <input
-                            type="text"
-                            className="w-full p-1 border border-gray-300 rounded"
-                            value={
-                              opticalData.esq_oi_esfera_computarizado || ""
-                            }
-                            onChange={(e) =>
-                              handleOpticalDataChange(
-                                "esq_oi_esfera_computarizado",
-                                e.target.value
-                              )
-                            }
-                          />
-                        </td>
-                        <td className="p-2 border border-gray-300">
-                          <input
-                            type="text"
-                            className="w-full p-1 border border-gray-300 rounded"
-                            value={
-                              opticalData.esq_oi_cilindro_computarizado || ""
-                            }
-                            onChange={(e) =>
-                              handleOpticalDataChange(
-                                "esq_oi_cilindro_computarizado",
-                                e.target.value
-                              )
-                            }
-                          />
-                        </td>
-                        <td className="p-2 border border-gray-300">
-                          <input
-                            type="text"
-                            className="w-full p-1 border border-gray-300 rounded"
-                            value={opticalData.esq_oi_eje_computarizado || ""}
-                            onChange={(e) =>
-                              handleOpticalDataChange(
-                                "esq_oi_eje_computarizado",
-                                e.target.value
-                              )
-                            }
-                          />
-                        </td>
-                      </tr>
-                    </tbody>
-                  </table>
-                </div>
+
                 {/* RX. REFRACCIÓN */}
                 <div className="overflow-x-auto">
                   <table className="w-full border-collapse border border-gray-300 mt-4 text-sm">

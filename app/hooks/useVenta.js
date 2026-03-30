@@ -208,7 +208,7 @@ export default function useVenta() {
             producto_articuloVenta: producto.id,
             cantidad_articuloVenta: cantidad,
             pvp_articuloVenta: producto.pvp_producto,
-            descuento_articuloVenta: 0,
+            descuento_articuloVenta: Number(producto.descuento) || 0,
           });
 
           const controlaStock =

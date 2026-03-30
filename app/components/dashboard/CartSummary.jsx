@@ -14,26 +14,11 @@ export default function CartSummary({
   onRemove,
   onFinalize,
   discount,
-  setDiscount,
+  onUpdateItem,
   total,
   canFinalize = true,
 }) {
-  const handleDiscountChange = (e) => {
-    const value = e.target.value;
-    // Si el valor está vacío, lo guardamos como string vacío
-    if (value === "") {
-      setDiscount("");
-    } else if (value === "0") {
-      // Permitir solo 0
-      setDiscount(0);
-    } else {
-      // Convertir a número y verificar que sea positivo
-      const numValue = Number(value);
-      if (!isNaN(numValue) && numValue > 0) {
-        setDiscount(numValue);
-      }
-    }
-  };
+
 
   return (
     <div
@@ -46,43 +31,56 @@ export default function CartSummary({
         {cart.map((item, index) => (
           <div
             key={index}
-            className="flex justify-between items-center mb-2 p-2 lg:p-3 bg-gray-100 rounded-lg"
+            className="mb-2 p-2 lg:p-3 bg-gray-100 rounded-lg flex flex-col gap-2"
           >
-            <div>
-              <p className="font-bold">
-                {item.nombre_producto} (x{item.cantidad})
-              </p>
-              <p className="text-sm text-gray-600">${item.pvp_producto}</p>
+            <div className="flex justify-between items-start">
+              <div>
+                <p className="font-bold text-sm leading-tight text-gray-800">
+                  {item.nombre_producto}
+                </p>
+                <p className="text-xs text-gray-500 mt-0.5">
+                  Cant: {item.cantidad} | PVP: ${item.pvp_producto}
+                </p>
+              </div>
+              <button
+                onClick={() => onRemove(index)}
+                className="text-red-500 font-bold ml-2 shrink-0 py-1 px-2 hover:bg-red-100 rounded-md transition-colors"
+                title="Eliminar producto"
+              >
+                X
+              </button>
             </div>
-            <button
-              onClick={() => onRemove(index)}
-              className="text-red-500 font-bold"
-            >
-              X
-            </button>
+
+            <div className="flex flex-col bg-white p-2 rounded border border-gray-200 shadow-sm mt-1">
+              <label className="text-xs text-gray-500 font-medium mb-1">Descuento ($):</label>
+              <input
+                type="number"
+                min="0"
+                placeholder="0.00"
+                value={item.descuento || ""}
+                onChange={(e) => {
+                  const val = e.target.value;
+                  const maxDesc = item.pvp_producto * item.cantidad;
+                  const numVal = Number(val);
+                  if (numVal <= maxDesc) {
+                    onUpdateItem(index, { descuento: numVal });
+                  } else {
+                    onUpdateItem(index, { descuento: maxDesc });
+                  }
+                }}
+                onKeyPress={(e) => {
+                  if (e.key === '-' || e.key === 'e' || e.key === 'E') e.preventDefault();
+                }}
+                className="w-full bg-gray-50 border border-gray-300 rounded-md p-2 outline-none focus:ring-1 focus:ring-[#712b39] focus:border-[#712b39] text-sm font-bold text-[#712b39] transition-all"
+              />
+            </div>
           </div>
         ))}
       </div>
 
       {/* Descuento y total */}
       <div className="mt-4">
-        <label className="block text-sm font-medium text-gray-700 mb-1">
-          Descuento:
-        </label>
-        <input
-          type="number"
-          value={discount}
-          onChange={handleDiscountChange}
-          onKeyPress={(e) => {
-            // Prevenir la entrada del signo negativo
-            if (e.key === '-' || e.key === 'e' || e.key === 'E') {
-              e.preventDefault();
-            }
-          }}
-          min="0"
-          placeholder="0"
-          className="w-full border rounded p-2 lg:p-3 mb-3"
-        />
+
 
         <h3 className="text-base lg:text-lg font-bold">
           Total: ${(total < 0 ? 0 : total).toFixed(2)}

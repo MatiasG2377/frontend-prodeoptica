@@ -102,13 +102,26 @@ export function useCart() {
   };
 
   /**
-   * Elimina un producto del carrito por su ndice.
+   * Elimina un producto del carrito por su índice.
    *
-   *? @param {number} index - El ndice del producto a eliminar del carrito.
+   * @param {number} index - El índice del producto a eliminar del carrito.
    */
   const removeFromCart = (index) => {
     const updatedCart = [...cart];
     updatedCart.splice(index, 1);
+    setCart(updatedCart);
+    localStorage.setItem("cart", JSON.stringify(updatedCart));
+  };
+
+  /**
+   * Actualiza los datos de un producto específico en el carrito.
+   * 
+   * @param {number} index - Índice del producto a actualizar
+   * @param {Object} updates - Objeto con los nuevos valores a combinar
+   */
+  const updateCartItem = (index, updates) => {
+    const updatedCart = [...cart];
+    updatedCart[index] = { ...updatedCart[index], ...updates };
     setCart(updatedCart);
     localStorage.setItem("cart", JSON.stringify(updatedCart));
   };
@@ -122,5 +135,5 @@ export function useCart() {
     localStorage.removeItem("cart");
   };
 
-  return { cart, addToCart, removeFromCart, clearCart };
+  return { cart, addToCart, removeFromCart, updateCartItem, clearCart };
 }

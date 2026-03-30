@@ -54,10 +54,10 @@ export default function AbonoFila({
         </button>
       </td>
       <td className="p-3 text-gray-800 font-medium">${total.toFixed(2)}</td>
-      <td className="p-3 text-red-500 font-medium">${restante.toFixed(2)}</td>
-      <td className="p-3 text-green-600 font-medium flex items-center gap-1">
-        <DollarSign className="w-4 h-4" /> {pagado.toFixed(2)}
+      <td className="p-3 text-green-600 font-medium">
+        <div className="flex items-center gap-1"><DollarSign className="w-4 h-4" /> {pagado.toFixed(2)}</div>
       </td>
+      <td className="p-3 text-red-500 font-medium">${restante.toFixed(2)}</td>
       <td className="p-3 whitespace-nowrap">
         <div className="flex items-center gap-2 text-gray-500">
           <CalendarDays className="w-4 h-4" />

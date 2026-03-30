@@ -26,6 +26,9 @@ import { useState, useEffect, useCallback } from "react";
 import ProtectedRoute from "../components/auth/ProtectedRoute";
 import Swal from "sweetalert2";
 import HistorialAbonosModal from "../components/abonos/HistorialAbonosModal";
+import EgresosView from "../components/egresos/EgresosView";
+import CierreCajaView from "../components/caja/CierreCajaView";
+import { format, startOfMonth, startOfYear, endOfMonth, endOfYear } from "date-fns";
 
 const BASE_URL = process.env.NEXT_PUBLIC_API_URL;
 
@@ -39,6 +42,7 @@ export default function AbonosPage() {
   const [ventas, setVentas] = useState([]);
   const [historialAbonos, setHistorialAbonos] = useState([]);
   const [mostrarHistorialAbonos, setMostrarHistorialAbonos] = useState(false);
+  const [activeTab, setActiveTab] = useState("abonos");
   const {
     abonos,
     setAbonos,
@@ -53,12 +57,33 @@ export default function AbonosPage() {
   const [ventaSeleccionada, setVentaSeleccionada] = useState(null);
   const [mostrarModalVenta, setMostrarModalVenta] = useState(false);
   const [articulosVenta, setArticulosVenta] = useState([]);
+  const [periodoActivo, setPeriodoActivo] = useState("Historico");
+
   const formatearFechaLocal = (fechaISO) => {
     return new Date(fechaISO).toLocaleDateString("es-EC", {
       year: "numeric",
       month: "2-digit",
       day: "2-digit",
     });
+  };
+
+  const seleccionarPeriodo = (periodo) => {
+    const hoy = new Date();
+    setPeriodoActivo(periodo);
+
+    if (periodo === "Hoy") {
+      setFechaInicio(format(hoy, "yyyy-MM-dd"));
+      setFechaFin(format(hoy, "yyyy-MM-dd"));
+    } else if (periodo === "Este Mes") {
+      setFechaInicio(format(startOfMonth(hoy), "yyyy-MM-dd"));
+      setFechaFin(format(endOfMonth(hoy), "yyyy-MM-dd"));
+    } else if (periodo === "Este Año") {
+      setFechaInicio(format(startOfYear(hoy), "yyyy-MM-dd"));
+      setFechaFin(format(endOfYear(hoy), "yyyy-MM-dd"));
+    } else if (periodo === "Historico") {
+      setFechaInicio("");
+      setFechaFin("");
+    }
   };
 
   const fetchVentas = useCallback(async () => {
@@ -94,7 +119,7 @@ export default function AbonosPage() {
     buscarPorNombre(debouncedBusqueda, setVentas);
   }, [debouncedBusqueda, cargarAbonos, fetchVentas, buscarPorNombre]);
 
-  const filtrarPorFechas = async () => {
+  const filtrarPorFechas = useCallback(async () => {
     if (!fechaInicio && !fechaFin) {
       cargarAbonos();
       fetchVentas();
@@ -137,11 +162,17 @@ export default function AbonosPage() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [fechaInicio, fechaFin, cargarAbonos, fetchVentas, API_URL, setAbonos]);
+
+  useEffect(() => {
+    if (debouncedBusqueda.trim()) return; // Prioritize text search if active
+    filtrarPorFechas();
+  }, [filtrarPorFechas, debouncedBusqueda]);
 
   const limpiarFiltrosFecha = () => {
     setFechaInicio("");
     setFechaFin("");
+    setPeriodoActivo("Historico");
     cargarAbonos();
     fetchVentas();
   };
@@ -399,84 +430,137 @@ export default function AbonosPage() {
           handleLogout={logout}
         />
 
+        <div className="w-full px-6 py-6 border-b flex gap-4 bg-white">
+          <button
+            onClick={() => setActiveTab("abonos")}
+            className={`px-4 py-2 font-bold transition-colors ${
+              activeTab === "abonos"
+                ? "text-[#712b39] border-b-2 border-[#712b39]"
+                : "text-gray-500 hover:text-gray-800"
+            }`}
+          >
+            Ventas y Abonos
+          </button>
+          <button
+            onClick={() => setActiveTab("egresos")}
+            className={`px-4 py-2 font-bold transition-colors ${
+              activeTab === "egresos"
+                ? "text-[#712b39] border-b-2 border-[#712b39]"
+                : "text-gray-500 hover:text-gray-800"
+            }`}
+          >
+            Egresos
+          </button>
+          <button
+            onClick={() => setActiveTab("caja")}
+            className={`px-4 py-2 font-bold transition-colors ${
+              activeTab === "caja"
+                ? "text-[#712b39] border-b-2 border-[#712b39]"
+                : "text-gray-500 hover:text-gray-800"
+            }`}
+          >
+            Cierre de Caja
+          </button>
+        </div>
+
         <div className="w-full px-6 py-10">
           <div className="w-full bg-white rounded-xl shadow-lg p-6">
-            <h1 className="text-3xl font-bold text-[#712b39] mb-6">
-              Historial de Ventas y Abonos
-            </h1>
+            {activeTab === "abonos" && (
+              <>
+                <h1 className="text-3xl font-bold text-[#712b39] mb-6">
+                  Historial de Ventas y Abonos
+                </h1>
 
-            <input
-              type="text"
-              placeholder="Buscar por nombre de cliente..."
-              className="w-full mb-4 border rounded px-4 py-2"
-              value={busqueda}
-              onChange={(e) => setBusqueda(e.target.value)}
-            />
+                <input
+                  type="text"
+                  placeholder="Buscar por nombre de cliente..."
+                  className="w-full mb-4 border rounded px-4 py-2"
+                  value={busqueda}
+                  onChange={(e) => setBusqueda(e.target.value)}
+                />
 
-            <div className="flex flex-wrap gap-4 mb-4">
-              <input
-                type="date"
-                className="border rounded px-4 py-2"
-                value={fechaInicio}
-                onChange={(e) => setFechaInicio(e.target.value)}
-              />
-              <input
-                type="date"
-                className="border rounded px-4 py-2"
-                value={fechaFin}
-                onChange={(e) => setFechaFin(e.target.value)}
-              />
-              <button
-                onClick={filtrarPorFechas}
-                className="bg-[#712b39] text-white px-4 py-2 rounded hover:bg-[#5a222f] transition"
-              >
-                Filtrar por fechas
-              </button>
-              <button
-                onClick={limpiarFiltrosFecha}
-                className="bg-gray-300 text-gray-800 px-4 py-2 rounded hover:bg-gray-400 transition"
-              >
-                Limpiar filtros de fecha
-              </button>
-            </div>
+                <div className="flex flex-col xl:flex-row gap-4 mb-4 items-start xl:items-center">
+                  {/* Filtros Rápidos */}
+                  <div className="flex bg-gray-100 p-1 rounded-lg w-full md:w-auto overflow-x-auto">
+                    {["Hoy", "Este Mes", "Este Año", "Historico"].map((p) => (
+                      <button
+                        key={p}
+                        onClick={() => seleccionarPeriodo(p)}
+                        className={`px-3 py-2 text-sm font-semibold rounded-md transition-all flex-1 text-center whitespace-nowrap ${
+                          periodoActivo === p
+                            ? "bg-white text-[#712b39] shadow-sm"
+                            : "text-gray-500 hover:text-gray-800"
+                        }`}
+                      >
+                        {p}
+                      </button>
+                    ))}
+                  </div>
 
-            {loading ? (
-              <p className="text-gray-500">Cargando datos...</p>
-            ) : (
-              <AbonoTabla
-                abonos={combinarVentasYAbonos()}
-                onAbonar={handleReducirPendiente}
-                onEditar={abrirModalEdicion}
-                onVerVenta={verDetalleVenta}
-                onVerHistorialAbonos={abrirHistorialAbonos}
-                loading={loading}
-              />
+                  <div className="flex flex-wrap items-center gap-2">
+                    <input
+                      type="date"
+                      className="border rounded px-4 py-2"
+                      value={fechaInicio}
+                      onChange={(e) => { setFechaInicio(e.target.value); setPeriodoActivo("Personalizado"); }}
+                    />
+                    <input
+                      type="date"
+                      className="border rounded px-4 py-2"
+                      value={fechaFin}
+                      onChange={(e) => { setFechaFin(e.target.value); setPeriodoActivo("Personalizado"); }}
+                    />
+                    <button
+                      onClick={limpiarFiltrosFecha}
+                      className="bg-gray-300 text-gray-800 px-4 py-2 rounded hover:bg-gray-400 transition"
+                    >
+                      Limpiar filtros de fecha
+                    </button>
+                  </div>
+                </div>
+
+                {loading ? (
+                  <p className="text-gray-500">Cargando datos...</p>
+                ) : (
+                  <AbonoTabla
+                    abonos={combinarVentasYAbonos()}
+                    onAbonar={handleReducirPendiente}
+                    onEditar={abrirModalEdicion}
+                    onVerVenta={verDetalleVenta}
+                    onVerHistorialAbonos={abrirHistorialAbonos}
+                    loading={loading}
+                  />
+                )}
+
+                {mostrarModal && abonoSeleccionado && (
+                  <AbonoModal
+                    abono={abonoSeleccionado}
+                    loading={loading}
+                    onClose={() => setMostrarModal(false)}
+                    onSave={guardarEdicion}
+                    onChange={handleChange}
+                  />
+                )}
+                {mostrarModalVenta && ventaSeleccionada && (
+                  <ModalDetalleVenta
+                    visible={mostrarModalVenta}
+                    onClose={() => setMostrarModalVenta(false)}
+                    venta={ventaSeleccionada}
+                    articulos={articulosVenta}
+                  />
+                )}
+                {mostrarHistorialAbonos && (
+                  <HistorialAbonosModal
+                    visible={mostrarHistorialAbonos}
+                    abonos={historialAbonos}
+                    onClose={() => setMostrarHistorialAbonos(false)}
+                  />
+                )}
+              </>
             )}
 
-            {mostrarModal && abonoSeleccionado && (
-              <AbonoModal
-                abono={abonoSeleccionado}
-                loading={loading}
-                onClose={() => setMostrarModal(false)}
-                onSave={guardarEdicion}
-                onChange={handleChange}
-              />
-            )}
-            {mostrarModalVenta && ventaSeleccionada && (
-              <ModalDetalleVenta
-                visible={mostrarModalVenta}
-                onClose={() => setMostrarModalVenta(false)}
-                venta={ventaSeleccionada}
-                articulos={articulosVenta}
-              />
-            )}
-            {mostrarHistorialAbonos && (
-              <HistorialAbonosModal
-                visible={mostrarHistorialAbonos}
-                abonos={historialAbonos}
-                onClose={() => setMostrarHistorialAbonos(false)}
-              />
-            )}
+            {activeTab === "egresos" && <EgresosView />}
+            {activeTab === "caja" && <CierreCajaView />}
           </div>
         </div>
       </div>

@@ -7,8 +7,9 @@ export default function CartResumenVenta({
   handleSubmit,
   handleCancel,
 }) {
-  const subtotal = calculateCartTotal(cart);
-  const total = subtotal - (Number(discount) || 0);
+  const grossSubtotal = cart.reduce((acc, item) => acc + (item.pvp_producto * (item.cantidad || 1)), 0);
+  const totalDiscount = cart.reduce((acc, item) => acc + (Number(item.descuento) || 0), 0);
+  const total = grossSubtotal - totalDiscount;
 
   return (
     <div className="bg-white p-6 rounded-lg shadow-md">
@@ -21,9 +22,16 @@ export default function CartResumenVenta({
             <span className="font-bold">
               {item.nombre_producto} (x{item.cantidad || 1})
             </span>
-            <span>
-              ${(item.pvp_producto * (item.cantidad || 1)).toFixed(2)}
-            </span>
+            <div className="text-right">
+              <span>
+                ${(item.pvp_producto * (item.cantidad || 1)).toFixed(2)}
+              </span>
+              {(Number(item.descuento) || 0) > 0 && (
+                <div className="text-xs text-red-500">
+                  Desc: -${Number(item.descuento).toFixed(2)}
+                </div>
+              )}
+            </div>
           </li>
         ))}
       </ul>
@@ -31,10 +39,10 @@ export default function CartResumenVenta({
       {/* Subtotal, descuento y total */}
       <div className="mt-4 text-right">
         <h3 className="text-lg font-semibold">
-          Subtotal: ${subtotal.toFixed(2)}
+          Subtotal: ${grossSubtotal.toFixed(2)}
         </h3>
         <h3 className="text-lg font-semibold text-red-600">
-          Descuento: -${(Number(discount) || 0).toFixed(2)}
+          Descuento Total: -${totalDiscount.toFixed(2)}
         </h3>
         <h3 className="text-xl font-bold mt-2">
           Total: ${(total < 0 ? 0 : total).toFixed(2)}

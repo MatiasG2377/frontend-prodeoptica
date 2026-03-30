@@ -84,9 +84,8 @@ export default function FichaVisual({ data }) {
 
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 min-w-0">
             {/* RX ANTERIOR */}
-            <div className="overflow-x-auto overflow-y-hidden overscroll-x-contain min-w-0 w-full max-w-[100vw] md:max-w-full mt-4 -mx-6 px-6 md:mx-0 md:px-0 touch-pan-x pb-2" style={{ WebkitOverflowScrolling: 'touch' }}>
-              <div className="min-w-[720px] block">
-              <table className="w-max max-w-none whitespace-nowrap border-collapse">
+            <div className="overflow-x-auto mt-4">
+              <table className="w-full border-collapse border border-gray-300">
               <thead>
                 <tr>
                   <th
@@ -193,65 +192,6 @@ export default function FichaVisual({ data }) {
                   ))}
                 </tr>
               </tbody>
-              </table>
-              </div>
-            </div>
-
-            {/* EXAMÉN COMPUTARIZADO */}
-            <div className="overflow-x-auto mt-4">
-              <table className="w-full border-collapse">
-                <thead>
-                  <tr>
-                    <th
-                      colSpan={4}
-                      className="bg-[#7d2a3f] text-white text-left p-2 font-bold border border-gray-300"
-                    >
-                      EXAMÉN COMPUTARIZADO
-                    </th>
-                  </tr>
-                  <tr className="bg-gray-100">
-                    <th className="p-2 border border-gray-300">Ojo</th>
-                    <th className="p-2 border border-gray-300">Esfera</th>
-                    <th className="p-2 border border-gray-300">Cilindro</th>
-                    <th className="p-2 border border-gray-300">Eje (grados)</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {["od", "oi"].map((ojo) => (
-                    <tr key={ojo}>
-                      <td className="p-2 border border-gray-300 font-medium uppercase">
-                        {ojo.toUpperCase()}
-                      </td>
-                      {["esfera", "cilindro", "eje"].map((campo) => (
-                        <td
-                          key={`esq_${ojo}_${campo}_computarizado`}
-                          className="p-2 border border-gray-300"
-                        >
-                          {editando ? (
-                            <input
-                              type="text"
-                              value={
-                                fichaEditada[
-                                  `esq_${ojo}_${campo}_computarizado`
-                                ] || ""
-                              }
-                              onChange={(e) =>
-                                handleChange(
-                                  `esq_${ojo}_${campo}_computarizado`,
-                                  e.target.value
-                                )
-                              }
-                              className="w-full border rounded px-2 py-1"
-                            />
-                          ) : (
-                            fichaEditada[`esq_${ojo}_${campo}_computarizado`] ||
-                            ""
-                          )}
-                        </td>
-                      ))}
-                    </tr>
-                  ))}
-                </tbody>
               </table>
             </div>
 

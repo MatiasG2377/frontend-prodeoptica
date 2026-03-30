@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import Swal from "sweetalert2";
 import { useAuth } from "../hooks/useAuth";
 import useVenta from "../hooks/useVenta";
+import { calculateTotal } from "../utils/cartHelpers";
 
 import VentaMenu from "../components/venta/VentaMenu";
 import ClienteForm from "../components/venta/ClienteForm";
@@ -63,8 +64,7 @@ export default function VentaPage() {
   }, [handleCancel]);
 
   useEffect(() => {
-    const storedDiscount = localStorage.getItem("discount");
-    setDiscount(Number(storedDiscount) || 0);
+    // Ya no se usa discount global
   }, []);
   const enhancedHandleSubmit = async () => {
     if (cart.length === 0) {
@@ -87,11 +87,7 @@ export default function VentaPage() {
       return;
     }
 
-    const total = cart.reduce(
-      (acc, item) => acc + parseFloat(item.pvp_producto) * (item.cantidad || 1),
-      0
-    );
-    const totalConDescuento = total - (Number(discount) || 0);
+    const totalConDescuento = Number(calculateTotal(cart));
 
     // 🚨 VALIDACIÓN DE ABONO INICIAL
     if (abonoInicial && parseFloat(montoAbono || 0) > totalConDescuento) {
@@ -110,7 +106,6 @@ export default function VentaPage() {
       abonoInicial,
       montoAbono,
       metodoAbono,
-      discount: Number(discount) || 0,
       total: totalConDescuento,
     });
   };
