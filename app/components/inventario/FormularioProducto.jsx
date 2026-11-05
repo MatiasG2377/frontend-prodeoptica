@@ -18,11 +18,19 @@ export default function FormularioProducto({
   setFile,
   onSubmit,
 }) {
+  const CAMPOS_DECIMALES = ["pvp_producto", "costo_producto"];
+
   const handleChange = (e) => {
     const { name, value, type, checked } = e.target;
+    let finalValue = type === "checkbox" ? checked : value;
+
+    if (CAMPOS_DECIMALES.includes(name) && typeof finalValue === "string") {
+      finalValue = finalValue.replace(",", ".").replace(/[^0-9.]/g, "");
+    }
+
     setFormData((prev) => ({
       ...prev,
-      [name]: type === "checkbox" ? checked : value,
+      [name]: finalValue,
     }));
   };
 
@@ -124,7 +132,8 @@ export default function FormularioProducto({
               </span>
             }
             name="pvp_producto"
-            type="number"
+            type="text"
+            inputMode="decimal"
             value={formData.pvp_producto ?? ""}
             onChange={handleChange}
           />
@@ -187,7 +196,8 @@ export default function FormularioProducto({
             <InputField
               label="Costo del Producto"
               name="costo_producto"
-              type="number"
+              type="text"
+              inputMode="decimal"
               value={formData.costo_producto ?? ""}
               onChange={handleChange}
             />
