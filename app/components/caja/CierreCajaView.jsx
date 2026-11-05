@@ -8,6 +8,7 @@ import { format, startOfMonth, startOfYear, endOfMonth, endOfYear } from "date-f
 import Swal from "sweetalert2";
 import { downloadPDF, downloadExcel } from "../../utils/exportCierreCaja";
 import KardexDownloadModal from "../kardex/kardexDownloadModal";
+import { parseApiResponse, getErrorMessage } from "../../utils/apiError";
 
 ChartJS.register(ArcElement, Tooltip, Legend);
 
@@ -43,14 +44,12 @@ export default function CierreCajaView() {
 
       const url = `${BASE_URL}/dashboard/cierre-caja-resumen/${queryParams}`;
       const response = await fetch(url, { headers });
-      
-      if (!response.ok) throw new Error("Error al obtener el resumen");
-      const data = await response.json();
+      const data = await parseApiResponse(response);
 
       calcularCierre(data);
     } catch (error) {
       console.error(error);
-      Swal.fire("Error", "No se pudieron cargar los datos", "error");
+      Swal.fire("Error", getErrorMessage(error), "error");
     } finally {
       setLoading(false);
     }
@@ -76,14 +75,10 @@ export default function CierreCajaView() {
       fetch(`${BASE_URL}/egresos/fecha/${queryParams}`, { headers }),
     ]);
 
-    if (!resVentas.ok || !resAbonos.ok || !resEgresos.ok) {
-      throw new Error("Error al obtener el detalle del cierre de caja");
-    }
-
     const [ventas, abonos, egresos] = await Promise.all([
-      resVentas.json(),
-      resAbonos.json(),
-      resEgresos.json(),
+      parseApiResponse(resVentas),
+      parseApiResponse(resAbonos),
+      parseApiResponse(resEgresos),
     ]);
 
     return { ventas, abonos, egresos };
@@ -101,7 +96,7 @@ export default function CierreCajaView() {
       setIsModalOpen(false);
     } catch (error) {
       console.error(error);
-      Swal.fire("Error", "No se pudo generar el reporte", "error");
+      Swal.fire("Error", getErrorMessage(error), "error");
     } finally {
       setDetalleLoading(false);
     }

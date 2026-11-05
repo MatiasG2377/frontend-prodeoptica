@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import Swal from "sweetalert2";
+import { parseApiResponse, getErrorMessage } from "../utils/apiError";
 
 const BASE_URL = process.env.NEXT_PUBLIC_API_URL;
 
@@ -18,34 +19,29 @@ export function useLogin() {
         body: JSON.stringify({ username, password }),
       });
 
-      if (res.ok) {
-        const { access, refresh, usuario } = await res.json();
+      const { access, refresh, usuario } = await parseApiResponse(res);
 
-        // Guardar tokens e ID del usuario directamente
-        localStorage.setItem("access_token", access);
-        localStorage.setItem("refresh_token", refresh);
-        localStorage.setItem("userId", usuario.id);
+      // Guardar tokens e ID del usuario directamente
+      localStorage.setItem("access_token", access);
+      localStorage.setItem("refresh_token", refresh);
+      localStorage.setItem("userId", usuario.id);
 
-        Swal.fire({
-          icon: "success",
-          title: "Inicio de sesión exitoso",
-          text: "Serás redirigido al panel principal.",
-          timer: 2000,
-          showConfirmButton: false,
-        }).then(() => {
-          router.push("/dashboard");
-        });
-      } else {
-        const error = await res.json();
-        Swal.fire({
-          icon: "error",
-          title: "Error de autenticación",
-          text: error.detail || "Credenciales inválidas.",
-          confirmButtonColor: "#712b39",
-        });
-      }
+      Swal.fire({
+        icon: "success",
+        title: "Inicio de sesión exitoso",
+        text: "Serás redirigido al panel principal.",
+        timer: 2000,
+        showConfirmButton: false,
+      }).then(() => {
+        router.push("/dashboard");
+      });
     } catch (err) {
-      Swal.fire("Error", "Problema al intentar iniciar sesión.", "error");
+      Swal.fire({
+        icon: "error",
+        title: "Error de autenticación",
+        text: getErrorMessage(err),
+        confirmButtonColor: "#712b39",
+      });
     }
   };
 

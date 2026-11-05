@@ -1,3 +1,5 @@
+import { parseApiResponse } from "../utils/apiError";
+
 const BASE_URL = process.env.NEXT_PUBLIC_API_URL;
 
 const getAuthHeaders = () => {
@@ -16,8 +18,7 @@ export async function registerAccount({ username, email, password }) {
     headers: getAuthHeaders(), // puede funcionar sin token también
     body: JSON.stringify({ username, email, password }),
   });
-  if (!res.ok) throw await res.json();
-  return res.json();
+  return await parseApiResponse(res);
 }
 
 export async function createUsuario(data) {
@@ -26,14 +27,13 @@ export async function createUsuario(data) {
     headers: getAuthHeaders(),
     body: JSON.stringify(data),
   });
-  if (!res.ok) throw await res.json();
-  return res.json();
+  return await parseApiResponse(res);
 }
 
 export async function getSucursales() {
   const res = await fetch(`${BASE_URL}/sucursales/`, {
     headers: getAuthHeaders(),
   });
-  const data = await res.json();
+  const data = await parseApiResponse(res);
   return Array.isArray(data) ? data : data.results ?? [];
 }

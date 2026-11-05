@@ -19,6 +19,7 @@ import {
   registrarMovimientoKardex,
   registrarAbono,
 } from "../services/ventaService";
+import { getErrorMessage } from "../utils/apiError";
 
 export default function useVenta() {
   const router = useRouter();
@@ -149,11 +150,10 @@ export default function useVenta() {
         });
       }
     } catch (err) {
-      console.warn("Error en búsqueda:", err?.detail || err);
       Swal.fire({
         icon: "error",
         title: "Error en la búsqueda",
-        text: "No se encontró ningún cliente con esa identificación.",
+        text: getErrorMessage(err),
         confirmButtonColor: "#712b39",
       });
     }
@@ -302,10 +302,7 @@ export default function useVenta() {
       Swal.fire({
         icon: "error",
         title: "Error",
-        text:
-          error?.detail ||
-          error?.message ||
-          "Ocurrió un error al registrar la venta.",
+        text: getErrorMessage(error),
         confirmButtonColor: "#712b39",
       });
     } finally {

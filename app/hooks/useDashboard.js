@@ -1,6 +1,7 @@
 "use client";
 import { useEffect, useState, useMemo } from "react";
 import Swal from "sweetalert2";
+import { parseApiResponse, getErrorMessage } from "../utils/apiError";
 
 const BASE_URL = process.env.NEXT_PUBLIC_API_URL;
 
@@ -38,10 +39,7 @@ export default function useDashboard() {
   useEffect(() => {
     let isMounted = true;
     fetch(`${BASE_URL}/categorias/`, { headers: getAuthHeaders() })
-      .then((res) => {
-        if (!res.ok) throw new Error("Error al cargar categorías");
-        return res.json();
-      })
+      .then((res) => parseApiResponse(res))
       .then((data) => {
         if (isMounted) {
           const list = Array.isArray(data) ? data : data.results || [];
@@ -49,7 +47,14 @@ export default function useDashboard() {
         }
       })
       .catch((err) => {
+        if (err?.status === 401 || err?.status === 403) return;
         console.warn("No se pudieron cargar categorías iniciales:", err);
+        Swal.fire({
+          icon: "error",
+          title: "Error",
+          text: getErrorMessage(err),
+          confirmButtonColor: "#7d2a3f",
+        });
       });
 
     return () => {
@@ -76,21 +81,24 @@ export default function useDashboard() {
         }
 
         const res = await fetch(url, { headers: getAuthHeaders(), signal });
-        if (!res.ok) {
-          if (res.status === 401 || res.status === 403) {
-            return;
-          }
-          throw new Error(`Error ${res.status}: al cargar productos`);
-        }
-
-        const data = await res.json();
+        const data = await parseApiResponse(res);
         const rawProductos = Array.isArray(data) ? data : data.results || [];
         const productosNormalizados = rawProductos.map(normalizarProducto);
 
         setProductos(productosNormalizados);
       } catch (error) {
-        if (error.name !== "AbortError") {
+        if (error.name === "AbortError") {
+          // petición cancelada por debounce, no es un error real
+        } else if (error?.status === 401 || error?.status === 403) {
+          // sesión expirada, el interceptor global ya redirige
+        } else {
           console.error("Error al obtener productos:", error);
+          Swal.fire({
+            icon: "error",
+            title: "Error",
+            text: getErrorMessage(error),
+            confirmButtonColor: "#7d2a3f",
+          });
         }
       } finally {
         setLoading(false);

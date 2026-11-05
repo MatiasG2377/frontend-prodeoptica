@@ -7,6 +7,7 @@ import {
   createUsuario,
   getSucursales,
 } from "../services/registerService";
+import { getErrorMessage } from "../utils/apiError";
 
 export function useRegisterForm() {
   const router = useRouter();
@@ -38,7 +39,7 @@ export function useRegisterForm() {
         Swal.fire({
           icon: "error",
           title: "Error",
-          text: error.message || "Ocurrió un error al cargar las sucursales",
+          text: getErrorMessage(error),
           confirmButtonColor: "#712b39",
         });
       } finally {
@@ -174,29 +175,13 @@ export function useRegisterForm() {
       console.error("Registration error:", error);
 
       // Determinar el mensaje de error
-      let errorMessage =
-        "Ocurrió un error al procesar el registro. Por favor, inténtalo de nuevo.";
+      let errorMessage = getErrorMessage(error);
 
-      if (error && typeof error === "object" && !Array.isArray(error)) {
-        const rawErrorMessage =
-          error.username?.[0] ||
-          error.email?.[0] ||
-          error.username_usuario?.[0] ||
-          error.email_usuario?.[0] ||
-          error.sucursal_usuario?.[0] ||
-          error.detail ||
-          JSON.stringify(error);
-
-        if (rawErrorMessage === "Enter a valid email address.") {
-          errorMessage = "Ingresa un correo electrónico válido.";
-        } else if (rawErrorMessage.includes("already exists")) {
-          errorMessage =
-            "Un usuario con este correo o nombre de usuario ya existe.";
-        } else {
-          errorMessage = rawErrorMessage;
-        }
-      } else if (error instanceof Error) {
-        errorMessage = error.message;
+      if (errorMessage === "Enter a valid email address.") {
+        errorMessage = "Ingresa un correo electrónico válido.";
+      } else if (errorMessage.includes("already exists")) {
+        errorMessage =
+          "Un usuario con este correo o nombre de usuario ya existe.";
       }
 
       // Mostrar error

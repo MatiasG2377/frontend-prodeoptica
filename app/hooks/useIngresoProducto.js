@@ -8,6 +8,7 @@ import {
   registrarKardex,
   buscarProductos,
 } from "../services/ingresoService";
+import { getErrorMessage } from "../utils/apiError";
 
 export default function useIngresoProducto(router) {
   const [productos, setProductos] = useState([]);
@@ -41,7 +42,7 @@ export default function useIngresoProducto(router) {
       Swal.fire({
         icon: "error",
         title: "Error",
-        text: "Hubo un problema al cargar los proveedores.",
+        text: getErrorMessage(error),
         confirmButtonColor: "#7d2a3f",
       });
     }
@@ -56,7 +57,7 @@ export default function useIngresoProducto(router) {
       Swal.fire({
         icon: "error",
         title: "Error",
-        text: "Hubo un problema al cargar los productos.",
+        text: getErrorMessage(error),
         confirmButtonColor: "#7d2a3f",
       });
     }
@@ -76,7 +77,7 @@ export default function useIngresoProducto(router) {
       Swal.fire({
         icon: "error",
         title: "Error",
-        text: "Hubo un problema al buscar los productos.",
+        text: getErrorMessage(error),
         confirmButtonColor: "#7d2a3f",
       });
       setFilteredProductos([]);
@@ -188,7 +189,7 @@ export default function useIngresoProducto(router) {
       Swal.fire({
         icon: "error",
         title: "Error",
-        text: "Ocurrió un error al registrar el ingreso.",
+        text: getErrorMessage(error),
         confirmButtonColor: "#712b39",
       });
     } finally {

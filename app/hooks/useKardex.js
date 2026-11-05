@@ -6,6 +6,7 @@ import {
   fetchProductos,
   fetchKardexByProducto,
 } from "../services/kardexService";
+import { getErrorMessage } from "../utils/apiError";
 
 /*************  ✨ Windsurf Command ⭐  *************/
 /**
@@ -50,12 +51,8 @@ import {
         setProductos(data);
         setFilteredProductos(data);
       })
-      .catch(() =>
-        Swal.fire(
-          "Error",
-          "No se pudo cargar el listado de productos.",
-          "error"
-        )
+      .catch((error) =>
+        Swal.fire("Error", getErrorMessage(error), "error")
       );
   }, [router]);
 
@@ -101,16 +98,13 @@ import {
         return;
       }
 
-      // Mostrar error solo si no es de autenticación y no es un array vacío
-      if (error.message !== "No hay movimientos registrados") {
-        setKardexMovimientos([]);
-        Swal.fire({
-          icon: "error",
-          title: "Error",
-          text: "Ocurrió un error al cargar los movimientos del kardex.",
-          confirmButtonColor: "#712b39",
-        });
-      }
+      setKardexMovimientos([]);
+      Swal.fire({
+        icon: "error",
+        title: "Error",
+        text: getErrorMessage(error),
+        confirmButtonColor: "#712b39",
+      });
     } finally {
       setIsLoading(false);
     }

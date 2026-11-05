@@ -7,6 +7,7 @@ import {
   fetchAbonoPorVenta,
   actualizarAbono,
 } from "../services/abonoService";
+import { parseApiResponse, getErrorMessage } from "../utils/apiError";
 
 const BASE_URL = process.env.NEXT_PUBLIC_API_URL;
 
@@ -21,12 +22,11 @@ export function useAbonos() {
       setAbonos(data);
     } catch (error) {
       // No mostrar error si es por sesión expirada (el interceptor ya lo maneja)
-      if (error.message !== 'Error al obtener los abonos' || 
-          !error.message.includes('401')) {
+      if (error?.status !== 401) {
         Swal.fire({
           icon: "error",
           title: "Error",
-          text: "Hubo un problema al cargar los abonos.",
+          text: getErrorMessage(error),
           confirmButtonColor: "#7d2a3f",
         });
       }
@@ -61,24 +61,21 @@ export function useAbonos() {
           Authorization: `Bearer ${localStorage.getItem("access_token")}`,
         },
       });
-      
-      if (!resVentas.ok) {
-        if (resVentas.status === 401) return; // Si la sesión expiró, salir silenciosamente
-        throw new Error("Error al cargar las ventas");
-      }
-      
-      const ventas = await resVentas.json();
-      const ventasFiltradas = Array.isArray(ventas) 
+
+      const ventas = await parseApiResponse(resVentas);
+      const ventasFiltradas = Array.isArray(ventas)
         ? ventas.filter((venta) => clienteIds.includes(venta.cliente_venta?.id || venta.cliente_venta))
         : [];
       setVentas(ventasFiltradas);
     } catch (error) {
-      Swal.fire({
-        icon: "error",
-        title: "Error",
-        text: "Hubo un problema al buscar por nombre.",
-        confirmButtonColor: "#7d2a3f",
-      });
+      if (error?.status !== 401) {
+        Swal.fire({
+          icon: "error",
+          title: "Error",
+          text: getErrorMessage(error),
+          confirmButtonColor: "#7d2a3f",
+        });
+      }
     } finally {
       setLoading(false);
     }
@@ -114,11 +111,8 @@ export function useAbonos() {
         }
       );
 
-      if (!abonosRes.ok || !ventasRes.ok)
-        throw new Error("Error al filtrar datos por fechas");
-
-      const abonosData = await abonosRes.json();
-      const ventasData = await ventasRes.json();
+      const abonosData = await parseApiResponse(abonosRes);
+      const ventasData = await parseApiResponse(ventasRes);
 
       setAbonos(abonosData.results || abonosData);
       setVentas(ventasData.results || ventasData);
@@ -126,7 +120,7 @@ export function useAbonos() {
       Swal.fire({
         icon: "error",
         title: "Error",
-        text: "Hubo un problema al filtrar los abonos y ventas.",
+        text: getErrorMessage(error),
         confirmButtonColor: "#7d2a3f",
       });
     } finally {

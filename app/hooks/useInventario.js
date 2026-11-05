@@ -10,40 +10,11 @@ import {
   actualizarProducto,
   eliminarProducto,
 } from "../services/productoService";
+import { getErrorMessage } from "../utils/apiError";
 
 const BASE_URL = process.env.NEXT_PUBLIC_API_URL;
 
-const ETIQUETAS_CAMPO = {
-  nombre_producto: "Nombre",
-  pvp_producto: "Precio de venta (PVP)",
-  costo_producto: "Costo",
-  cantidad_producto: "Cantidad",
-  minimo_producto: "Stock mínimo",
-  maximo_producto: "Stock máximo",
-  categoria_producto: "Categoría",
-  proveedor_producto: "Proveedor",
-  marca_producto: "Marca",
-  descripcion_producto: "Descripción",
-  codigo_producto: "Código",
-};
-
-// DRF manda {"campo": ["mensaje", ...]} en errores de validacion; esto lo vuelve legible
-const formatearErroresApi = (error) => {
-  if (error && typeof error === "object" && !error.response && !error.message) {
-    const lineas = Object.entries(error)
-      .filter(([, valor]) => Array.isArray(valor))
-      .map(([campo, mensajes]) => {
-        const etiqueta = ETIQUETAS_CAMPO[campo] || campo;
-        return `${etiqueta}: ${mensajes.join(" ")}`;
-      });
-    if (lineas.length > 0) return lineas.join("<br/>");
-  }
-  return (
-    error?.response?.data?.detail ||
-    error?.message ||
-    "No se pudo guardar el producto. Por favor, inténtalo de nuevo."
-  );
-};
+const esSesionExpirada = (error) => error?.status === 401 || error?.status === 403;
 
 export default function useInventario() {
   const [productos, setProductos] = useState([]);
@@ -93,7 +64,7 @@ export default function useInventario() {
       const data = await fetchProductos();
       setProductos(data.map(normalizarProducto));
     } catch (error) {
-      if (error.response?.status === 401 || error.response?.status === 403) {
+      if (esSesionExpirada(error)) {
         handleSessionExpired();
         return;
       }
@@ -102,7 +73,7 @@ export default function useInventario() {
       await Swal.fire({
         icon: "error",
         title: "Error",
-        text: "Hubo un problema al cargar los productos.",
+        text: getErrorMessage(error),
         confirmButtonColor: "#7d2a3f",
       });
     } finally {
@@ -149,7 +120,7 @@ export default function useInventario() {
       const data = await fetchProductosBuscados(search);
       setProductos(data.map(normalizarProducto));
     } catch (error) {
-      if (error.response?.status === 401 || error.response?.status === 403) {
+      if (esSesionExpirada(error)) {
         handleSessionExpired();
         return;
       }
@@ -158,7 +129,7 @@ export default function useInventario() {
       await Swal.fire({
         icon: "error",
         title: "Error",
-        text: "Hubo un problema al buscar los productos.",
+        text: getErrorMessage(error),
         confirmButtonColor: "#7d2a3f",
       });
       setProductos([]);
@@ -174,7 +145,7 @@ export default function useInventario() {
     } catch (error) {
       console.error("Error al cargar categorías:", error);
 
-      if (error.response?.status === 401 || error.response?.status === 403) {
+      if (esSesionExpirada(error)) {
         handleSessionExpired();
         return;
       }
@@ -182,7 +153,7 @@ export default function useInventario() {
       await Swal.fire({
         icon: "error",
         title: "Error",
-        text: "Hubo un problema al cargar las categorías.",
+        text: getErrorMessage(error),
         confirmButtonColor: "#7d2a3f",
       });
     }
@@ -195,7 +166,7 @@ export default function useInventario() {
     } catch (error) {
       console.error("Error al cargar proveedores:", error);
 
-      if (error.response?.status === 401 || error.response?.status === 403) {
+      if (esSesionExpirada(error)) {
         handleSessionExpired();
         return;
       }
@@ -203,7 +174,7 @@ export default function useInventario() {
       await Swal.fire({
         icon: "error",
         title: "Error",
-        text: "Hubo un problema al cargar los proveedores.",
+        text: getErrorMessage(error),
         confirmButtonColor: "#7d2a3f",
       });
     }
@@ -308,13 +279,13 @@ export default function useInventario() {
 
     } catch (error) {
       await loadingSwal.close();
-      if (error.response?.status === 401 || error.response?.status === 403) {
+      if (esSesionExpirada(error)) {
         return handleSessionExpired();
       }
 
       await Swal.fire({
         title: "Error",
-        html: formatearErroresApi(error),
+        html: getErrorMessage(error).replace(/\n/g, "<br/>"),
         icon: "error",
         confirmButtonColor: "#712b39",
       });
@@ -375,18 +346,13 @@ export default function useInventario() {
           throw error; // Re-lanzar el error para manejarlo en el catch externo
         }
       } catch (error) {
-        if (error.response?.status === 401 || error.response?.status === 403) {
+        if (esSesionExpirada(error)) {
           return handleSessionExpired();
         }
 
-        const errorMessage =
-          error.response?.data?.detail ||
-          error.message ||
-          "No se pudo eliminar el producto. Por favor, inténtalo de nuevo.";
-
         await Swal.fire({
           title: "Error",
-          text: errorMessage,
+          text: getErrorMessage(error),
           icon: "error",
           confirmButtonColor: "#712b39",
         });

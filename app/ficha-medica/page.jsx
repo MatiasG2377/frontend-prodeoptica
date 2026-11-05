@@ -7,6 +7,7 @@ import Header from "../components/common/Header2";
 import Swal from "sweetalert2";
 import ProtectedRoute from "../components/auth/ProtectedRoute";
 import FichaVisual from "../components/ficha-medica/FichaVisual";
+import { parseApiResponse, getErrorMessage } from "../utils/apiError";
 const BASE_URL = process.env.NEXT_PUBLIC_API_URL;
 
 const integerFields = [
@@ -327,12 +328,11 @@ export default function FichaMedicaCompleta() {
         body: JSON.stringify(payload),
       });
 
-      if (!res.ok && res.status !== 400) {
-        const errorText = await res.text();
-        throw new Error("Error al guardar paciente: " + errorText);
+      try {
+        await parseApiResponse(res);
+      } catch (error) {
+        if (error?.status !== 400) throw error;
       }
-
-      await res.json(); // puedes usarlo si necesitas los datos
 
       Swal.fire({
         icon: "success",
@@ -357,7 +357,7 @@ export default function FichaMedicaCompleta() {
       Swal.fire({
         icon: "error",
         title: "Error",
-        text: "Hubo un problema al guardar el paciente y cliente.",
+        text: getErrorMessage(error),
         confirmButtonColor: "#712b39",
       });
     }
@@ -602,18 +602,7 @@ export default function FichaMedicaCompleta() {
           body: JSON.stringify(payload),
         });
 
-        if (!res.ok) {
-          const errorData = await res.json();
-          Swal.fire({
-            icon: "error",
-            title: "Error",
-            text: "Hubo un problema al crear el paciente.",
-            confirmButtonColor: "#712b39",
-          });
-          throw new Error("Error al crear paciente");
-        }
-
-        const data = await res.json();
+        const data = await parseApiResponse(res);
         pacienteId = data.paciente.id;
       }
 
@@ -640,18 +629,7 @@ export default function FichaMedicaCompleta() {
         body: JSON.stringify(fichaPayloadFinal),
       });
 
-      if (!fichaRes.ok) {
-        const errorData = await fichaRes.json();
-        Swal.fire({
-          icon: "error",
-          title: "Error",
-          text: "Hubo un problema al guardar la ficha médica.",
-          confirmButtonColor: "#712b39",
-        });
-        throw new Error("Error al guardar ficha médica");
-      }
-
-      const nuevaFicha = await fichaRes.json();
+      const nuevaFicha = await parseApiResponse(fichaRes);
       setFichasPasadas((prev) => [nuevaFicha, ...(prev || [])]);
 
       // Limpiar formularios
@@ -774,7 +752,7 @@ export default function FichaMedicaCompleta() {
       Swal.fire({
         icon: "error",
         title: "Error",
-        text: error.message || "Ocurrió un error al guardar los datos",
+        text: getErrorMessage(error),
         confirmButtonColor: "#712b39",
       });
     }
@@ -814,7 +792,7 @@ export default function FichaMedicaCompleta() {
         }
       );
 
-      const data = await res.json();
+      const data = await parseApiResponse(res);
 
       if (data.length === 0) {
         Swal.fire({
@@ -836,7 +814,7 @@ export default function FichaMedicaCompleta() {
       Swal.fire({
         icon: "error",
         title: "Error",
-        text: "Ocurrió un error al buscar el paciente.",
+        text: getErrorMessage(err),
         confirmButtonColor: "#712b39",
       });
     }

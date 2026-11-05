@@ -6,6 +6,7 @@ import {
   updateItem,
   deleteItemById,
 } from "../services/crudService";
+import { getErrorMessage } from "../utils/apiError";
 const BASE_URL = process.env.NEXT_PUBLIC_API_URL;
 
 export function useCrud(apiUrl) {
@@ -22,7 +23,7 @@ export function useCrud(apiUrl) {
       Swal.fire({
         icon: "error",
         title: "Error",
-        text: "Hubo un problema al cargar los datos.",
+        text: getErrorMessage(err),
         confirmButtonColor: "#7d2a3f",
       });
     } finally {
@@ -73,7 +74,7 @@ export function useCrud(apiUrl) {
       Swal.fire({
         icon: "error",
         title: "Error",
-        text: err?.detail || "No se pudo agregar.",
+        text: getErrorMessage(err),
         confirmButtonColor: "#712b39",
       });
     }
@@ -104,7 +105,7 @@ export function useCrud(apiUrl) {
       Swal.fire({
         icon: "error",
         title: "Error",
-        text: err?.detail || "No se pudo actualizar.",
+        text: getErrorMessage(err),
         confirmButtonColor: "#712b39",
       });
     }
@@ -120,11 +121,11 @@ export function useCrud(apiUrl) {
         text: "Registro eliminado.",
         confirmButtonColor: "#712b39",
       });
-    } catch {
+    } catch (err) {
       Swal.fire({
         icon: "error",
         title: "Error",
-        text: "No se pudo eliminar.",
+        text: getErrorMessage(err),
         confirmButtonColor: "#712b39",
       });
     }

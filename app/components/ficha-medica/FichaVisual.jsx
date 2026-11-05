@@ -1,5 +1,6 @@
 import React, { useState } from "react";
 import Swal from "sweetalert2";
+import { parseApiResponse, getErrorMessage } from "../../utils/apiError";
 const BASE_URL = process.env.NEXT_PUBLIC_API_URL;
 
 export default function FichaVisual({ data }) {
@@ -21,12 +22,7 @@ export default function FichaVisual({ data }) {
         body: JSON.stringify(datosParaEnviar),
       });
 
-      if (!res.ok) {
-        const err = await res.text();
-        throw new Error("Error al guardar cambios: " + err);
-      }
-
-      const actualizada = await res.json();
+      const actualizada = await parseApiResponse(res);
       setEditando(false);
       setFichaEditada(actualizada);
       Swal.fire({
@@ -39,7 +35,7 @@ export default function FichaVisual({ data }) {
       Swal.fire({
         icon: "error",
         title: "Error",
-        text: "No se pudieron guardar los cambios.",
+        text: getErrorMessage(error),
         confirmButtonColor: "#7d2a3f",
       });
     }

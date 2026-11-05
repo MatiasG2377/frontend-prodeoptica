@@ -1,6 +1,7 @@
 import { useEffect, useState, useMemo } from "react";
 import { useRouter } from "next/navigation";
 import Swal from "sweetalert2";
+import { parseApiResponse, getErrorMessage } from "../utils/apiError";
 
 const BASE_URL = process.env.NEXT_PUBLIC_API_URL;
 
@@ -63,19 +64,15 @@ export function useAuth({ redirectToLogin = true } = {}) {
       localStorage.removeItem("refresh_token");
       localStorage.removeItem("usuario_info");
 
-      if (res.ok) {
-        Swal.fire({
-          title: "Sesión cerrada",
-          text: "Has cerrado sesión exitosamente.",
-          icon: "success",
-          confirmButtonColor: "#712b39",
-        }).then(() => router.push("/login"));
-      } else {
-        const data = await res.json();
-        Swal.fire("Error", data.detail || "Error al cerrar sesión.", "error");
-      }
+      await parseApiResponse(res);
+      Swal.fire({
+        title: "Sesión cerrada",
+        text: "Has cerrado sesión exitosamente.",
+        icon: "success",
+        confirmButtonColor: "#712b39",
+      }).then(() => router.push("/login"));
     } catch (error) {
-      Swal.fire("Error", "No se pudo cerrar sesión.", "error");
+      Swal.fire("Error", getErrorMessage(error), "error");
     }
   };
 

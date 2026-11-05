@@ -1,3 +1,5 @@
+import { parseApiResponse } from "../utils/apiError";
+
 const BASE_URL = process.env.NEXT_PUBLIC_API_URL;
 
 const getAuthHeaders = (isFormData = false) => {
@@ -19,7 +21,7 @@ export async function fetchProductos() {
   const res = await fetch(`${BASE_URL}/productos/`, {
     headers: getAuthHeaders(),
   });
-  const data = await res.json();
+  const data = await parseApiResponse(res);
   return Array.isArray(data) ? data : data.results;
 }
 
@@ -27,7 +29,7 @@ export async function fetchProveedores() {
   const res = await fetch(`${BASE_URL}/proveedores/`, {
     headers: getAuthHeaders(),
   });
-  return await res.json();
+  return await parseApiResponse(res);
 }
 
 export async function updateProducto(id, productoActualizado) {
@@ -53,36 +55,30 @@ export async function updateProducto(id, productoActualizado) {
     body: formData,
   });
 
-  if (!res.ok) {
-    const errorData = await res.json().catch(() => ({})); // Intenta parsear el error
-    console.error("Error al actualizar el producto:", errorData);
-    throw new Error(
-      `Error ${res.status}: ${errorData.detail || res.statusText}`
-    );
-  }
-
-  return await res.json();
+  return await parseApiResponse(res);
 }
 
 export async function registrarMovimiento(data) {
-  return await fetch(`${BASE_URL}/movimientos-inventario/`, {
+  const res = await fetch(`${BASE_URL}/movimientos-inventario/`, {
     method: "POST",
     headers: getAuthHeaders(),
     body: JSON.stringify(data),
   });
+  return await parseApiResponse(res);
 }
 
 export async function registrarKardex(data) {
-  return await fetch(`${BASE_URL}/kardex/`, {
+  const res = await fetch(`${BASE_URL}/kardex/`, {
     method: "POST",
     headers: getAuthHeaders(),
     body: JSON.stringify(data),
   });
+  return await parseApiResponse(res);
 }
 
 export async function buscarProductos(term) {
   const res = await fetch(`${BASE_URL}/productos/buscar/?q=${term}`, {
     headers: getAuthHeaders(),
   });
-  return await res.json();
+  return await parseApiResponse(res);
 }

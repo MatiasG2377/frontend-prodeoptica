@@ -2,6 +2,7 @@
 import { TableSkeleton } from '../common/Skeleton';
 import React, { useState, useEffect, useCallback } from "react";
 import Swal from "sweetalert2";
+import { parseApiResponse, getErrorMessage } from "../../utils/apiError";
 
 const BASE_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000/api";
 
@@ -49,12 +50,16 @@ export default function EgresosView() {
           Authorization: `Bearer ${localStorage.getItem("access_token")}`,
         },
       });
-      if (response.ok) {
-        const data = await response.json();
-        setEgresos(data.results || data);
-      }
+      const data = await parseApiResponse(response);
+      setEgresos(data.results || data);
     } catch (error) {
       console.error(error);
+      Swal.fire({
+        icon: "error",
+        title: "Error",
+        text: getErrorMessage(error),
+        confirmButtonColor: "#7d2a3f",
+      });
     } finally {
       setLoading(false);
     }
@@ -97,23 +102,20 @@ export default function EgresosView() {
         }),
       });
 
-      if (response.ok) {
-        Swal.fire({
-          icon: "success",
-          title: "Éxito",
-          text: `Egreso ${editando ? "actualizado" : "creado"} exitosamente`,
-          confirmButtonColor: "#712b39",
-        });
-        setMostrarModal(false);
-        fetchEgresos(busqueda);
-      } else {
-        throw new Error("Error en la petición");
-      }
+      await parseApiResponse(response);
+      Swal.fire({
+        icon: "success",
+        title: "Éxito",
+        text: `Egreso ${editando ? "actualizado" : "creado"} exitosamente`,
+        confirmButtonColor: "#712b39",
+      });
+      setMostrarModal(false);
+      fetchEgresos(busqueda);
     } catch (error) {
       Swal.fire({
         icon: "error",
         title: "Error",
-        text: "Hubo un problema al procesar el egreso.",
+        text: getErrorMessage(error),
         confirmButtonColor: "#7d2a3f",
       });
     } finally {
@@ -155,17 +157,22 @@ export default function EgresosView() {
             Authorization: `Bearer ${localStorage.getItem("access_token")}`,
           },
         });
-        if (response.ok) {
-          Swal.fire({
-            icon: "success",
-            title: "Eliminado",
-            text: "El egreso ha sido eliminado.",
-            confirmButtonColor: "#712b39",
-          });
-          fetchEgresos(busqueda);
-        }
+        await parseApiResponse(response);
+        Swal.fire({
+          icon: "success",
+          title: "Eliminado",
+          text: "El egreso ha sido eliminado.",
+          confirmButtonColor: "#712b39",
+        });
+        fetchEgresos(busqueda);
       } catch (error) {
         console.error(error);
+        Swal.fire({
+          icon: "error",
+          title: "Error",
+          text: getErrorMessage(error),
+          confirmButtonColor: "#7d2a3f",
+        });
       }
     }
   };

@@ -1,3 +1,5 @@
+import { parseApiResponse } from "../utils/apiError";
+
 const BASE_URL = process.env.NEXT_PUBLIC_API_URL;
 
 const getAuthHeaders = (isFormData = false) => {
@@ -18,14 +20,13 @@ const getAuthHeaders = (isFormData = false) => {
 // Buscar cliente y paciente por CI (valida que haya CI)
 export const buscarClienteYPaciente = async (ci) => {
   if (!ci || ci.trim() === "") {
-    throw { detail: "El campo 'ci' es obligatorio para la búsqueda." };
+    throw { status: 400, detail: "Ingresá una cédula para buscar." };
   }
 
   const res = await fetch(`${BASE_URL}/cliente-paciente/buscar/?ci=${ci}`, {
     headers: getAuthHeaders(),
   });
-  if (!res.ok) throw await res.json();
-  return await res.json();
+  return await parseApiResponse(res);
 };
 
 // Crear cliente y paciente (ci_cliente es opcional)
@@ -35,8 +36,7 @@ export const crearClientePaciente = async (payload) => {
     headers: getAuthHeaders(),
     body: JSON.stringify(payload),
   });
-  if (!res.ok) throw await res.json();
-  return await res.json();
+  return await parseApiResponse(res);
 };
 
 // Actualizar cliente
@@ -46,8 +46,7 @@ export const actualizarCliente = async (id, data) => {
     headers: getAuthHeaders(),
     body: JSON.stringify(data),
   });
-  if (!res.ok) throw await res.json();
-  return await res.json();
+  return await parseApiResponse(res);
 };
 
 // Actualizar paciente
@@ -57,8 +56,7 @@ export const actualizarPaciente = async (id, data) => {
     headers: getAuthHeaders(),
     body: JSON.stringify(data),
   });
-  if (!res.ok) throw await res.json();
-  return await res.json();
+  return await parseApiResponse(res);
 };
 
 // Crear venta
@@ -68,8 +66,7 @@ export const crearVenta = async (ventaData) => {
     headers: getAuthHeaders(),
     body: JSON.stringify(ventaData),
   });
-  if (!res.ok) throw await res.json();
-  return await res.json();
+  return await parseApiResponse(res);
 };
 
 // Crear artículo de venta
@@ -79,8 +76,7 @@ export const crearArticuloVenta = async (data) => {
     headers: getAuthHeaders(),
     body: JSON.stringify(data),
   });
-  if (!res.ok) throw await res.json();
-  return await res.json();
+  return await parseApiResponse(res);
 };
 
 // Actualizar stock de producto
@@ -96,13 +92,7 @@ export const actualizarStockProducto = async (id, data) => {
     body: formData,
   });
 
-  if (!res.ok) {
-    const errorData = await res.json().catch(() => ({}));
-    console.error("Error al actualizar el stock:", errorData);
-    throw new Error(`Error ${res.status}: ${errorData.detail || res.statusText}`);
-  }
-
-  return await res.json();
+  return await parseApiResponse(res);
 };
 
 // Registrar movimiento en Kardex
@@ -112,8 +102,7 @@ export const registrarMovimientoKardex = async (data) => {
     headers: getAuthHeaders(),
     body: JSON.stringify(data),
   });
-  if (!res.ok) throw await res.json();
-  return await res.json();
+  return await parseApiResponse(res);
 };
 
 // Registrar abono
@@ -123,6 +112,5 @@ export const registrarAbono = async (data) => {
     headers: getAuthHeaders(),
     body: JSON.stringify(data),
   });
-  if (!res.ok) throw await res.json();
-  return await res.json();
+  return await parseApiResponse(res);
 };

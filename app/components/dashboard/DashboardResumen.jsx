@@ -32,6 +32,8 @@ import {
   Filler,
 } from "chart.js";
 import { Line, Doughnut, Bar } from "react-chartjs-2";
+import Swal from "sweetalert2";
+import { parseApiResponse, getErrorMessage } from "../../utils/apiError";
 
 // Registrar componentes de Chart.js
 ChartJS.register(
@@ -69,11 +71,11 @@ export default function DashboardResumen({ onGoToPOS }) {
 
     try {
       const [resVentas, resProd, resPac, resFichas, resCierre] = await Promise.allSettled([
-        fetch(`${BASE_URL}/ventas/`, { headers }).then((r) => (r.ok ? r.json() : [])),
-        fetch(`${BASE_URL}/productos/`, { headers }).then((r) => (r.ok ? r.json() : [])),
-        fetch(`${BASE_URL}/pacientes/`, { headers }).then((r) => (r.ok ? r.json() : [])),
-        fetch(`${BASE_URL}/fichas-medicas/`, { headers }).then((r) => (r.ok ? r.json() : [])),
-        fetch(`${BASE_URL}/dashboard/cierre-caja-resumen/`, { headers }).then((r) => (r.ok ? r.json() : null)),
+        fetch(`${BASE_URL}/ventas/`, { headers }).then(parseApiResponse),
+        fetch(`${BASE_URL}/productos/`, { headers }).then(parseApiResponse),
+        fetch(`${BASE_URL}/pacientes/`, { headers }).then(parseApiResponse),
+        fetch(`${BASE_URL}/fichas-medicas/`, { headers }).then(parseApiResponse),
+        fetch(`${BASE_URL}/dashboard/cierre-caja-resumen/`, { headers }).then(parseApiResponse),
       ]);
 
       if (resVentas.status === "fulfilled" && Array.isArray(resVentas.value)) {
@@ -91,8 +93,26 @@ export default function DashboardResumen({ onGoToPOS }) {
       if (resCierre.status === "fulfilled" && resCierre.value) {
         setCierreCaja(resCierre.value);
       }
+
+      const resultados = [resVentas, resProd, resPac, resFichas, resCierre];
+      const fallidos = resultados.filter((r) => r.status === "rejected");
+      fallidos.forEach((r) => console.error("Error al cargar datos del dashboard:", r.reason));
+      if (fallidos.length === resultados.length) {
+        Swal.fire({
+          icon: "error",
+          title: "Error",
+          text: getErrorMessage(fallidos[0].reason),
+          confirmButtonColor: "#712b39",
+        });
+      }
     } catch (err) {
       console.error("Error al cargar métricas del dashboard:", err);
+      Swal.fire({
+        icon: "error",
+        title: "Error",
+        text: getErrorMessage(err),
+        confirmButtonColor: "#712b39",
+      });
     } finally {
       setLoading(false);
     }

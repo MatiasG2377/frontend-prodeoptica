@@ -1,6 +1,7 @@
 "use client";
 import React, { useEffect, useState } from "react";
 import { Search, User, FileText, CheckCircle2 } from "lucide-react";
+import { parseApiResponse } from "../../utils/apiError";
 const BASE_URL = process.env.NEXT_PUBLIC_API_URL || "http://127.0.0.1:8000/api";
 
 export default function ClienteForm({
@@ -24,12 +25,10 @@ export default function ClienteForm({
     const cargarLaboratorios = async () => {
       try {
         const response = await fetch(`${BASE_URL}/laboratorios/`);
-        if (!response.ok) {
-          throw new Error("Error al cargar laboratorios");
-        }
-        const data = await response.json();
+        const data = await parseApiResponse(response);
         setLaboratorios(Array.isArray(data) ? data : data.results || []);
       } catch (err) {
+        console.error("Error al cargar laboratorios:", err);
         setLaboratorios([]);
       }
     };

@@ -1,3 +1,5 @@
+import { parseApiResponse } from "../utils/apiError";
+
 const BASE_URL = process.env.NEXT_PUBLIC_API_URL;
 
 const getAuthHeaders = () => {
@@ -14,8 +16,7 @@ export async function buscarPacientePorCIAPI(ci) {
   const res = await fetch(`${BASE_URL}/pacientes/?ci=${ci}`, {
     headers: getAuthHeaders(),
   });
-  if (!res.ok) throw new Error("Paciente no encontrado");
-  const data = await res.json();
+  const data = await parseApiResponse(res);
   return {
     pacienteData: data.paciente,
     historial: data.historial,
@@ -26,8 +27,7 @@ export async function buscarPacientePorApellidoAPI(apellido) {
   const res = await fetch(`${BASE_URL}/pacientes/?apellido=${apellido}`, {
     headers: getAuthHeaders(),
   });
-  if (!res.ok) throw new Error("No encontrado");
-  return await res.json();
+  return await parseApiResponse(res);
 }
 
 export async function guardarFichaCompletaAPI(paciente, ficha) {
@@ -37,8 +37,5 @@ export async function guardarFichaCompletaAPI(paciente, ficha) {
     body: JSON.stringify({ paciente, ficha }),
   });
 
-  if (!res.ok) {
-    const errorData = await res.json();
-    throw new Error(errorData.detail || "Error al guardar ficha");
-  }
+  await parseApiResponse(res);
 }

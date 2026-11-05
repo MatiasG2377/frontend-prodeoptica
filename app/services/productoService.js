@@ -1,3 +1,5 @@
+import { parseApiResponse } from "../utils/apiError";
+
 const BASE_URL = process.env.NEXT_PUBLIC_API_URL;
 
 const getAuthHeaders = (isFormData = false) => {
@@ -17,29 +19,23 @@ const getAuthHeaders = (isFormData = false) => {
   };
 };
 
+const limpiarSesionSiExpiro = (error) => {
+  if ((error?.status === 401 || error?.status === 403) && typeof window !== "undefined") {
+    localStorage.removeItem("access_token");
+  }
+  throw error;
+};
+
 export const fetchProductos = async () => {
   const res = await fetch(`${BASE_URL}/productos/`, {
     headers: getAuthHeaders(),
   });
-  const data = await res.json();
-  if (!res.ok) {
-    if (res.status === 401 || res.status === 403) {
-      if (typeof window !== "undefined") {
-        localStorage.removeItem("access_token");
-      }
-      throw { 
-        response: { 
-          status: res.status, 
-          data: { 
-            detail: 'Su sesión ha expirado. Por favor, inicie sesión nuevamente.',
-            code: 'token_expired'
-          } 
-        } 
-      };
-    }
-    throw data;
+  try {
+    const data = await parseApiResponse(res);
+    return data.results || data;
+  } catch (error) {
+    return limpiarSesionSiExpiro(error);
   }
-  return data.results || data;
 };
 
 export const fetchProductosBuscados = async (query) => {
@@ -47,75 +43,36 @@ export const fetchProductosBuscados = async (query) => {
     `${BASE_URL}/productos/buscar/?q=${encodeURIComponent(query)}`,
     { headers: getAuthHeaders() }
   );
-  const data = await res.json();
-  if (!res.ok) {
-    if (res.status === 401 || res.status === 403) {
-      if (typeof window !== "undefined") {
-        localStorage.removeItem("access_token");
-      }
-      throw { 
-        response: { 
-          status: res.status, 
-          data: { 
-            detail: 'Su sesión ha expirado. Por favor, inicie sesión nuevamente.',
-            code: 'token_expired'
-          } 
-        } 
-      };
-    }
-    throw data;
+  try {
+    const data = await parseApiResponse(res);
+    return Array.isArray(data) ? data : data.results || [];
+  } catch (error) {
+    return limpiarSesionSiExpiro(error);
   }
-  return Array.isArray(data) ? data : data.results || [];
 };
 
 export const fetchCategorias = async () => {
   const res = await fetch(`${BASE_URL}/categorias/`, {
     headers: getAuthHeaders(),
   });
-  const data = await res.json();
-  if (!res.ok) {
-    if (res.status === 401 || res.status === 403) {
-      if (typeof window !== "undefined") {
-        localStorage.removeItem("access_token");
-      }
-      throw { 
-        response: { 
-          status: res.status, 
-          data: { 
-            detail: 'Su sesión ha expirado. Por favor, inicie sesión nuevamente.',
-            code: 'token_expired'
-          } 
-        } 
-      };
-    }
-    throw data;
+  try {
+    const data = await parseApiResponse(res);
+    return data.results || data;
+  } catch (error) {
+    return limpiarSesionSiExpiro(error);
   }
-  return data.results || data;
 };
 
 export const fetchProveedores = async () => {
   const res = await fetch(`${BASE_URL}/proveedores/`, {
     headers: getAuthHeaders(),
   });
-  const data = await res.json();
-  if (!res.ok) {
-    if (res.status === 401 || res.status === 403) {
-      if (typeof window !== "undefined") {
-        localStorage.removeItem("access_token");
-      }
-      throw { 
-        response: { 
-          status: res.status, 
-          data: { 
-            detail: 'Su sesión ha expirada. Por favor, inicie sesión nuevamente.',
-            code: 'token_expired'
-          } 
-        } 
-      };
-    }
-    throw data;
+  try {
+    const data = await parseApiResponse(res);
+    return data.results || data;
+  } catch (error) {
+    return limpiarSesionSiExpiro(error);
   }
-  return data.results || data;
 };
 
 export const crearProducto = async (payload) => {
@@ -125,26 +82,11 @@ export const crearProducto = async (payload) => {
     headers: getAuthHeaders(isFormData),
     body: payload, // FormData directamente
   });
-  const data = await res.json();
-  if (!res.ok) {
-    if (res.status === 401 || res.status === 403) {
-      // Limpiar el token inválido
-      if (typeof window !== "undefined") {
-        localStorage.removeItem("access_token");
-      }
-      throw { 
-        response: { 
-          status: res.status, 
-          data: { 
-            detail: 'Su sesión ha expirado. Por favor, inicie sesión nuevamente.',
-            code: 'token_expired'
-          } 
-        } 
-      };
-    }
-    throw data;
+  try {
+    return await parseApiResponse(res);
+  } catch (error) {
+    return limpiarSesionSiExpiro(error);
   }
-  return data;
 };
 
 export const actualizarProducto = async (id, payload) => {
@@ -154,26 +96,11 @@ export const actualizarProducto = async (id, payload) => {
     headers: getAuthHeaders(isFormData),
     body: payload,
   });
-  const data = await res.json();
-  if (!res.ok) {
-    if (res.status === 401 || res.status === 403) {
-      // Limpiar el token inválido
-      if (typeof window !== "undefined") {
-        localStorage.removeItem("access_token");
-      }
-      throw { 
-        response: { 
-          status: res.status, 
-          data: { 
-            detail: 'Su sesión ha expirado. Por favor, inicie sesión nuevamente.',
-            code: 'token_expired'
-          } 
-        } 
-      };
-    }
-    throw data;
+  try {
+    return await parseApiResponse(res);
+  } catch (error) {
+    return limpiarSesionSiExpiro(error);
   }
-  return data;
 };
 
 export const eliminarProducto = async (id) => {
@@ -181,22 +108,9 @@ export const eliminarProducto = async (id) => {
     method: "DELETE",
     headers: getAuthHeaders(),
   });
-  const data = await res.json().catch(() => ({}));
-  if (!res.ok) {
-    if (res.status === 401 || res.status === 403) {
-      if (typeof window !== "undefined") {
-        localStorage.removeItem("access_token");
-      }
-      throw { 
-        response: { 
-          status: res.status, 
-          data: { 
-            detail: 'Su sesión ha expirada. Por favor, inicie sesión nuevamente.',
-            code: 'token_expired'
-          } 
-        } 
-      };
-    }
-    throw new Error(data.detail || "No se pudo eliminar el producto");
+  try {
+    await parseApiResponse(res);
+  } catch (error) {
+    return limpiarSesionSiExpiro(error);
   }
 };

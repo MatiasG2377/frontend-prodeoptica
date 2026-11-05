@@ -1,6 +1,7 @@
 "use client";
 import { useState } from "react";
 import Swal from "sweetalert2";
+import { parseApiResponse, getErrorMessage } from "../utils/apiError";
 const BASE_URL = process.env.NEXT_PUBLIC_API_URL;
 
 /**
@@ -67,8 +68,14 @@ export default function useCliente() {
           },
         });
 
-        if (res.ok) {
-          const resultado = await res.json();
+        let resultado = null;
+        try {
+          resultado = await parseApiResponse(res);
+        } catch (error) {
+          if (error?.status !== 404) throw error;
+        }
+
+        if (resultado) {
           const cliente = Array.isArray(resultado)
             ? resultado.find(
                 (c) => c.ci_cliente.toString() === value.toString()
@@ -95,7 +102,7 @@ export default function useCliente() {
         Swal.fire({
           icon: "error",
           title: "Error",
-          text: "Hubo un problema al buscar el cliente.",
+          text: getErrorMessage(error),
           confirmButtonColor: "#7d2a3f",
         });
       }
@@ -159,8 +166,7 @@ export default function useCliente() {
         body: JSON.stringify(clienteData),
       });
 
-      if (!res.ok)
-        throw new Error("Error al registrar o actualizar el cliente");
+      await parseApiResponse(res);
 
       Swal.fire({
         icon: "success",
@@ -182,7 +188,7 @@ export default function useCliente() {
       Swal.fire({
         icon: "error",
         title: "Error",
-        text: "No se pudo guardar el cliente.",
+        text: getErrorMessage(error),
         confirmButtonColor: "#712b39",
       });
     } finally {

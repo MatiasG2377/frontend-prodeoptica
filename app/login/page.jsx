@@ -4,6 +4,7 @@ import { useRouter } from "next/navigation";
 import Swal from "sweetalert2";
 import LoginForm from "../components/login/LoginForm";
 import { toastSuccess } from "../utils/toastAlert";
+import { parseApiResponse, getErrorMessage } from "../utils/apiError";
 
 const BASE_URL = process.env.NEXT_PUBLIC_API_URL || "http://127.0.0.1:8000/api";
 
@@ -46,11 +47,7 @@ export default function LoginPage() {
         body: JSON.stringify({ username, password }),
       });
 
-      const data = await res.json();
-
-      if (!res.ok) {
-        throw new Error(data.detail || "Usuario o contraseña incorrectos");
-      }
+      const data = await parseApiResponse(res);
 
       // ✅ Guardar tokens y datos del usuario
       localStorage.setItem("access_token", data.access);
@@ -64,7 +61,7 @@ export default function LoginPage() {
       Swal.fire({
         icon: "error",
         title: "Error de acceso",
-        text: error.message || "No se pudo iniciar sesión.",
+        text: getErrorMessage(error),
         confirmButtonColor: "#712b39",
       });
     } finally {

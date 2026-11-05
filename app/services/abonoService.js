@@ -1,9 +1,10 @@
+import { parseApiResponse } from "../utils/apiError";
+
 const API_URL = process.env.NEXT_PUBLIC_API_URL;
-import Swal from "sweetalert2";
+
 export const fetchAbonos = async () => {
   const res = await fetch(`${API_URL}/abonos/`);
-  if (!res.ok) throw new Error("Error al obtener los abonos");
-  const data = await res.json();
+  const data = await parseApiResponse(res);
   return data
     .map((abono) => {
       const total = parseFloat(abono.venta?.total_venta || 0);
@@ -15,38 +16,19 @@ export const fetchAbonos = async () => {
 };
 
 export const buscarUsuariosPorNombre = async (nombre) => {
-  try {
-    const token = localStorage.getItem("access_token");
-    if (!token) throw new Error("Token no disponible");
+  const token = localStorage.getItem("access_token");
+  if (!token) throw { status: 401, detail: "Tu sesión expiró o no iniciaste sesión." };
 
-    const res = await fetch(
-      `${API_URL}/clientes/buscar/?q=${encodeURIComponent(nombre)}`,
-      {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      }
-    );
-
-    if (!res.ok) {
-      const errorData = await res.json();
-      Swal.fire({
-        icon: "error",
-        title: "Error",
-        text: "Error al buscar clientes por nombre",
-      });
-      throw new Error("Error al buscar clientes por nombre");
+  const res = await fetch(
+    `${API_URL}/clientes/buscar/?q=${encodeURIComponent(nombre)}`,
+    {
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
     }
+  );
 
-    return await res.json();
-  } catch (error) {
-    Swal.fire({
-      icon: "error",
-      title: "Error",
-      text: "Error al buscar clientes por nombre",
-    });
-    throw error;
-  }
+  return await parseApiResponse(res);
 };
 
 export const fetchAbonosPorFechas = async (fechaInicio, fechaFin) => {
@@ -60,8 +42,7 @@ export const fetchAbonosPorFechas = async (fechaInicio, fechaFin) => {
     },
   });
 
-  if (!res.ok) throw new Error("Error al filtrar abonos");
-  const data = await res.json();
+  const data = await parseApiResponse(res);
   return data.results || data;
 };
 
@@ -72,8 +53,7 @@ export const fetchAbonoPorVenta = async (ventaId) => {
     },
   });
 
-  if (!res.ok) throw new Error("No se pudo obtener el abono por venta");
-  return await res.json();
+  return await parseApiResponse(res);
 };
 
 export const actualizarAbono = async (abonoId, payload) => {
@@ -86,6 +66,5 @@ export const actualizarAbono = async (abonoId, payload) => {
     body: JSON.stringify(payload),
   });
 
-  if (!res.ok) throw new Error("Error al actualizar el abono");
-  return await res.json();
+  return await parseApiResponse(res);
 };

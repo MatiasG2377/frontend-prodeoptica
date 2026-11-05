@@ -29,6 +29,7 @@ import HistorialAbonosModal from "../components/abonos/HistorialAbonosModal";
 import EgresosView from "../components/egresos/EgresosView";
 import CierreCajaView from "../components/caja/CierreCajaView";
 import { format, startOfMonth, startOfYear, endOfMonth, endOfYear } from "date-fns";
+import { parseApiResponse, getErrorMessage } from "../utils/apiError";
 
 const BASE_URL = process.env.NEXT_PUBLIC_API_URL;
 
@@ -94,11 +95,17 @@ export default function AbonosPage() {
         },
       });
 
-      if (!res.ok) throw new Error("Error al cargar ventas");
-
-      const data = await res.json();
+      const data = await parseApiResponse(res);
       setVentas(data.results || data);
-    } catch (error) {}
+    } catch (error) {
+      console.error("Error al cargar ventas:", error);
+      Swal.fire({
+        icon: "error",
+        title: "Error",
+        text: getErrorMessage(error),
+        confirmButtonColor: "#712b39",
+      });
+    }
   }, []);
 
   useEffect(() => {
@@ -150,15 +157,18 @@ export default function AbonosPage() {
         }
       );
 
-      if (!abonosRes.ok || !ventasRes.ok)
-        throw new Error("Error al filtrar datos por fechas");
-
-      const abonosData = await abonosRes.json();
-      const ventasData = await ventasRes.json();
+      const abonosData = await parseApiResponse(abonosRes);
+      const ventasData = await parseApiResponse(ventasRes);
 
       setAbonos(abonosData.results || abonosData);
       setVentas(ventasData.results || ventasData);
     } catch (error) {
+      Swal.fire({
+        icon: "error",
+        title: "Error",
+        text: getErrorMessage(error),
+        confirmButtonColor: "#712b39",
+      });
     } finally {
       setLoading(false);
     }
@@ -260,7 +270,7 @@ export default function AbonosPage() {
         }),
       });
 
-      if (!res.ok) throw new Error("Error al registrar el abono");
+      await parseApiResponse(res);
 
       await cargarAbonos();
 
@@ -274,7 +284,7 @@ export default function AbonosPage() {
       await Swal.fire({
         icon: "error",
         title: "Error",
-        text: "Ocurrió un error al procesar el abono.",
+        text: getErrorMessage(error),
         confirmButtonColor: "#712b39",
       });
     } finally {
@@ -317,7 +327,7 @@ export default function AbonosPage() {
         }),
       });
 
-      if (!res.ok) throw new Error("Error al actualizar el abono");
+      await parseApiResponse(res);
 
       await cargarAbonos();
       setMostrarModal(false);
@@ -332,7 +342,7 @@ export default function AbonosPage() {
       await Swal.fire({
         icon: "error",
         title: "Error",
-        text: "Ocurrió un error al actualizar el abono.",
+        text: getErrorMessage(error),
         confirmButtonColor: "#712b39",
       });
     } finally {
@@ -347,9 +357,7 @@ export default function AbonosPage() {
         },
       });
 
-      if (!res.ok) throw new Error("Error al obtener artículos");
-
-      const data = await res.json();
+      const data = await parseApiResponse(res);
 
       setVentaSeleccionada(venta);
       setArticulosVenta(data);
@@ -358,7 +366,7 @@ export default function AbonosPage() {
       Swal.fire({
         icon: "error",
         title: "Error",
-        text: "Hubo un problema al obtener el detalle de la venta.",
+        text: getErrorMessage(error),
         confirmButtonColor: "#7d2a3f",
       });
     }
@@ -405,16 +413,14 @@ export default function AbonosPage() {
         },
       });
 
-      if (!res.ok) throw new Error("Error al obtener historial de abonos");
-
-      const data = await res.json();
+      const data = await parseApiResponse(res);
       setHistorialAbonos(data);
       setMostrarHistorialAbonos(true);
     } catch (error) {
       Swal.fire({
         icon: "error",
         title: "Error",
-        text: "Hubo un problema al abrir el historial de abonos.",
+        text: getErrorMessage(error),
         confirmButtonColor: "#7d2a3f",
       });
     }

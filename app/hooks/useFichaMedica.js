@@ -6,6 +6,7 @@ import {
   buscarPacientePorApellidoAPI,
   guardarFichaCompletaAPI,
 } from "../services/fichaMedicaService"; // Puedes ajustar este import si usas otra ruta
+import { getErrorMessage } from "../utils/apiError";
 
 export default function useFichaMedica() {
   const [paciente, setPaciente] = useState({});
@@ -41,7 +42,7 @@ export default function useFichaMedica() {
       Swal.fire({
         icon: "error",
         title: "No encontrado",
-        text: "No se encontró ningún paciente con esa cédula.",
+        text: getErrorMessage(error),
         confirmButtonColor: "#712b39",
       });
     }
@@ -56,7 +57,7 @@ export default function useFichaMedica() {
       Swal.fire({
         icon: "error",
         title: "No encontrado",
-        text: "No se encontró ningún paciente con ese apellido.",
+        text: getErrorMessage(error),
         confirmButtonColor: "#712b39",
       });
     }
@@ -80,7 +81,7 @@ export default function useFichaMedica() {
       Swal.fire({
         icon: "error",
         title: "Error",
-        text: error.message || "No se pudo guardar la ficha.",
+        text: getErrorMessage(error),
         confirmButtonColor: "#712b39",
       });
     }

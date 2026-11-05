@@ -1,4 +1,6 @@
 // services/apiService.js
+import { parseApiResponse } from "../utils/apiError";
+
 const getAuthHeaders = () => {
   const token =
     typeof window !== "undefined" ? localStorage.getItem("access_token") : null;
@@ -11,8 +13,7 @@ const getAuthHeaders = () => {
 
 export async function getAllItems(endpoint) {
   const res = await fetch(endpoint, { headers: getAuthHeaders() });
-  if (!res.ok) throw new Error("Error al obtener datos");
-  return await res.json();
+  return await parseApiResponse(res);
 }
 
 export async function createItem(endpoint, item) {
@@ -22,8 +23,7 @@ export async function createItem(endpoint, item) {
     body: JSON.stringify(item),
   });
 
-  if (!res.ok) throw await res.json();
-  return await res.json();
+  return await parseApiResponse(res);
 }
 
 export async function updateItem(endpoint, id, item) {
@@ -33,8 +33,7 @@ export async function updateItem(endpoint, id, item) {
     body: JSON.stringify(item),
   });
 
-  if (!res.ok) throw await res.json();
-  return await res.json();
+  return await parseApiResponse(res);
 }
 
 export async function deleteItemById(endpoint, id) {
@@ -43,6 +42,6 @@ export async function deleteItemById(endpoint, id) {
     headers: getAuthHeaders(),
   });
 
-  if (!res.ok) throw new Error("Error al eliminar");
+  await parseApiResponse(res);
   return true;
 }
