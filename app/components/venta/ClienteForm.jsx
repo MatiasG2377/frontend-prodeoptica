@@ -72,7 +72,7 @@ export default function ClienteForm({
           {/* Cédula con búsqueda */}
           <div>
             <label className="block text-xs font-bold text-gray-700 mb-1">
-              Cédula / RUC / ID <span className="text-red-500">*</span>
+              Cédula / RUC / ID
             </label>
             <div className="flex">
               <input

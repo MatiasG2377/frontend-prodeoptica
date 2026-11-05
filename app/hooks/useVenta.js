@@ -74,34 +74,28 @@ export default function useVenta() {
     // Eliminar la búsqueda automática por CI
   };
 
-  /*******  546ba153-be84-4856-8bdb-1d4d2b1fe6bb  *******/ const registrarClienteYPaciente =
-    async (data) => {
-      const ci = data?.ci_cliente?.trim();
+  const registrarClienteYPaciente = async (data) => {
+    const ci = data?.ci_cliente?.trim() || "";
 
-      if (!ci || ci.length < 10) {
-        throw new Error(
-          "El campo cédula es obligatorio 0y debe tener al menos 10 dígitos."
-        );
-      }
+    const payload = {
+      ci: data.ci_cliente,
+      ci_cliente: ci,
+      nombre_cliente: data.nombre_cliente,
+      correo_cliente: data.correo_cliente,
+      apellido_cliente: data.apellidos_paciente,
+      telefono_cliente: data.telefono_cliente,
+      direccion_cliente: data.direccion_cliente,
+      informacion_cliente: data.informacion_cliente || "",
+      nombres_paciente: data.nombre_cliente,
+      apellidos_paciente: data.apellidos_paciente,
+      fecha_nacimiento: data.fecha_nacimiento,
+      ocupacion_paciente: data.ocupacion_paciente,
+      direccion_paciente: data.direccion_cliente,
+      telefono_paciente: data.telefono_cliente,
+      antecedentes_paciente: data.antecedentes_paciente,
+    };
 
-      const payload = {
-        ci: data.ci_cliente,
-        ci_cliente: ci,
-        nombre_cliente: data.nombre_cliente,
-        correo_cliente: data.correo_cliente,
-        apellido_cliente: data.apellidos_paciente,
-        telefono_cliente: data.telefono_cliente,
-        direccion_cliente: data.direccion_cliente,
-        informacion_cliente: data.informacion_cliente || "",
-        nombres_paciente: data.nombre_cliente,
-        apellidos_paciente: data.apellidos_paciente,
-        fecha_nacimiento: data.fecha_nacimiento,
-        ocupacion_paciente: data.ocupacion_paciente,
-        direccion_paciente: data.direccion_cliente,
-        telefono_paciente: data.telefono_cliente,
-        antecedentes_paciente: data.antecedentes_paciente,
-      };
-
+    if (ci) {
       try {
         const resultado = await buscarClienteYPaciente(ci);
         const cliente = resultado.cliente;
@@ -110,14 +104,13 @@ export default function useVenta() {
         if (cliente && paciente) {
           await actualizarCliente(cliente.id, payload);
           await actualizarPaciente(paciente.id, payload);
-          return;
+          return { cliente, paciente };
         }
       } catch (err) {}
+    }
 
-      // 🧪 Verifica que sí llega el campo
-
-      await crearClientePaciente(payload);
-    };
+    return await crearClientePaciente(payload);
+  };
   const buscarClienteManual = async (ci) => {
     if (!ci || !ci.trim()) {
       Swal.fire({
@@ -185,10 +178,8 @@ export default function useVenta() {
 
     setIsSubmitting(true);
     try {
-      await registrarClienteYPaciente(clienteData);
-
-      const resultado = await buscarClienteYPaciente(clienteData.ci_cliente);
-      const cliente = resultado.cliente;
+      const resultado = await registrarClienteYPaciente(clienteData);
+      const cliente = resultado?.cliente;
       if (!cliente || !cliente.id) throw new Error("Cliente inválido o sin ID");
 
       const ventaData = {

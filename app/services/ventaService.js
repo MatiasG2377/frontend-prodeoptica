@@ -28,15 +28,8 @@ export const buscarClienteYPaciente = async (ci) => {
   return await res.json();
 };
 
-// Crear cliente y paciente (valida que ci_cliente esté presente)
+// Crear cliente y paciente (ci_cliente es opcional)
 export const crearClientePaciente = async (payload) => {
-  if (!payload?.ci_cliente || payload.ci_cliente.trim() === "") {
-    throw {
-      detail:
-        "El campo 'ci_cliente' es obligatorio para crear cliente/paciente.",
-    };
-  }
-
   const res = await fetch(`${BASE_URL}/cliente-paciente/`, {
     method: "POST",
     headers: getAuthHeaders(),

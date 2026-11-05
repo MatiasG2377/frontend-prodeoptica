@@ -12,6 +12,39 @@ import {
 } from "../services/productoService";
 
 const BASE_URL = process.env.NEXT_PUBLIC_API_URL;
+
+const ETIQUETAS_CAMPO = {
+  nombre_producto: "Nombre",
+  pvp_producto: "Precio de venta (PVP)",
+  costo_producto: "Costo",
+  cantidad_producto: "Cantidad",
+  minimo_producto: "Stock mínimo",
+  maximo_producto: "Stock máximo",
+  categoria_producto: "Categoría",
+  proveedor_producto: "Proveedor",
+  marca_producto: "Marca",
+  descripcion_producto: "Descripción",
+  codigo_producto: "Código",
+};
+
+// DRF manda {"campo": ["mensaje", ...]} en errores de validacion; esto lo vuelve legible
+const formatearErroresApi = (error) => {
+  if (error && typeof error === "object" && !error.response && !error.message) {
+    const lineas = Object.entries(error)
+      .filter(([, valor]) => Array.isArray(valor))
+      .map(([campo, mensajes]) => {
+        const etiqueta = ETIQUETAS_CAMPO[campo] || campo;
+        return `${etiqueta}: ${mensajes.join(" ")}`;
+      });
+    if (lineas.length > 0) return lineas.join("<br/>");
+  }
+  return (
+    error?.response?.data?.detail ||
+    error?.message ||
+    "No se pudo guardar el producto. Por favor, inténtalo de nuevo."
+  );
+};
+
 export default function useInventario() {
   const [productos, setProductos] = useState([]);
   const [categorias, setCategorias] = useState([]);
@@ -279,14 +312,9 @@ export default function useInventario() {
         return handleSessionExpired();
       }
 
-      const errorMessage =
-        error.response?.data?.detail ||
-        error.message ||
-        "No se pudo guardar el producto. Por favor, inténtalo de nuevo.";
-
       await Swal.fire({
         title: "Error",
-        text: errorMessage,
+        html: formatearErroresApi(error),
         icon: "error",
         confirmButtonColor: "#712b39",
       });
