@@ -26,11 +26,14 @@ export default function AbonoFila({
     });
   };
 
-  const nombreCliente = abono.cliente
-    ? `${abono.cliente.nombre_cliente || ""} ${abono.cliente.apellido_cliente || ""}`.trim()
-    : abono.venta?.cliente_venta
-    ? `${abono.venta.cliente_venta.nombre_cliente || ""} ${abono.venta.cliente_venta.apellido_cliente || ""}`.trim()
-    : "Cliente Mostrador";
+  const nombreCliente =
+    abono.cliente?.nombre_cliente
+      ? `${abono.cliente.nombre_cliente} ${abono.cliente.apellido_cliente || ""}`.trim()
+      : abono.venta?.cliente_nombre
+      ? abono.venta.cliente_nombre
+      : abono.venta?.cliente?.nombre_cliente
+      ? `${abono.venta.cliente.nombre_cliente} ${abono.venta.cliente.apellido_cliente || ""}`.trim()
+      : "Cliente Mostrador";
 
   return (
     <tr

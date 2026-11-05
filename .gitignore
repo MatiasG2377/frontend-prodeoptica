@@ -84,3 +84,4 @@ pip-delete-this-directory.txt
 .env.production.local
 start_frontend.bat
 start_frontend.vbs
+AGENTS.md
