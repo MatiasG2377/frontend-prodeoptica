@@ -3,9 +3,11 @@ import { CardSkeleton } from '../common/Skeleton';
 import React, { useState, useEffect, useCallback } from "react";
 import { Pie } from "react-chartjs-2";
 import { Chart as ChartJS, ArcElement, Tooltip, Legend } from "chart.js";
-import * as XLSX from "xlsx";
+import { FaDownload } from "react-icons/fa";
 import { format, startOfMonth, startOfYear, endOfMonth, endOfYear } from "date-fns";
 import Swal from "sweetalert2";
+import { downloadPDF, downloadExcel } from "../../utils/exportCierreCaja";
+import KardexDownloadModal from "../kardex/kardexDownloadModal";
 
 ChartJS.register(ArcElement, Tooltip, Legend);
 
@@ -16,6 +18,8 @@ export default function CierreCajaView() {
   const [fechaFin, setFechaFin] = useState(format(new Date(), "yyyy-MM-dd"));
   const [loading, setLoading] = useState(false);
   const [periodoActivo, setPeriodoActivo] = useState("Hoy");
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [detalleLoading, setDetalleLoading] = useState(false);
 
   const [resumen, setResumen] = useState({
     ingresos: { efectivo: 0, transferencia: 0, tarjeta: 0, total: 0 },
@@ -55,6 +59,53 @@ export default function CierreCajaView() {
   useEffect(() => {
     cargarDatos();
   }, [cargarDatos]);
+
+  const cargarDetalle = async () => {
+    const params = new URLSearchParams();
+    if (fechaInicio) params.append("fecha_inicio", fechaInicio);
+    if (fechaFin) params.append("fecha_fin", fechaFin);
+    const queryParams = params.toString() ? `?${params.toString()}` : "";
+
+    const headers = {
+      Authorization: `Bearer ${localStorage.getItem("access_token")}`,
+    };
+
+    const [resVentas, resAbonos, resEgresos] = await Promise.all([
+      fetch(`${BASE_URL}/ventas/fecha/${queryParams}`, { headers }),
+      fetch(`${BASE_URL}/abonos/fecha/${queryParams}`, { headers }),
+      fetch(`${BASE_URL}/egresos/fecha/${queryParams}`, { headers }),
+    ]);
+
+    if (!resVentas.ok || !resAbonos.ok || !resEgresos.ok) {
+      throw new Error("Error al obtener el detalle del cierre de caja");
+    }
+
+    const [ventas, abonos, egresos] = await Promise.all([
+      resVentas.json(),
+      resAbonos.json(),
+      resEgresos.json(),
+    ]);
+
+    return { ventas, abonos, egresos };
+  };
+
+  const handleDescargar = async (tipo) => {
+    try {
+      setDetalleLoading(true);
+      const { ventas, abonos, egresos } = await cargarDetalle();
+      const datos = { resumen, fechaInicio, fechaFin, ventas, abonos, egresos };
+
+      if (tipo === "pdf" || tipo === "ambos") downloadPDF(datos);
+      if (tipo === "excel" || tipo === "ambos") downloadExcel(datos);
+
+      setIsModalOpen(false);
+    } catch (error) {
+      console.error(error);
+      Swal.fire("Error", "No se pudo generar el reporte", "error");
+    } finally {
+      setDetalleLoading(false);
+    }
+  };
 
   const seleccionarPeriodo = (periodo) => {
     const hoy = new Date();
@@ -102,8 +153,6 @@ export default function CierreCajaView() {
     });
   };
 
-  // Removed descargarExcel as requested
-
   const chartData = {
     labels: ['Efectivo', 'Transferencia', 'Tarjeta'],
     datasets: [
@@ -118,10 +167,21 @@ export default function CierreCajaView() {
   return (
     <div className="w-full max-w-6xl mx-auto space-y-6">
       <div className="flex flex-col xl:flex-row justify-between items-center bg-white p-4 rounded-xl shadow gap-4">
-        <h2 className="text-xl md:text-2xl font-bold text-[#712b39] w-full xl:w-auto text-center xl:text-left">
-          Reporte de Caja
-        </h2>
-        
+        <div className="flex items-center justify-between gap-4 w-full xl:w-auto">
+          <h2 className="text-xl md:text-2xl font-bold text-[#712b39] text-center xl:text-left">
+            Reporte de Caja
+          </h2>
+          <button
+            type="button"
+            onClick={() => setIsModalOpen(true)}
+            disabled={loading || detalleLoading}
+            className="inline-flex items-center gap-2 px-4 py-2 bg-white border border-[#712b39] text-[#712b39] hover:bg-[#712b39] hover:text-white rounded-xl text-xs sm:text-sm font-bold shadow-xs transition active:scale-95 disabled:opacity-40 disabled:pointer-events-none"
+          >
+            <FaDownload className="text-sm" />
+            <span>Descargar Reporte</span>
+          </button>
+        </div>
+
         {/* Filtros Rápidos */}
         <div className="flex flex-wrap justify-center bg-gray-100 p-1 rounded-lg w-full xl:w-auto overflow-x-auto">
           {["Hoy", "Este Mes", "Este Año", "Historico"].map((p) => (
@@ -245,6 +305,16 @@ export default function CierreCajaView() {
             </div>
           </div>
         </div>
+      )}
+
+      {isModalOpen && (
+        <KardexDownloadModal
+          title="Descargar Reporte de Caja"
+          onClose={() => setIsModalOpen(false)}
+          onPDF={() => handleDescargar("pdf")}
+          onExcel={() => handleDescargar("excel")}
+          onBoth={() => handleDescargar("ambos")}
+        />
       )}
     </div>
   );

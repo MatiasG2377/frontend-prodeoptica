@@ -14,11 +14,12 @@ export default function KardexDownloadModal({
   onPDF,
   onExcel,
   onBoth,
+  title = "Descargar Kardex",
 }) {
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
       <div className="bg-white rounded-lg p-6 w-96">
-        <h2 className="text-lg font-bold mb-4">Descargar Kardex</h2>
+        <h2 className="text-lg font-bold mb-4">{title}</h2>
         <div className="flex flex-col gap-4">
           <button
             className="bg-[#f3f3f3] text-gray-600 py-2 px-4 rounded-lg hover:bg-[#e0e0e0]"
