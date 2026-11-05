@@ -1,22 +1,29 @@
 "use client";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useMemo } from "react";
 import Swal from "sweetalert2";
 
 const BASE_URL = process.env.NEXT_PUBLIC_API_URL;
+
+const getAuthHeaders = () => {
+  const token = typeof window !== "undefined" ? localStorage.getItem("access_token") : null;
+  return {
+    "Content-Type": "application/json",
+    ...(token && { Authorization: `Bearer ${token}` }),
+  };
+};
 
 export default function useDashboard() {
   const [productos, setProductos] = useState([]);
   const [categorias, setCategorias] = useState([]);
   const [selectedCategoria, setSelectedCategoria] = useState(null);
   const [search, setSearch] = useState("");
-  const [loading, setLoading] = useState(false);
+  const [loading, setLoading] = useState(true);
   const [modalImage, setModalImage] = useState(null);
 
-  // Función para normalizar la URL de la imagen
+  // Normalizar la URL de la imagen y campos
   const normalizarProducto = (producto) => {
-    let url = producto.imagen_url || producto.imagen || null;
+    let url = producto.imagen_url || producto.imagen_producto || producto.imagen || null;
 
-    // Si es relativa, agregamos el backend
     if (url && url.startsWith("/media")) {
       url = `${BASE_URL.replace("/api", "")}${url}`;
     }
@@ -27,22 +34,30 @@ export default function useDashboard() {
     };
   };
 
-  // Cargar categorías
+  // Cargar categorías al montar
   useEffect(() => {
-    fetch(`${BASE_URL}/categorias/`)
-      .then((res) => res.json())
-      .then(setCategorias)
+    let isMounted = true;
+    fetch(`${BASE_URL}/categorias/`, { headers: getAuthHeaders() })
+      .then((res) => {
+        if (!res.ok) throw new Error("Error al cargar categorías");
+        return res.json();
+      })
+      .then((data) => {
+        if (isMounted) {
+          const list = Array.isArray(data) ? data : data.results || [];
+          setCategorias(list);
+        }
+      })
       .catch((err) => {
-        Swal.fire({
-          icon: "error",
-          title: "Error",
-          text: "Hubo un problema al cargar las categorías.",
-          confirmButtonColor: "#7d2a3f",
-        });
+        console.warn("No se pudieron cargar categorías iniciales:", err);
       });
+
+    return () => {
+      isMounted = false;
+    };
   }, []);
 
-  // Cargar productos
+  // Cargar productos con debounce de 300ms
   useEffect(() => {
     const controller = new AbortController();
     const signal = controller.signal;
@@ -53,45 +68,47 @@ export default function useDashboard() {
         let url = "";
 
         if (search.trim()) {
-          url = `${BASE_URL}/productos/buscar/?q=${search}`;
+          url = `${BASE_URL}/productos/buscar/?q=${encodeURIComponent(search.trim())}`;
         } else if (selectedCategoria) {
           url = `${BASE_URL}/productos/filtrar_por_categoria/?categoria=${selectedCategoria}`;
         } else {
           url = `${BASE_URL}/productos/disponibles/`;
         }
 
-        const res = await fetch(url, { signal });
-        const data = await res.json();
+        const res = await fetch(url, { headers: getAuthHeaders(), signal });
+        if (!res.ok) {
+          if (res.status === 401 || res.status === 403) {
+            return;
+          }
+          throw new Error(`Error ${res.status}: al cargar productos`);
+        }
 
-        const rawProductos = Array.isArray(data) ? data : data.results;
+        const data = await res.json();
+        const rawProductos = Array.isArray(data) ? data : data.results || [];
         const productosNormalizados = rawProductos.map(normalizarProducto);
 
         setProductos(productosNormalizados);
       } catch (error) {
         if (error.name !== "AbortError") {
-          Swal.fire({
-            icon: "error",
-            title: "Error",
-            text: "Hubo un problema al obtener los productos.",
-            confirmButtonColor: "#7d2a3f",
-          });
+          console.error("Error al obtener productos:", error);
         }
       } finally {
         setLoading(false);
       }
     };
 
-    const timeout = setTimeout(fetchProductos, 400);
+    const timeout = setTimeout(fetchProductos, 300);
     return () => {
       clearTimeout(timeout);
       controller.abort();
     };
   }, [search, selectedCategoria]);
 
-  // Filtrar productos que controlan stock
-  const filteredProductos = productos.filter(
-    (p) => !p.controla_stock || Number(p.cantidad_producto) > 0
-  );
+  const filteredProductos = useMemo(() => {
+    return productos.filter(
+      (p) => !p.controla_stock || Number(p.cantidad_producto) > 0
+    );
+  }, [productos]);
 
   return {
     categorias,

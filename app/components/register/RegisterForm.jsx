@@ -258,35 +258,47 @@ export default function RegisterForm({
         <div>
           <label
             htmlFor="rol"
-            className="block text-sm font-medium"
-            style={{ color: "#712b39" }}
+            className="block text-sm font-semibold text-[#712b39]"
           >
             Rol de Usuario
           </label>
-          <input
-            type="hidden"
+          <select
             id="rol"
-          />
-          <div className="w-full mt-1 px-4 py-2 border border-gray-300 bg-gray-50 rounded-lg shadow-sm text-gray-700">
-            Usuario
-          </div>
+            name="rol"
+            value={rolUsuario || "Usuario"}
+            onChange={(e) => setRolUsuario(e.target.value)}
+            className="w-full mt-1 px-4 py-2 border border-gray-300 rounded-lg shadow-sm text-sm focus:outline-none focus:ring-2 focus:ring-[#712b39]"
+          >
+            <option value="Usuario">Usuario (Operativo)</option>
+            <option value="Gerente">Gerente</option>
+            <option value="Administrador">Administrador</option>
+          </select>
         </div>
 
         <div>
           <label
             htmlFor="sucursal"
-            className="block text-sm font-medium"
-            style={{ color: "#712b39" }}
+            className="block text-sm font-semibold text-[#712b39]"
           >
             Sucursal
           </label>
-          <input
-            type="hidden"
+          <select
             id="sucursal"
-          />
-          <div className="w-full mt-1 px-4 py-2 border border-gray-300 bg-gray-50 rounded-lg shadow-sm text-gray-700">
-            Quito
-          </div>
+            name="sucursal"
+            value={sucursalUsuario || (sucursales[0]?.id || 1)}
+            onChange={(e) => setSucursalUsuario(e.target.value)}
+            className="w-full mt-1 px-4 py-2 border border-gray-300 rounded-lg shadow-sm text-sm focus:outline-none focus:ring-2 focus:ring-[#712b39]"
+          >
+            {Array.isArray(sucursales) && sucursales.length > 0 ? (
+              sucursales.map((suc) => (
+                <option key={suc.id} value={suc.id}>
+                  {suc.nombre_sucursal || `Sucursal ${suc.id}`}
+                </option>
+              ))
+            ) : (
+              <option value="1">Sucursal 1 (Quito)</option>
+            )}
+          </select>
         </div>
       </div>
 

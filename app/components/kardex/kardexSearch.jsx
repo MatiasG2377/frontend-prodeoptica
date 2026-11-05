@@ -1,65 +1,92 @@
+"use client";
+import React from "react";
+import { Search, Package, CheckCircle2 } from "lucide-react";
+
 /**
- * Componente que renderiza un formulario de búsqueda de productos en el Kardex y
- * una lista de resultados de la búsqueda.
- *
- *? @param {string} searchTerm - El texto de búsqueda actual.
- *? @param {function} onSearch - La función para actualizar el estado del formulario de búsqueda.
- *? @param {{ id: number, nombre_producto: string }[]} productos - La lista de productos a mostrar en la búsqueda.
- *? @param {function} onSelect - La función para seleccionar un producto de la lista.
- *
- *? @returns {JSX.Element} El componente KardexSearch.
+ * Componente que renderiza un buscador inteligente de productos para el Kardex
+ * con autocompletado y preview de stock / código.
  */
 export default function KardexSearch({
   searchTerm,
   onSearch,
-  productos,
+  productos = [],
   onSelect,
+  selectedProducto = null,
 }) {
+  const isTyping = Boolean(searchTerm && searchTerm.trim().length > 0);
+
   return (
-    <div className="bg-white p-6 rounded-lg shadow-md mb-6">
-      <h2 className="text-2xl font-bold mb-4">Buscar Producto</h2>
+    <div className="bg-white p-5 rounded-2xl shadow-xs border border-gray-200 mb-6">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 mb-3">
+        <div>
+          <h2 className="text-lg font-bold text-gray-800 flex items-center gap-2">
+            <Search className="w-5 h-5 text-[#712b39]" />
+            <span>Seleccionar Producto para Auditar Kardex</span>
+          </h2>
+          <p className="text-xs text-gray-500">
+            Escribe el nombre o código del producto para cargar su historial valorado de entradas y salidas.
+          </p>
+        </div>
+
+        {selectedProducto && (
+          <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-xl bg-emerald-50 text-emerald-800 border border-emerald-200 text-xs font-semibold self-start sm:self-auto">
+            <CheckCircle2 className="w-4 h-4 text-emerald-600" />
+            <span>
+              Producto activo: <strong>{selectedProducto.nombre_producto}</strong>
+            </span>
+          </div>
+        )}
+      </div>
+
       <div className="relative w-full">
-        <span className="absolute inset-y-0 left-3 flex items-center pointer-events-none">
-          <svg
-            xmlns="http://www.w3.org/2000/svg"
-            fill="none"
-            viewBox="0 0 24 24"
-            strokeWidth={2}
-            stroke="black"
-            className="w-5 h-5"
-          >
-            <path
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              d="M11 19a8 8 0 100-16 8 8 0 000 16z"
-            />
-            <path
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              d="M21 21l-4.35-4.35"
-            />
-          </svg>
-        </span>
+        <Search className="w-5 h-5 absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none" />
         <input
           type="text"
-          className="w-full p-3 pl-10 border border-gray-300 rounded-full focus:outline-none focus:ring-2 focus:ring-[#712b39]"
-          placeholder="Escribe el nombre del producto..."
+          className="w-full pl-11 pr-4 py-2.5 bg-gray-50 border border-gray-300 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-[#712b39] focus:bg-white transition"
+          placeholder="Escribe el nombre o código del producto (ej: Armazón, Ray-Ban, Luna)..."
           value={searchTerm}
           onChange={(e) => onSearch(e.target.value)}
         />
       </div>
-      {productos.length > 0 && (
-        <ul className="mt-4 max-h-40 overflow-y-auto border rounded shadow-md">
-          {productos.map((producto) => (
-            <li
-              key={producto.id}
-              className="p-2 cursor-pointer hover:bg-gray-200"
-              onClick={() => onSelect(producto.id)}
-            >
-              {producto.nombre_producto}
-            </li>
-          ))}
-        </ul>
+
+      {/* Resultados de búsqueda flotantes / desplegables */}
+      {isTyping && (
+        <div className="mt-2 bg-white rounded-xl border border-gray-200 shadow-md max-h-56 overflow-y-auto divide-y divide-gray-100">
+          {productos.length > 0 ? (
+            productos.map((producto) => (
+              <div
+                key={producto.id}
+                className="p-3 hover:bg-gray-50 cursor-pointer flex items-center justify-between transition group"
+                onClick={() => onSelect(producto.id)}
+              >
+                <div className="flex items-center gap-3">
+                  <div className="w-8 h-8 rounded-lg bg-gray-100 group-hover:bg-red-50 text-gray-500 group-hover:text-[#712b39] flex items-center justify-center transition">
+                    <Package className="w-4 h-4" />
+                  </div>
+                  <div>
+                    <p className="text-sm font-bold text-gray-800 group-hover:text-[#712b39] transition">
+                      {producto.nombre_producto}
+                    </p>
+                    <p className="text-xs text-gray-400">
+                      Cód: {producto.codigo_producto || "S/C"} • Stock actual:{" "}
+                      <strong className="text-gray-700">
+                        {producto.cantidad_producto ?? "—"}
+                      </strong>
+                    </p>
+                  </div>
+                </div>
+
+                <span className="text-xs font-bold text-[#712b39] group-hover:underline">
+                  Auditar →
+                </span>
+              </div>
+            ))
+          ) : (
+            <div className="p-4 text-center text-xs text-gray-500">
+              No se encontraron productos que coincidan con &ldquo;{searchTerm}&rdquo;.
+            </div>
+          )}
+        </div>
       )}
     </div>
   );

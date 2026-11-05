@@ -1,4 +1,5 @@
 "use client";
+import { CardSkeleton } from '../common/Skeleton';
 import React, { useState, useEffect, useCallback } from "react";
 import { Pie } from "react-chartjs-2";
 import { Chart as ChartJS, ArcElement, Tooltip, Legend } from "chart.js";
@@ -157,8 +158,8 @@ export default function CierreCajaView() {
       </div>
 
       {loading ? (
-        <div className="flex justify-center p-10">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#712b39]"></div>
+        <div className="py-4">
+          <CardSkeleton count={3} />
         </div>
       ) : (
         <div className="bg-white rounded-xl shadow overflow-hidden">

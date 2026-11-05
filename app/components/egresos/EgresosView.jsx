@@ -1,4 +1,5 @@
 "use client";
+import { TableSkeleton } from '../common/Skeleton';
 import React, { useState, useEffect, useCallback } from "react";
 import Swal from "sweetalert2";
 
@@ -204,7 +205,7 @@ export default function EgresosView() {
       />
 
       {loading ? (
-        <p className="text-gray-500">Cargando egresos...</p>
+        <TableSkeleton rows={5} cols={6} />
       ) : egresos.length === 0 ? (
         <p className="text-gray-500">No hay egresos registrados.</p>
       ) : (

@@ -46,7 +46,7 @@ export function interceptarFetchConLogout() {
       return response;
       
     } catch (error) {
-      console.error('Error en la petición fetch:', error);
+      console.warn('Advertencia en petición fetch (servidor no disponible o error de red):', error?.message || error);
       throw error;
     }
   };

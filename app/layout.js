@@ -1,6 +1,5 @@
 import localFont from "next/font/local";
 import "./globals.css";
-import "@fortawesome/fontawesome-free/css/all.min.css";
 import ClientInterceptor from "./components/ClientInterceptor";
 
 const geistSans = localFont({
@@ -16,8 +15,8 @@ const geistMono = localFont({
 });
 
 export const metadata = {
-  title: "Sistema Gestión ProdeOptica",
-  description: "Sistema de gestión de óptica privado",
+  title: "Sistema Gestión ProdeÓptica",
+  description: "Sistema integral de gestión óptica, refracción clínica y punto de venta",
   icons: {
     icon: "/img/logo.webp",
     shortcut: "/img/logo.webp",
