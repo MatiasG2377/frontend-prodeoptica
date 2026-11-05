@@ -224,9 +224,18 @@ export default function useInventario() {
 
     try {
       const dataToSend = new FormData();
+      const CAMPOS_NUMERICOS_OPCIONALES = [
+        "costo_producto",
+        "cantidad_producto",
+        "minimo_producto",
+        "maximo_producto",
+      ];
 
       for (const [key, value] of Object.entries(formData)) {
         if (key === "id" || key === "imagen_producto" || value === null || value === undefined) {
+          continue;
+        }
+        if (value === "" && CAMPOS_NUMERICOS_OPCIONALES.includes(key)) {
           continue;
         }
 
