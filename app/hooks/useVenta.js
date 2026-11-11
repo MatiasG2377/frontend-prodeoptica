@@ -43,8 +43,20 @@ export default function useVenta() {
   const [progreso, setProgreso] = useState(1);
   const [ordenLaboratorio, setOrdenLaboratorio] = useState('');
   const [ordenTrabajo, setOrdenTrabajo] = useState('');
-  const usuarioVenta = 1;
-  const sucursalVenta = 1;
+  
+  const getUsuarioInfo = () => {
+    if (typeof window === "undefined") return { usuarioId: 1, sucursalId: 1 };
+    try {
+      const u = JSON.parse(localStorage.getItem("usuario_info") || "{}");
+      return {
+        usuarioId: u.id || 1,
+        sucursalId:
+          u.sucursal_id || (typeof u.sucursal === "number" ? u.sucursal : 1),
+      };
+    } catch {
+      return { usuarioId: 1, sucursalId: 1 };
+    }
+  };
 
   useEffect(() => {
     const token = localStorage.getItem("access_token");
@@ -182,10 +194,11 @@ export default function useVenta() {
       const cliente = resultado?.cliente;
       if (!cliente || !cliente.id) throw new Error("Cliente inválido o sin ID");
 
+      const { usuarioId, sucursalId } = getUsuarioInfo();
       const ventaData = {
         cliente_venta: cliente.id,
-        usuario_venta: usuarioVenta,
-        sucursal_venta: sucursalVenta,
+        usuario_venta: usuarioId,
+        sucursal_venta: sucursalId,
         total_venta: total,
         estado_venta: "F",
         metodo_venta: metodoVenta,
@@ -245,8 +258,11 @@ export default function useVenta() {
             if (cantidadActual > 0) {
               await registrarMovimientoKardex({
                 producto_kardex: producto.id,
+                producto_movimientoInventario: producto.id,
                 tipo_kardex: "Salida",
+                tipo_movimientoInventario: "Salida",
                 cantidad_kardex: Math.min(cantidad, cantidadActual), // Solo registrar lo que realmente había
+                cantidad_movimientoInventario: Math.min(cantidad, cantidadActual),
                 costo_unitario_kardex: costoValido.toFixed(2),
                 costo_total_kardex: (
                   costoValido * Math.min(cantidad, cantidadActual)
@@ -254,6 +270,7 @@ export default function useVenta() {
                 saldo_cantidad_kardex: nuevoStock,
                 saldo_costo_kardex: (costoValido * nuevoStock).toFixed(2),
                 referencia_kardex: `Venta #${venta.id}`,
+                motivo_movimientoInventario: `Venta #${venta.id}`,
               });
             } else {
               console.warn(
@@ -268,7 +285,9 @@ export default function useVenta() {
       if (abonoInicial && parseFloat(montoAbono) > 0) {
         await registrarAbono({
           venta: venta.id,
+          venta_id: venta.id,
           cliente: cliente.id,
+          cliente_id: cliente.id,
           monto: parseFloat(montoAbono),
           metodo_pago: metodoAbono,
         });

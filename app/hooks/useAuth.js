@@ -26,11 +26,12 @@ export function useAuth({ redirectToLogin = true } = {}) {
 
     try {
       const usuario = JSON.parse(localStorage.getItem("usuario_info"));
-      if (usuario?.id && usuario?.username_usuario && usuario?.sucursal) {
+      if (usuario?.id && usuario?.username_usuario) {
         setUser({
           id: usuario.id,
           username: usuario.username_usuario,
           sucursal: usuario.sucursal,
+          sucursal_id: usuario.sucursal_id || (typeof usuario.sucursal === "number" ? usuario.sucursal : 1),
         });
       } else {
         throw new Error("Datos incompletos");

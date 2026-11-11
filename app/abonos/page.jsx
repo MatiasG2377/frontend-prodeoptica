@@ -263,7 +263,9 @@ export default function AbonosPage() {
         },
         body: JSON.stringify({
           cliente: abono.cliente?.id || abono.venta?.cliente?.id,
+          cliente_id: abono.cliente?.id || abono.venta?.cliente?.id,
           venta: abono.venta?.id || abono.venta,
+          venta_id: abono.venta?.id || abono.venta,
           monto: montoNuevo,
           fecha: new Date().toISOString(),
           metodo_pago: "Efectivo",
@@ -322,7 +324,9 @@ export default function AbonosPage() {
         body: JSON.stringify({
           ...abonoSeleccionado,
           cliente: abonoSeleccionado.cliente?.id || abonoSeleccionado.cliente,
+          cliente_id: abonoSeleccionado.cliente?.id || abonoSeleccionado.cliente,
           venta: abonoSeleccionado.venta?.id || abonoSeleccionado.venta,
+          venta_id: abonoSeleccionado.venta?.id || abonoSeleccionado.venta,
           monto,
         }),
       });

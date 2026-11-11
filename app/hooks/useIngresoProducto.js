@@ -163,19 +163,6 @@ export default function useIngresoProducto(router) {
         motivo_movimientoInventario: motivo,
       });
 
-      await registrarKardex({
-        producto_kardex: selectedProducto.id,
-        tipo_kardex: "Entrada",
-        cantidad_kardex: cantidad,
-        costo_unitario_kardex: costo.toFixed(2),
-        costo_total_kardex: (cantidad * costo).toFixed(2),
-        saldo_cantidad_kardex: productoActualizado.cantidad_producto,
-        saldo_costo_kardex: (
-          productoActualizado.cantidad_producto * costo
-        ).toFixed(2),
-        referencia_kardex: motivo,
-      });
-
       Swal.fire({
         icon: "success",
         title: "Éxito",

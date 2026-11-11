@@ -456,7 +456,13 @@ export default function FichaMedicaCompleta() {
   function normalizarCamposEnteros(data, campos) {
     const copia = { ...data };
     campos.forEach((campo) => {
-      copia[campo] = copia[campo] === "" ? null : parseInt(copia[campo], 10);
+      const val = copia[campo];
+      if (val === "" || val === null || val === undefined) {
+        copia[campo] = null;
+      } else {
+        const num = parseInt(val, 10);
+        copia[campo] = isNaN(num) ? null : num;
+      }
     });
     return copia;
   }
@@ -522,11 +528,26 @@ export default function FichaMedicaCompleta() {
 
     const parsed = { ...data };
     for (const field of integerFields) {
-      parsed[field] = data[field] === "" ? null : parseInt(data[field], 10);
+      const val = data[field];
+      if (val === "" || val === null || val === undefined) {
+        parsed[field] = null;
+      } else {
+        const num = parseInt(val, 10);
+        parsed[field] = isNaN(num) ? null : num;
+      }
     }
 
     for (const field of decimalFields) {
-      parsed[field] = data[field] === "" ? null : parseFloat(data[field]);
+      const val = data[field];
+      if (val === "" || val === null || val === undefined) {
+        parsed[field] = null;
+      } else if (typeof val === "string") {
+        const normalized = val.replace(",", ".");
+        const num = parseFloat(normalized);
+        parsed[field] = isNaN(num) ? null : num;
+      } else {
+        parsed[field] = isNaN(val) ? null : Number(val);
+      }
     }
 
     return parsed;
@@ -607,11 +628,15 @@ export default function FichaMedicaCompleta() {
       }
 
       // 3. Preparar y enviar ficha médica
+      const sucursalId =
+        user?.sucursal_id ||
+        (typeof user?.sucursal === "number" ? user?.sucursal : 1);
+
       const fichaPayload = {
         ...parseOpticalData(opticalData),
         paciente: pacienteId,
         usuario: user?.id,
-        sucursal: user?.sucursal,
+        sucursal: sucursalId,
       };
 
       // Normalizar campos enteros
